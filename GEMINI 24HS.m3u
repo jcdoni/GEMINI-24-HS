@@ -1,63 +1,11 @@
 #EXTM3U
 
-#EXTINF:-1 group-title="24 HORAS",CANAL 1 (ID 832400)
-http://govfederal.org:80/t1214c/87gzhd/832400.ts
-#EXTINF:-1 group-title="24 HORAS",CANAL 2 (ID 832401)
-http://govfederal.org:80/t1214c/87gzhd/832401.ts
-#EXTINF:-1 group-title="24 HORAS",CANAL 3 (ID 832402)
-http://govfederal.org:80/t1214c/87gzhd/832402.ts
-#EXTINF:-1 group-title="24 HORAS",CANAL 4 (ID 832403)
-http://govfederal.org:80/t1214c/87gzhd/832403.ts
-#EXTINF:-1 group-title="24 HORAS",CANAL 5 (ID 832404)
-http://govfederal.org:80/t1214c/87gzhd/832404.ts
-#EXTINF:-1 group-title="24 HORAS",CANAL 6 (ID 832405)
-http://govfederal.org:80/t1214c/87gzhd/832405.ts
-#EXTINF:-1 group-title="24 HORAS",CANAL 7 (ID 832406)
-http://govfederal.org:80/t1214c/87gzhd/832406.ts
-#EXTINF:-1 group-title="24 HORAS",CANAL 8 (ID 832407)
-http://govfederal.org:80/t1214c/87gzhd/832407.ts
-#EXTINF:-1 group-title="24 HORAS",CANAL 9 (ID 832408)
-http://govfederal.org:80/t1214c/87gzhd/832408.ts
-#EXTINF:-1 group-title="24 HORAS",CANAL 10 (ID 832409)
-http://govfederal.org:80/t1214c/87gzhd/832409.ts
-#EXTINF:-1 group-title="24 HORAS",CANAL 11 (ID 832410)
-http://govfederal.org:80/t1214c/87gzhd/832410.ts
-#EXTINF:-1 group-title="24 HORAS",CANAL 12 (ID 832411)
-http://govfederal.org:80/t1214c/87gzhd/832411.ts
-#EXTINF:-1 group-title="24 HORAS",CANAL 13 (ID 832412)
-http://govfederal.org:80/t1214c/87gzhd/832412.ts
-#EXTINF:-1 group-title="24 HORAS",CANAL 14 (ID 832413)
-http://govfederal.org:80/t1214c/87gzhd/832413.ts
-#EXTINF:-1 group-title="24 HORAS",CANAL 15 (ID 832414)
-http://govfederal.org:80/t1214c/87gzhd/832414.ts
-#EXTINF:-1 group-title="24 HORAS",CANAL 16 (ID 832415)
-http://govfederal.org:80/t1214c/87gzhd/832415.ts
-#EXTINF:-1 group-title="24 HORAS",CANAL 17 (ID 832416)
-http://govfederal.org:80/t1214c/87gzhd/832416.ts
-#EXTINF:-1 group-title="24 HORAS",CANAL 18 (ID 832417)
-http://govfederal.org:80/t1214c/87gzhd/832417.ts
-#EXTINF:-1 group-title="24 HORAS",CANAL 19 (ID 832418)
-http://govfederal.org:80/t1214c/87gzhd/832418.ts
-#EXTINF:-1 group-title="24 HORAS",CANAL 20 (ID 832419)
-http://govfederal.org:80/t1214c/87gzhd/832419.ts
-#EXTINF:-1 group-title="24 HORAS",CANAL 21 (ID 832420)
-http://govfederal.org:80/t1214c/87gzhd/832420.ts
-#EXTINF:-1 group-title="24 HORAS",CANAL 22 (ID 832421)
-http://govfederal.org:80/t1214c/87gzhd/832421.ts
-#EXTINF:-1 group-title="24 HORAS",CANAL 23 (ID 832422)
-http://govfederal.org:80/t1214c/87gzhd/832422.ts
-#EXTINF:-1 group-title="24 HORAS",CANAL 24 (ID 832423)
-http://govfederal.org:80/t1214c/87gzhd/832423.ts
-#EXTINF:-1 group-title="24 HORAS",CANAL 25 (ID 832424)
-http://govfederal.org:80/t1214c/87gzhd/832424.ts
-#EXTINF:-1 group-title="24 HORAS",CANAL 26 (ID 832425)
-http://govfederal.org:80/t1214c/87gzhd/832425.ts
-#EXTINF:-1 group-title="24 HORAS",CANAL 27 (ID 832426)
-http://govfederal.org:80/t1214c/87gzhd/832426.ts
-#EXTINF:-1 group-title="24 HORAS",CANAL 28 (ID 832427)
+#EXTINF:-1 group-title="24 HORAS",3 PALAVRINHAS
 http://govfederal.org:80/t1214c/87gzhd/832427.ts
-#EXTINF:-1 group-title="24 HORAS",CANAL 29 (ID 832428)
+
+#EXTINF:-1 group-title="24 HORAS",A FAMILIA ADAMS
 http://govfederal.org:80/t1214c/87gzhd/832428.ts
+
 #EXTINF:-1 group-title="24 HORAS",CANAL 30 (ID 832429)
 http://govfederal.org:80/t1214c/87gzhd/832429.ts
 #EXTINF:-1 group-title="24 HORAS",CANAL 31 (ID 832430)
