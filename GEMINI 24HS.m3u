@@ -1,7 +1,7 @@
 #EXTM3U
 #EXTINF:-1 tvg-logo="LOGO" group-title="GRUPO",CANAL
 http://govfederal.org:80/t1214c/87gzhd/832450.ts
-#EXTINF:-1 tvg-logo="LOGO" group-title="GRUPO",TODO MUNDO ODEIA O CHRIS
+#EXTINF:-1 tvg-logo="LOGO" group-title="24 HORAS",TODO MUNDO ODEIA O CHRIS
 http://govfederal.org:80/t1214c/87gzhd/832524.ts
 #EXTINF:-1 tvg-logo="LOGO" group-title="24 HORAS",BIG BANG THEORY
 http://govfederal.org:80/t1214c/87gzhd/832448.ts
