@@ -1,6 +1,7 @@
 #EXTM3U
 #EXTINF:-1 tvg-logo="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT9IVtjUQ7aaVhHxB5tDWnN7vmNKxA5yHbwYg&s" group-title="24 HORAS",ALF
 http://govfederal.org:80/t1214c/87gzhd/832450.ts
+#EXTINF:-1 tvg-logo="" group-title="",CHRIS
 http://govfederal.org:80/t1214c/87gzhd/832524.ts
 #EXTINF:-1 tvg-logo="LOGO" group-title="24 HORAS",BIG BANG THEORY
 http://govfederal.org:80/t1214c/87gzhd/832448.ts
