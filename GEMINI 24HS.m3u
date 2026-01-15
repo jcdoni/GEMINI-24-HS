@@ -37,7 +37,7 @@ http://govfederal.org:80/t1214c/87gzhd/832503.ts
 http://govfederal.org:80/t1214c/87gzhd/832449.ts
 #EXTINF:-1 tvg-logo="" group-title="24 HS",OS JETSONS
 https://stmv1.srvif.com/jetsontv/jetsontv/playlist.m3u8
-#EXTINF:-1 tvg-logo="LOGO" group-title="24 HORAS",OS FLINTSTONES
+#EXTINF:-1 tvg-logo="" group-title="24 HS",OS FLINTSTONES
 http://govfederal.org:80/t1214c/87gzhd/832500.ts
 #EXTINF:-1 tvg-logo="LOGO" group-title="24 HORAS",OS FLINTSTONES 2
 http://govfederal.org:80/t1214c/87gzhd/832501.ts
