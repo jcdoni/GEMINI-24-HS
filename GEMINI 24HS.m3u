@@ -1,4 +1,5 @@
 #EXTM3U
+#EXTINF:-1 tvg-logo="" group-title="24 HS",Chaves
 http://govfederal.org:80/t1214c/87gzhd/832450.ts
 #EXTINF:-1 tvg-logo="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCL6ZLo4JPWkk8rZjk4HZEuSNEwTAMSltfKg&s" group-title="24 HS",TODO MUNDO ODEIA O CHRIS
 http://govfederal.org:80/t1214c/87gzhd/832524.ts
