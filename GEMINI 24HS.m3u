@@ -225,7 +225,7 @@ http://govfederal.org:80/t1214c/87gzhd/832533.ts
 http://govfederal.org:80/t1214c/87gzhd/832536.ts
 #EXTINF:-1 tvg-logo="" group-title="24 HS",#EXTINF:-1 tvg-logo="https://i.imgur.com/9L6L6Z6.png" group-title="24 HORAS",LOADING TV
 https://stmv1.srvif.com/loadingtv/loadingtv/playlist.m3u8
-#EXTINF:-1 tvg-logo="#EXTINF:-1 tvg-logo="https://i.imgur.com/vH6vRkS.png" group-title="24 HORAS",GOSPEL CARTOON" group-title="24 HS",#EXTINF:-1 tvg-logo="https://i.imgur.com/vH6vRkS.png" group-title="24 HORAS",GOSPEL CARTOON
+#EXTINF:-1 tvg-logo="https://i.imgur.com/vH6vRkS.png" group-title="24 HS",#EXTINF:-1 tvg-logo="https://i.imgur.com/vH6vRkS.png" group-title="24 HORAS",GOSPEL CARTOON
 https://stmv1.srvif.com/gospelcartoon/gospelcartoon/playlist.m3u8
 #EXTINF:-1 tvg-logo="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCZIPjUG3xDdQKF9nhD7kjlWkEeYqLPlbNBA&s" group-title="24 HS",RETRÔ CARTOON
 https://stmv1.video.brstream.com.br/retrotv/retrotv/chunklist_w470773381.m3u8
