@@ -1,5 +1,5 @@
 #EXTM3U
-#EXTINF:-1 tvg-logo="https://toppng.com/uploads/preview/animalalf-alf-hd-11563039715xfymz9ucwu.png" group-title="GRUPO",CANAL
+#EXTINF:-1 tvg-logo="https://toppng.com/uploads/preview/animalalf-alf-hd-11563039715xfymz9ucwu.png" group-title="GRUPO",ALF
 http://govfederal.org:80/t1214c/87gzhd/832524.ts
 #EXTINF:-1 tvg-logo="LOGO" group-title="24 HORAS",BIG BANG THEORY
 http://govfederal.org:80/t1214c/87gzhd/832448.ts
