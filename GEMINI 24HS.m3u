@@ -341,3 +341,6 @@ https://stmv1.srvif.com/loadingtv/loadingtv/playlist.m3u8
 
 #EXTINF:-1 tvg-logo="https://i.imgur.com/vH6vRkS.png" group-title="24 HORAS",GOSPEL CARTOON
 https://stmv1.srvif.com/gospelcartoon/gospelcartoon/playlist.m3u8
+
+#EXTINF:-1 tvg-logo="COLE O LINK DA LOGO AQUI" group-title="24 HORAS",RETRÔ CARTOON
+https://stmv1.video.brstream.com.br/retrotv/retrotv/chunklist_w470773381.m3u8
