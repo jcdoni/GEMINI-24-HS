@@ -333,3 +333,12 @@ http://govfederal.org:80/t1214c/87gzhd/832533.ts
 #EXTINF:-1 group-title="24 HORAS",X-MEN 
 http://govfederal.org:80/t1214c/87gzhd/832536.ts
 
+#EXTINF: -1 tvg-logo="https://raw.githubusercontent.com/mariosanthos/arquivos/main/Jetsons.png" group-title="24 HORAS", OS JETSONS
+https://stmv1.srvif.com/jetsontv/jetsontv/playlist.m3u8
+
+#EXTINF: -1 tvg-logo="https://i.imgur.com/9L6L6Z6.png" group-title="24 HORAS", LOADING TV
+https://stmv1.srvif.com/loadingtv/loadingtv/playlist.m3u8
+
+#EXTINF: -1 tvg-logo="https://i.imgur.com/vH6vRkS.png" group-title="24 HORAS", GOSPEL CARTOON
+https://stmv1.srvif.com/gospelcartoon/gospelcartoon/playlist.m3u8
+ 
