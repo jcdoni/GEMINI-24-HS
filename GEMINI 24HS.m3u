@@ -35,6 +35,8 @@ http://govfederal.org:80/t1214c/87gzhd/832476.ts
 http://govfederal.org:80/t1214c/87gzhd/832503.ts
 #EXTINF:-1 tvg-logo="COLE O LINK DA LOGO AQUI" group-title="24 HORAS",BOB ESPONJA
 http://govfederal.org:80/t1214c/87gzhd/832449.ts
+#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/mariosanthos/arquivos/main/Jetsons.png" group-title="24 HORAS",OS JETSONS
+https://stmv1.srvif.com/jetsontv/jetsontv/playlist.m3u8
 #EXTINF:-1 tvg-logo="COLE O LINK DA LOGO AQUI" group-title="24 HORAS",OS FLINTSTONES
 http://govfederal.org:80/t1214c/87gzhd/832500.ts
 #EXTINF:-1 tvg-logo="COLE O LINK DA LOGO AQUI" group-title="24 HORAS",OS FLINTSTONES 2
@@ -221,8 +223,6 @@ http://govfederal.org:80/t1214c/87gzhd/832532.ts
 http://govfederal.org:80/t1214c/87gzhd/832533.ts
 #EXTINF:-1 tvg-logo="COLE O LINK DA LOGO AQUI" group-title="24 HORAS",X-MEN
 http://govfederal.org:80/t1214c/87gzhd/832536.ts
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/mariosanthos/arquivos/main/Jetsons.png" group-title="24 HORAS",OS JETSONS
-https://stmv1.srvif.com/jetsontv/jetsontv/playlist.m3u8
 #EXTINF:-1 tvg-logo="https://i.imgur.com/9L6L6Z6.png" group-title="24 HORAS",LOADING TV
 https://stmv1.srvif.com/loadingtv/loadingtv/playlist.m3u8
 #EXTINF:-1 tvg-logo="https://i.imgur.com/vH6vRkS.png" group-title="24 HORAS",GOSPEL CARTOON
