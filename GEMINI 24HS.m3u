@@ -1,4 +1,4 @@
-#EXTM3U
+#EXTM3U x-tvg-url="https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/PlutoTV/br.xml"
 #FAVORITOS
 #EXTINF:-1 tvg-id="globo.br" tvg-logo="https://upload.wikimedia.org/wikipedia/pt/5/51/Logotipo_da_TV_TEM.png" group-title="FAVORITOS", TV TEM BAURU
 http://cf.gaminghub8k.online:80/live/7c47cb23a693/224d740de7/439316.ts
