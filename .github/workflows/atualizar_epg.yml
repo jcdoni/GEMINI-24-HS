@@ -2,31 +2,33 @@ name: Atualizador de EPG Gemini
 
 on:
   schedule:
-    - cron: '0 3 * * *' # Roda todo dia às 3 da manhã
-  workflow_dispatch: # Permite que você rode manualmente se quiser
+    - cron: '0 3 * * *' # Roda às 03:00 AM diariamente
+  workflow_dispatch: # Permite rodar manualmente
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Baixar Código
-        uses: actions/checkout@v3
+    - name: Baixar código do repositório
+      uses: actions/checkout@v3
 
-      - name: Configurar Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
+    - name: Configurar Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
 
-      - name: Instalar Dependências
-        run: pip install requests
+    - name: Instalar ferramentas de mineração
+      run: |
+        pip install requests beautifulsoup4 lxml
 
-      - name: Rodar Tradutor de EPG
-        run: python processar_epg.py
+    - name: Rodar Minerador de EPG
+      run: python processar_epg.py
 
-      - name: Salvar Novo EPG no GitHub
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add epg-gemini.xml
-          git commit -m "EPG Atualizado automaticamente" || exit 0
-          git push
+    - name: Salvar novo arquivo no GitHub
+      run: |
+        git config --global user.name "GitHub Action"
+        git config --global user.email "action@github.com"
+        git add epg-gemini.xml
+        git commit -m "EPG atualizado via Mineração Mi.tv [skip ci]" || echo "Sem mudanças para salvar"
+        git push
