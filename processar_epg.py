@@ -1,120 +1,98 @@
 import requests
-from bs4 import BeautifulSoup
+import gzip
 import xml.etree.ElementTree as ET
-from datetime import datetime, timedelta
 import re
-import time
+import io
 
-# Configurações de Identidade
-GENERATOR_NAME = "Gemini-Sinopse-Image-Miner"
+# Configurações
+SOURCE_URL = "https://epgshare01.online/epgshare01/epg_ripper_BR1.xml.gz"
 FILE_NAME = "epg-gemini.xml"
-BASE_URL = "https://meuguia.tv"
 
 def limpar_id(nome):
-    """Padroniza para o formato NOME.BR"""
+    """Padroniza os IDs para o formato NOME.BR"""
     n = str(nome).upper()
-    n = re.sub(r' HD| SD| 4K| BRASIL| SUDOESTE| PAULISTA| RJ| SP', '', n)
+    # Remove termos comuns que sujam o ID
+    n = re.sub(r' HD| SD| 4K| BRASIL| SUDOESTE| PAULISTA| RJ| SP| BR', '', n)
+    # Remove caracteres especiais
     n = re.sub(r'[^A-Z0-9]', '', n).strip()
     return f"{n}.BR" if n else "CANAL.BR"
 
-def minerar_detalhes():
-    print(f"🚀 Iniciando Mineração de Elite (Sinopses + Imagens)...")
-    root = ET.Element("tv", {"generator-info-name": GENERATOR_NAME})
+def baixar_e_processar():
+    print(f"📡 Baixando EPG Premium de: {SOURCE_URL}")
     
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
     }
 
     try:
-        # 1. Mapeia todos os canais disponíveis na categoria "Todos"
-        print("📡 Mapeando lista de canais...")
-        response = requests.get(f"{BASE_URL}/programacao/categoria/Todos", headers=headers, timeout=30)
+        # 1. Baixar o arquivo compactado
+        response = requests.get(SOURCE_URL, headers=headers, timeout=60)
         if response.status_code != 200:
-            print(f"❌ Erro ao acessar lista de canais: {response.status_code}")
+            print(f"❌ Erro ao baixar arquivo: {response.status_code}")
             return
 
-        soup = BeautifulSoup(response.text, 'lxml')
-        links_canais = soup.find_all('a', href=re.compile(r'/programacao/canal/'))
-        
-        canais_para_processar = {}
-        for l in links_canais:
-            nome_c = l.find('h2').text.strip() if l.find('h2') else l.text.strip()
-            if nome_c:
-                canais_para_processar[nome_c] = BASE_URL + l['href']
+        # 2. Descompactar o GZ em memória
+        print("📦 Descompactando dados...")
+        with gzip.GzipFile(fileobj=io.BytesIO(response.content)) as f:
+            xml_content = f.read()
 
-        print(f"🔍 {len(canais_para_processar)} canais encontrados. Iniciando extração individual...")
+        # 3. Analisar o XML
+        print("⚙️ Processando e limpando IDs...")
+        old_root = ET.fromstring(xml_content)
+        new_root = ET.Element("tv", {"generator-info-name": "Gemini-Premium-Integrator"})
 
-        for nome_canal, url_canal in canais_para_processar.items():
-            id_final = limpar_id(nome_canal)
-            print(f"📥 Extraindo: {nome_canal} -> {id_final}")
+        # Mapear canais e programas
+        canal_map = {}
+
+        # Processar Canais
+        for channel in old_root.findall('channel'):
+            display_name = channel.find('display-name').text if channel.find('display-name') is not None else ""
+            if not display_name: continue
             
-            # Tag do Canal
-            c_tag = ET.SubElement(root, "channel", id=id_final)
-            ET.SubElement(c_tag, "display-name").text = nome_canal
+            old_id = channel.get('id')
+            new_id = limpar_id(display_name)
+            canal_map[old_id] = new_id
 
-            try:
-                # 2. Entra na URL PRÓPRIA do canal para pegar sinopses e imagens
-                res_c = requests.get(url_canal, headers=headers, timeout=20)
-                soup_c = BeautifulSoup(res_c.text, 'lxml')
+            c_tag = ET.SubElement(new_root, "channel", id=new_id)
+            ET.SubElement(c_tag, "display-name").text = display_name
+            
+            # Manter ícone do canal se existir
+            icon = channel.find('icon')
+            if icon is not None:
+                ET.SubElement(c_tag, "icon", src=icon.get('src'))
+
+        # Processar Programas
+        print("🎬 Vinculando programas, imagens e sinopses...")
+        for prog in old_root.findall('programme'):
+            old_chan_id = prog.get('channel')
+            if old_chan_id in canal_map:
+                new_chan_id = canal_map[old_chan_id]
                 
-                # Cada item de programação
-                itens = soup_c.find_all('li', class_=re.compile(r'program'))
+                # Criar nova tag de programa com o ID limpo
+                p_tag = ET.SubElement(new_root, "programme", {
+                    "start": prog.get('start'),
+                    "stop": prog.get('stop'),
+                    "channel": new_chan_id
+                })
                 
-                for item in itens:
-                    t_tag = item.find('h3') or item.find('span', class_='title')
-                    h_tag = item.find('span', class_='time')
-                    if not t_tag or not h_tag: continue
+                # Copiar Título, Descrição, Categoria e Ícone (Imagem do Programa)
+                for elem in prog:
+                    new_elem = ET.SubElement(p_tag, elem.tag, elem.attrib)
+                    new_elem.text = elem.text
 
-                    titulo = t_tag.text.strip()
-                    horario = h_tag.text.strip()
-                    
-                    # EXTRAÇÃO DE IMAGEM
-                    img_tag = item.find('img')
-                    img_url = ""
-                    if img_tag:
-                        img_url = img_tag.get('src') or img_tag.get('data-src') or ""
-                        if img_url.startswith('//'): img_url = "https:" + img_url
-
-                    # EXTRAÇÃO DE SINOPSE
-                    # No detalhe do canal, a sinopse costuma estar no atributo 'title' do link ou numa div
-                    sinopse = item.get('title') or "Sem sinopse detalhada disponível no momento."
-                    
-                    # Tratar Horário
-                    agora = datetime.now()
-                    try:
-                        h, m = horario.split(':')
-                        dt_start = agora.replace(hour=int(h), minute=int(m), second=0, microsecond=0)
-                        if dt_start < agora - timedelta(hours=8): dt_start += timedelta(days=1)
-                        
-                        start_xml = dt_start.strftime("%Y%m%d%H%M%S -0300")
-                        stop_xml = (dt_start + timedelta(hours=1)).strftime("%Y%m%d%H%M%S -0300")
-                        
-                        # Montar Programa no XML
-                        p_tag = ET.SubElement(root, "programme", start=start_xml, stop=stop_xml, channel=id_final)
-                        ET.SubElement(p_tag, "title", lang="pt").text = titulo
-                        ET.SubElement(p_tag, "desc", lang="pt").text = sinopse
-                        if img_url:
-                            ET.SubElement(p_tag, "icon", src=img_url)
-                    except:
-                        continue
-
-                # Delay curto para evitar bloqueio por excesso de requisições
-                time.sleep(0.3)
-
-            except Exception as e:
-                print(f"   ⚠️ Erro ao processar canal {nome_canal}: {e}")
-
-        # 3. Salva o arquivo final
-        tree = ET.ElementTree(root)
+        # 4. Salvar o novo arquivo XML
+        tree = ET.ElementTree(new_root)
         ET.indent(tree, space="\t", level=0)
+        
+        print(f"💾 Salvando arquivo final: {FILE_NAME}")
         with open(FILE_NAME, "wb") as f:
             f.write(b'<?xml version="1.0" encoding="UTF-8"?>\n')
             tree.write(f, encoding="utf-8")
         
-        print(f"✅ Sucesso absoluto! {FILE_NAME} gerado com imagens e sinopses.")
+        print(f"✅ Sucesso! EPG gerado com dados de hoje ({len(canal_map)} canais).")
 
     except Exception as e:
-        print(f"💥 Falha Geral: {e}")
+        print(f"💥 Erro no processamento: {e}")
 
 if __name__ == "__main__":
-    minerar_detalhes()
+    baixar_e_processar()
