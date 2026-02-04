@@ -1,27 +1,2 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tv generator-info-name="Gemini-Elite-Miner">
-	<channel id="FILMES.BR">
-		<display-name>Filmes</display-name>
-	</channel>
-	<channel id="SRIES.BR">
-		<display-name>Séries</display-name>
-	</channel>
-	<channel id="ESPORTES.BR">
-		<display-name>Esportes</display-name>
-	</channel>
-	<channel id="INFANTIL.BR">
-		<display-name>Infantil</display-name>
-	</channel>
-	<channel id="VARIEDADES.BR">
-		<display-name>Variedades</display-name>
-	</channel>
-	<channel id="DOCUMENTRIOS.BR">
-		<display-name>Documentários</display-name>
-	</channel>
-	<channel id="NOTCIAS.BR">
-		<display-name>Notícias</display-name>
-	</channel>
-	<channel id="TVABERTA.BR">
-		<display-name>TV aberta</display-name>
-	</channel>
-</tv>
+<tv generator-info-name="Gemini-Deep-Miner" />
