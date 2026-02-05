@@ -1,34 +1,42 @@
-name: Atualizador de EPG Gemini
+# ====================================================================
+# 🧬 DNA - PROTOCOLO DE INTEGRIDADE GEMINI (WORKFLOW)
+# ====================================================================
+# AMBIENTE: GITHUB ACTIONS
+# FUNÇÃO: Automatizar a geração do epg-gemini.xml (A-Z)
+# ====================================================================
+
+name: Atualizar EPG Gemini
 
 on:
   schedule:
-    - cron: '0 3 * * *' # Roda às 03:00 AM diariamente
-  workflow_dispatch: # Permite rodar manualmente
+    - cron: '0 6 * * *' # Roda às 03:00 AM Horário de Brasília
+  workflow_dispatch: # Permite rodar manualmente no botão
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # 🧬 CRÍTICO: Permite ao GitHub salvar o arquivo
 
     steps:
-    - name: Baixar código do repositório
-      uses: actions/checkout@v3
+      - name: Checkout do Repositório
+        uses: actions/checkout@v4
 
-    - name: Configurar Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
 
-    - name: Instalar ferramentas de mineração
-      run: |
-        pip install requests beautifulsoup4 lxml
+      - name: Instalar Dependências
+        run: pip install requests
 
-    - name: Rodar Minerador de EPG
-      run: python processar_epg.py
+      - name: Executar Processador de EPG
+        run: python processar_epg.py
 
-    - name: Salvar novo arquivo no GitHub
-      run: |
-        git config --global user.name "GitHub Action"
-        git config --global user.email "action@github.com"
-        git add epg-gemini.xml
-        git commit -m "EPG atualizado via Mineração Mi.tv [skip ci]" || echo "Sem mudanças para salvar"
-        git push
+      - name: Salvar Alterações (Commit & Push)
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add epg-gemini.xml
+          git commit -m "🧬 EPG Atualizado (DNA Ultra-Alpha) [skip ci]" || echo "Nenhuma alteração detectada"
+          git push
