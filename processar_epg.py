@@ -5,7 +5,6 @@ import re
 import io
 
 # --- Configurações ---
-# Agora com as duas fontes oficiais
 SOURCES = [
     "https://epgshare01.online/epgshare01/epg_ripper_BR1.xml.gz",
     "https://epgshare01.online/epgshare01/epg_ripper_BR2.xml.gz"
@@ -31,11 +30,14 @@ def gerar_id_limpo(display_name):
 
 def baixar_e_processar():
     new_root = ET.Element("tv", {"generator-info-name": "Gemini-Multi-Source-Cleaner"})
+    
+    # Armazenamento temporário para ordenação
+    lista_canais = []
+    lista_programas = []
+    
     mapa_de_ids = {} 
     ids_ja_criados = set()
     programas_adicionados = set()
-    count_canais = 0
-    count_progs = 0
 
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
 
@@ -50,7 +52,7 @@ def baixar_e_processar():
             
             old_root = ET.fromstring(xml_content)
 
-            # 1. Processar Canais da fonte atual
+            # 1. Coletar Canais
             for channel in old_root.findall('channel'):
                 original_id = channel.get('id')
                 d_name_elem = channel.find('display-name')
@@ -62,15 +64,23 @@ def baixar_e_processar():
 
                 if novo_id not in ids_ja_criados:
                     ids_ja_criados.add(novo_id)
-                    count_canais += 1
-                    c_tag = ET.SubElement(new_root, "channel", id=novo_id)
+                    
                     nome_visual = display_name.split("  ")[-1] if "  " in display_name else display_name
-                    ET.SubElement(c_tag, "display-name").text = re.sub(r' ³| ²', '', nome_visual).strip()
+                    nome_visual = re.sub(r' ³| ²', '', nome_visual).strip()
+                    
+                    icon_src = ""
                     icon = channel.find('icon')
                     if icon is not None:
-                        ET.SubElement(c_tag, "icon", src=icon.get('src'))
+                        icon_src = icon.get('src')
+                    
+                    # Guarda para ordenar depois
+                    lista_canais.append({
+                        'id': novo_id,
+                        'name': nome_visual,
+                        'icon': icon_src
+                    })
 
-            # 2. Processar Programas da fonte atual
+            # 2. Coletar Programas
             for prog in old_root.findall('programme'):
                 old_chan = prog.get('channel')
                 if old_chan in mapa_de_ids:
@@ -80,17 +90,27 @@ def baixar_e_processar():
                     
                     if chave_prog not in programas_adicionados:
                         programas_adicionados.add(chave_prog)
-                        count_progs += 1
-                        p_tag = ET.SubElement(new_root, "programme", {
-                            "start": start, 
-                            "stop": prog.get('stop'), 
-                            "channel": new_chan
-                        })
-                        for child in prog:
-                            elem = ET.SubElement(p_tag, child.tag, child.attrib)
-                            elem.text = child.text
+                        lista_programas.append(prog) # Guarda o elemento XML original do programa
+                        # Atualiza o ID do canal no elemento para o padrão .BR
+                        prog.set('channel', new_chan)
+
         except Exception as e:
             print(f"⚠️ Erro ao processar fonte {url}: {e}")
+
+    # --- AGORA A MÁGICA: ORDENAÇÃO ---
+    print("🔤 Ordenando canais alfabeticamente...")
+    lista_canais.sort(key=lambda x: x['name'])
+
+    # Adiciona os canais ordenados ao XML final
+    for c in lista_canais:
+        c_tag = ET.SubElement(new_root, "channel", id=c['id'])
+        ET.SubElement(c_tag, "display-name").text = c['name']
+        if c['icon']:
+            ET.SubElement(c_tag, "icon", src=c['icon'])
+
+    # Adiciona os programas
+    for p in lista_programas:
+        new_root.append(p)
 
     # Salvar arquivo final consolidado
     tree = ET.ElementTree(new_root)
@@ -99,7 +119,7 @@ def baixar_e_processar():
         f.write(b'<?xml version="1.0" encoding="UTF-8"?>\n')
         tree.write(f, encoding="utf-8")
     
-    print(f"💾 Sucesso! {count_canais} Canais e {count_progs} Programas salvos em {FILE_NAME}")
+    print(f"💾 Sucesso! {len(lista_canais)} Canais ordenados em {FILE_NAME}")
 
 if __name__ == "__main__":
     baixar_e_processar()
