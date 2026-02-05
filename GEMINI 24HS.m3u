@@ -1,4 +1,4 @@
-#EXTM3U x-tvg-url="https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/PlutoTV/br.xml,https://raw.githubusercontent.com/jcdoni/GEMINI-24-HS/main/epg-gemini.xml"
+#EXTM3U x-tvg-url="https://tinyurl.com/epgmundo,https://tinyurl.com/epgeuropa,https://raw.githubusercontent.com/jcdoni/GEMINI-24-HS/refs/heads/main/epg-gemini.xml,https://epgshare01.online/epgshare01/epg_ripper_BR1.xml.gz,https://epgshare01.online/epgshare01/epg_ripper_BR2.xml.gz"
 #EXTINF:-1 tvg-id="TVTEMBAURU.BR" tvg-logo="https://upload.wikimedia.org/wikipedia/pt/5/51/Logotipo_da_TV_TEM.png" group-title="FAVORITOS", TV TEM BAURU
 http://cf.gaminghub8k.online:80/live/7c47cb23a693/224d740de7/439316.ts
 #EXTINF:-1 tvg-id="GLOBO.BR" tvg-logo="https://github.com/tv-logo/tv-logos/blob/main/countries/brazil/globo-br.png?raw=true" group-title="FAVORITOS", GLOBO
