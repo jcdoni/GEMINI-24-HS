@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini TV v6.2 | Professional Edition</title>
+    <title>Gemini TV v6.3 | Pro Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -41,75 +41,98 @@
             border-bottom: 1px solid var(--border);
         }
 
-        /* Layout Dual Pane */
-        .editor-wrapper {
+        /* Editor Dual Pane - Espaçoso */
+        .editor-container {
             display: grid;
             grid-template-columns: 320px 1fr;
             height: calc(100vh - 80px);
         }
 
-        .column-groups {
+        .groups-column {
             background: var(--bg-sidebar);
             border-right: 1px solid var(--border);
             display: flex;
-            flex-col: column;
+            flex-direction: column;
         }
 
-        .column-channels {
-            overflow-y: auto;
+        .channels-column {
             background: var(--fire-dark);
-        }
-
-        /* Toolbars Expostas */
-        .toolbar-exposed {
             display: flex;
-            gap: 8px;
-            padding: 10px;
-            background: rgba(0,0,0,0.2);
-            border-bottom: 1px solid var(--border);
-            overflow-x: auto;
+            flex-direction: column;
+            overflow: hidden;
         }
 
-        .tool-btn {
+        /* Toolbars Superiores */
+        .toolbar-top {
+            display: flex;
+            gap: 6px;
+            padding: 10px;
+            background: rgba(0,0,0,0.15);
+            border-bottom: 1px solid var(--border);
+            min-height: 50px;
+            align-items: center;
+        }
+
+        .btn-tool {
             background: var(--fire-card);
             border: 1px solid var(--border);
-            padding: 6px 10px;
-            border-radius: 6px;
+            padding: 4px 8px;
+            border-radius: 4px;
             font-size: 10px;
             font-weight: 700;
+            color: var(--text-main);
             text-transform: uppercase;
-            white-space: nowrap;
             cursor: pointer;
             transition: 0.2s;
+            white-space: nowrap;
         }
 
-        .tool-btn:hover {
+        .btn-tool:hover {
             border-color: var(--fire-blue);
             color: var(--fire-blue);
         }
 
-        /* Linhas Estilo m3u4u */
-        .list-row {
+        /* Linhas Estilizadas */
+        .item-row {
             display: flex;
             align-items: center;
-            padding: 8px 16px;
+            padding: 10px 15px;
             border-bottom: 1px solid var(--border);
             transition: 0.2s;
         }
 
-        .list-row:hover { background: rgba(0, 168, 225, 0.05); }
-        .list-row.active { background: var(--fire-blue); color: white; }
-        .list-row.hidden-item { opacity: 0.4; }
+        .item-row:hover { background: rgba(0, 168, 225, 0.05); }
+        .item-row.active { background: var(--fire-blue); color: white; }
+        .item-row.hidden-item { opacity: 0.4; }
 
-        .playlist-table { width: 100%; border-collapse: collapse; }
-        .playlist-table th { text-align: left; padding: 15px; border-bottom: 2px solid var(--border); color: var(--fire-blue); font-size: 11px; text-transform: uppercase; }
-        .playlist-table td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 13px; }
+        /* Tabela Playlists */
+        .table-pl { width: 100%; border-collapse: collapse; }
+        .table-pl th { text-align: left; padding: 15px; border-bottom: 2px solid var(--border); color: var(--fire-blue); font-size: 11px; text-transform: uppercase; }
+        .table-pl td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 13px; }
 
-        #modal-config { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+        /* Modais */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(8px);
+        }
 
-        .active-tab { color: var(--fire-blue); border-bottom: 3px solid var(--fire-blue); }
-        
+        .modal-content {
+            background: var(--fire-card);
+            padding: 30px;
+            border-radius: 24px;
+            width: 450px;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
         input { background: transparent; border: none; color: inherit; outline: none; }
+        .active-tab { color: var(--fire-blue); border-bottom: 3px solid var(--fire-blue); }
     </style>
 </head>
 <body class="flex flex-col">
@@ -126,9 +149,9 @@
             </div>
         </div>
         <div class="flex items-center space-x-6">
-            <button onclick="toggleTheater()" class="bg-cyan-600 text-white px-5 py-2 rounded-full font-bold text-xs uppercase hover:bg-cyan-500 transition-all">Theater Mode</button>
-            <button onclick="importNew()" class="bg-white text-black px-5 py-2 rounded-full font-bold text-xs uppercase hover:bg-cyan-500 hover:text-white transition-all">+ Importar</button>
-            <i class="fa-solid fa-gear text-gray-400 cursor-pointer hover:text-white text-xl" onclick="openConfig()"></i>
+            <button onclick="openTheater()" class="bg-cyan-600 text-white px-5 py-2 rounded-full font-bold text-xs uppercase hover:bg-cyan-500 transition-all">Theater Mode</button>
+            <button onclick="triggerImport()" class="bg-white text-black px-5 py-2 rounded-full font-bold text-xs uppercase hover:bg-cyan-500 hover:text-white transition-all">+ Importar</button>
+            <i class="fa-solid fa-gear text-gray-400 cursor-pointer hover:text-white text-xl" onclick="toggleModal('modal-config', true)"></i>
         </div>
     </nav>
 
@@ -137,33 +160,28 @@
         <section id="page-home" class="p-12 overflow-y-auto h-full">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 <div>
-                    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6">Playlists Ativas</h3>
-                    <div id="recent-grid" class="flex space-x-6 overflow-x-auto pb-4"></div>
+                    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6">Playlists Recentes</h3>
+                    <div id="recent-grid" class="flex space-x-6"></div>
                 </div>
                 <div>
                     <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6">Acervo VOD</h3>
-                    <div id="vod-grid" class="flex space-x-6 overflow-x-auto pb-4"></div>
+                    <div id="vod-grid" class="flex space-x-6"></div>
                 </div>
             </div>
         </section>
 
         <section id="page-playlists" class="hidden p-12 overflow-y-auto h-full">
-            <div class="flex justify-between items-center mb-10">
-                <h2 class="text-3xl font-bold">Base de Dados</h2>
-                <div class="flex space-x-3">
-                    <button class="bg-cyan-600 text-white px-4 py-2 rounded font-bold text-[10px] uppercase">Push to Cloud</button>
-                </div>
-            </div>
-            <table class="playlist-table">
+            <h2 class="text-3xl font-bold mb-8">Gerenciador de Bases</h2>
+            <table class="table-pl">
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Source URL</th>
-                        <th>Groups</th>
-                        <th>Channels</th>
-                        <th>Last Sync</th>
-                        <th>Exp. Date</th>
-                        <th>Actions</th>
+                        <th>Nome</th>
+                        <th>URL / Source</th>
+                        <th>Grupos</th>
+                        <th>Canais</th>
+                        <th>Último Sync</th>
+                        <th>Validade</th>
+                        <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody id="playlist-rows"></tbody>
@@ -171,101 +189,102 @@
         </section>
 
         <section id="page-editor" class="hidden h-full">
-            <div class="editor-wrapper">
-                <div class="column-groups">
-                    <div class="toolbar-exposed">
-                        <button class="tool-btn" onclick="bulkGroup('add')"><i class="fa-solid fa-plus"></i></button>
-                        <button class="tool-btn" onclick="bulkGroup('az')">A-Z</button>
-                        <button class="tool-btn" onclick="bulkGroup('clean')"><i class="fa-solid fa-broom"></i></button>
+            <div class="editor-container">
+                <div class="groups-column">
+                    <div class="toolbar-top">
+                        <button class="btn-tool" onclick="bulkGroup('az')">A-Z</button>
+                        <button class="btn-tool" onclick="bulkGroup('add')"><i class="fa-solid fa-plus"></i></button>
                     </div>
-                    <div id="group-list" class="flex-1 overflow-y-auto"></div>
+                    <div id="editor-group-list" class="flex-1 overflow-y-auto"></div>
                 </div>
-
-                <div class="column-channels flex flex-col">
-                    <div class="toolbar-exposed">
-                        <button class="tool-btn" onclick="bulkChannel('az')">A-Z</button>
-                        <button class="tool-btn" onclick="bulkChannel('prefix')">Prefix/Suffix</button>
-                        <button class="tool-btn" onclick="bulkChannel('replace')">Find/Replace</button>
-                        <button class="tool-btn" onclick="bulkChannel('move')">Move Group</button>
-                        <button class="tool-btn" onclick="bulkChannel('hide')">Bulk Hide</button>
-                        <button class="tool-btn" onclick="bulkChannel('reset')">Reset</button>
+                <div class="channels-column">
+                    <div class="toolbar-top">
+                        <button class="btn-tool" onclick="bulkChan('az')">Ordenar A-Z</button>
+                        <button class="btn-tool" onclick="bulkChan('prefix')">Prefixo/Sufixo</button>
+                        <button class="btn-tool" onclick="bulkChan('replace')">Find & Replace</button>
+                        <button class="btn-tool" onclick="bulkChan('hide')">Bulk Hide</button>
                         <div class="flex-1"></div>
-                        <button onclick="exportResult()" class="bg-cyan-600 px-4 py-1 rounded text-[10px] font-bold uppercase">Export M3U</button>
+                        <button onclick="exportFullM3U()" class="bg-cyan-600 px-4 py-1 rounded text-[10px] font-bold uppercase">Exportar Lista</button>
                     </div>
-                    <div id="channel-list" class="flex-1 p-4"></div>
+                    <div id="editor-channel-list" class="flex-1 overflow-y-auto p-4"></div>
                 </div>
             </div>
         </section>
     </div>
 
-    <div id="modal-config">
-        <div class="bg-[var(--fire-card)] p-8 rounded-3xl w-[400px] border border-[var(--border)] relative">
-            <i class="fa-solid fa-xmark absolute top-6 right-6 cursor-pointer text-gray-400 hover:text-white text-xl" onclick="closeConfig()"></i>
-            <h3 class="font-bold text-xl mb-8">Preferências</h3>
-            <button onclick="toggleTheme()" class="w-full bg-cyan-600 py-3 rounded-xl font-bold text-xs uppercase tracking-widest mb-4">Alternar Modo Claro/Escuro</button>
-            <div class="p-4 bg-black/20 rounded-xl text-center">
-                <p class="text-[10px] font-bold text-gray-500 uppercase">Motor Gemini TV</p>
-                <p class="text-xs text-cyan-500 mt-1">Status: Operacional</p>
+    <div id="modal-config" class="modal-overlay">
+        <div class="modal-content">
+            <i class="fa-solid fa-xmark absolute top-6 right-6 cursor-pointer opacity-50 hover:opacity-100" onclick="toggleModal('modal-config', false)"></i>
+            <h3 class="font-bold text-xl mb-6">Configurações</h3>
+            <button onclick="toggleTheme()" class="w-full bg-cyan-600 py-3 rounded-xl font-bold text-xs uppercase tracking-widest">Alternar Modo Claro/Escuro</button>
+        </div>
+    </div>
+
+    <div id="modal-download" class="modal-overlay">
+        <div class="modal-content">
+            <i class="fa-solid fa-xmark absolute top-6 right-6 cursor-pointer opacity-50 hover:opacity-100" onclick="toggleModal('modal-download', false)"></i>
+            <h3 class="font-bold text-xl mb-6">Acesso à Playlist</h3>
+            <div class="mb-6 p-4 bg-black/20 rounded-xl">
+                <p class="text-[10px] text-gray-500 uppercase mb-2">Link Direto (Players)</p>
+                <div class="flex">
+                    <input type="text" id="share-link" readonly value="https://gemini.tv/p/demo-link" class="text-xs text-cyan-500 flex-1">
+                    <button class="text-xs font-bold text-white hover:text-cyan-500" onclick="copyLink()">COPIAR</button>
+                </div>
             </div>
+            <button onclick="downloadM3UFile()" class="w-full bg-white text-black py-3 rounded-xl font-bold text-xs uppercase tracking-widest">Baixar Arquivo .M3U</button>
         </div>
     </div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('gemini_v62_db')) || [];
+        let db = JSON.parse(localStorage.getItem('gemini_v63_db')) || [];
         let activeList = null;
-        let selectedGroup = null;
+        let activeGroup = null;
 
         function navigateTo(id) {
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
-            document.querySelectorAll('.glass-nav span').forEach(s => s.classList.remove('active-tab'));
+            document.querySelectorAll('.glass-nav span').forEach(n => n.classList.remove('active-tab'));
             document.getElementById('page-' + id).classList.remove('hidden');
             document.getElementById('nav-' + id).classList.add('active-tab');
             if(id === 'home') renderHome();
             if(id === 'playlists') renderPlaylists();
         }
 
-        async function importNew() {
-            const url = prompt("URL M3U ou Xtream:");
+        async function triggerImport() {
+            const url = prompt("URL da Lista M3U:");
             if(!url) return;
             try {
                 const res = await fetch(`https://geminitv-proxy.jcdoni.workers.dev/?url=${encodeURIComponent(url)}`);
                 const text = await res.text();
-                processData(text, url);
-            } catch(e) { alert("Falha na importação."); }
+                processM3U(text, url);
+            } catch(e) { alert("Erro ao carregar lista."); }
         }
 
-        function processData(text, url) {
+        function processM3U(text, url) {
             const lines = text.split('\n');
             let channels = [];
-            let vods = [];
-            let groups = new Set();
-
+            let groupsSet = new Set();
             lines.forEach(l => {
                 if(l.startsWith('#EXTINF:')) {
-                    const name = l.split(',')[1]?.trim() || "Sem Nome";
+                    const name = l.split(',')[1] || "Sem Nome";
                     const g = (l.match(/group-title="([^"]+)"/) || ["","GERAL"])[1].toUpperCase();
                     const epg = (l.match(/tvg-id="([^"]+)"/) || ["",""])[1];
-                    groups.add(g);
-                    
-                    const obj = {
+                    groupsSet.add(g);
+                    channels.push({
                         id: Math.random().toString(36).substr(2,9),
                         nome: name.replace(/[^a-zA-Z0-9 ]/g, "").trim(),
                         grupo: g,
                         logo: (l.match(/tvg-logo="([^"]+)"/) || ["",""])[1],
                         epg: epg.endsWith('.BRASIL.') ? epg : (epg || name.replace(/\s+/g,'')) + '.BRASIL.',
                         oculto: false
-                    };
-                    if(/S\d+E\d+|Filme|Serie|Temporada/gi.test(name)) vods.push(obj); else channels.push(obj);
+                    });
                 }
             });
-
             db.unshift({
                 id: Date.now(),
-                name: "Lista " + new Date().toLocaleDateString(),
+                name: "Minha Playlist " + (db.length + 1),
                 source: url,
-                channels,
-                vods,
-                groups: Array.from(groups),
+                channels: channels,
+                groups: Array.from(groupsSet),
                 lastSync: new Date().toLocaleString(),
                 exp: "31/12/2026"
             });
@@ -277,85 +296,80 @@
             container.innerHTML = db.map(p => `
                 <tr>
                     <td class="font-bold">${p.name}</td>
-                    <td class="text-xs opacity-50 truncate max-w-[150px]">${p.source}</td>
-                    <td class="text-cyan-500 font-bold">${p.groups.length}</td>
+                    <td class="text-xs opacity-40 truncate max-w-[200px]">${p.source}</td>
+                    <td>${p.groups.length}</td>
                     <td>${p.channels.length}</td>
-                    <td class="text-[10px]">${p.lastSync}</td>
+                    <td class="text-[10px] opacity-60">${p.lastSync}</td>
                     <td class="text-green-500 font-bold">${p.exp}</td>
-                    <td class="space-x-4">
-                        <i class="fa-solid fa-pen-to-square cursor-pointer hover:text-cyan-500" onclick="editList(${p.id})"></i>
-                        <i class="fa-solid fa-trash cursor-pointer hover:text-red-500" onclick="deleteList(${p.id})"></i>
+                    <td>
+                        <div class="flex space-x-4">
+                            <i class="fa-solid fa-pen-to-square cursor-pointer hover:text-cyan-500" onclick="editMetadata(${p.id})"></i>
+                            <i class="fa-solid fa-cloud-arrow-down cursor-pointer hover:text-white" onclick="openDownloadModal(${p.id})"></i>
+                            <i class="fa-solid fa-table-list cursor-pointer hover:text-cyan-500" onclick="loadEditor(${p.id})"></i>
+                            <i class="fa-solid fa-trash cursor-pointer hover:text-red-500" onclick="deletePlaylist(${p.id})"></i>
+                        </div>
                     </td>
                 </tr>
             `).join('');
         }
 
-        function editList(id) {
-            activeList = db.find(p => p.id === id);
+        function loadEditor(id) {
+            activeList = db.find(x => x.id === id);
             navigateTo('editor');
-            renderGroups();
+            renderEditorGroups();
         }
 
-        function renderGroups() {
-            const container = document.getElementById('group-list');
+        function renderEditorGroups() {
+            const container = document.getElementById('editor-group-list');
             container.innerHTML = activeList.groups.map(g => `
-                <div class="list-row cursor-pointer ${selectedGroup === g ? 'active' : ''}" onclick="selectGroup('${g}')">
-                    <i class="fa-solid fa-grip-vertical mr-3 opacity-30"></i>
+                <div class="item-row cursor-pointer ${activeGroup === g ? 'active' : ''}" onclick="selectGroup('${g}')">
                     <span class="text-xs font-bold flex-1 truncate">${g}</span>
-                    <span class="text-[9px] opacity-50">${activeList.channels.filter(c => c.grupo === g).length}</span>
-                </div>
-            `).join('');
-        }
-
-        function selectGroup(g) {
-            selectedGroup = g;
-            renderGroups();
-            renderChannels();
-        }
-
-        function renderChannels() {
-            const container = document.getElementById('channel-list');
-            const filtered = activeList.channels.filter(c => c.grupo === selectedGroup);
-            container.innerHTML = filtered.map((c, i) => `
-                <div class="list-row ${c.oculto ? 'hidden-item' : ''}">
-                    <img src="${c.logo}" class="w-8 h-8 object-contain mr-4 bg-black/20 rounded">
-                    <input type="text" value="${c.nome}" class="flex-1 font-semibold text-sm" onblur="updateChan('${c.id}', this.value)">
-                    <div class="flex items-center space-x-4 ml-4">
-                        <span class="text-[9px] font-mono opacity-30">${c.epg}</span>
-                        <i class="fa-solid ${c.oculto ? 'fa-eye-slash text-red-500' : 'fa-eye text-cyan-500'} cursor-pointer" onclick="toggleChan('${c.id}')"></i>
+                    <div class="flex space-x-2 opacity-0 hover:opacity-100 ml-2">
+                        <i class="fa-solid fa-pen text-[9px] cursor-pointer"></i>
+                        <i class="fa-solid fa-eye text-[9px] cursor-pointer"></i>
+                        <i class="fa-solid fa-trash text-[9px] cursor-pointer"></i>
                     </div>
                 </div>
             `).join('');
         }
 
-        function updateChan(id, val) { 
-            const c = activeList.channels.find(x => x.id === id);
-            if(c) c.nome = val; save(); 
+        function selectGroup(g) {
+            activeGroup = g;
+            renderEditorGroups();
+            renderChannels();
         }
 
-        function toggleChan(id) {
-            const c = activeList.channels.find(x => x.id === id);
-            if(c) c.oculto = !c.oculto;
-            renderChannels(); save();
-        }
-
-        function renderHome() {
-            const g = document.getElementById('recent-grid');
-            g.innerHTML = db.slice(0, 5).map(p => `
-                <div class="card-fire min-w-[200px] p-6 rounded-2xl cursor-pointer" onclick="editList(${p.id})">
-                    <h4 class="font-bold text-xs truncate mb-2">${p.name}</h4>
-                    <p class="text-[10px] opacity-40">${p.channels.length} Canais</p>
+        function renderChannels() {
+            const container = document.getElementById('editor-channel-list');
+            const filtered = activeList.channels.filter(c => c.grupo === activeGroup);
+            container.innerHTML = filtered.map(c => `
+                <div class="item-row ${c.oculto ? 'hidden-item' : ''}">
+                    <img src="${c.logo}" class="w-8 h-8 object-contain mr-4 bg-black/20 rounded">
+                    <input type="text" value="${c.nome}" class="flex-1 font-semibold text-sm" onblur="updateChan('${c.id}', this.value)">
+                    <div class="flex space-x-4 ml-4">
+                        <i class="fa-solid fa-pen text-xs cursor-pointer opacity-30 hover:opacity-100"></i>
+                        <i class="fa-solid ${c.oculto ? 'fa-eye-slash text-red-500' : 'fa-eye text-cyan-500'} cursor-pointer" onclick="toggleChan('${c.id}')"></i>
+                        <i class="fa-solid fa-trash text-xs cursor-pointer opacity-30 hover:text-red-500"></i>
+                    </div>
                 </div>
             `).join('');
         }
 
-        function save() { localStorage.setItem('gemini_v62_db', JSON.stringify(db)); }
-        function toggleTheme() { 
+        function toggleModal(id, show) { document.getElementById(id).style.display = show ? 'flex' : 'none'; }
+        function save() { localStorage.setItem('gemini_v63_db', JSON.stringify(db)); }
+        function updateChan(id, val) { const c = activeList.channels.find(x => x.id === id); if(c) c.nome = val; save(); }
+        function toggleChan(id) { const c = activeList.channels.find(x => x.id === id); if(c) c.oculto = !c.oculto; renderChannels(); save(); }
+
+        function toggleTheme() {
             const isLight = document.body.classList.toggle('light-mode');
             localStorage.setItem('gemini_theme', isLight ? 'light' : 'dark');
         }
-        function openConfig() { document.getElementById('modal-config').style.display = 'flex'; }
-        function closeConfig() { document.getElementById('modal-config').style.display = 'none'; }
+
+        function openDownloadModal(id) {
+            activeList = db.find(x => x.id === id);
+            document.getElementById('share-link').value = `https://gemini.tv/p/${activeList.id}.m3u`;
+            toggleModal('modal-download', true);
+        }
 
         window.onload = () => {
             if(localStorage.getItem('gemini_theme') === 'light') document.body.classList.add('light-mode');
