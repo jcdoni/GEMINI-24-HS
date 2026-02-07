@@ -3,44 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GEMINI GLOBAL | IPTV HUB</title>
+    <title>GEMINI GLOBAL | HUB & EDITOR</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         :root { --primary: #00ff88; --bg: #050505; --panel: #111; --text: #fff; --accent: #222; }
         body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; display: flex; height: 100vh; overflow: hidden; }
         
-        /* SIDEBAR DE GERENCIAMENTO */
-        .sidebar { width: 300px; background: var(--panel); border-right: 1px solid var(--accent); display: flex; flex-direction: column; }
+        .sidebar { width: 300px; background: var(--panel); border-right: 1px solid var(--accent); display: flex; flex-direction: column; z-index: 100; }
         .sidebar-header { padding: 20px; border-bottom: 1px solid var(--accent); text-align: center; }
         .sidebar-content { flex: 1; overflow-y: auto; padding: 10px; }
         
-        /* EDITOR E LISTAS */
-        .list-card { background: #1a1a1a; padding: 15px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #333; }
-        .list-card h4 { margin: 0 0 10px 0; font-size: 14px; color: var(--primary); }
-        .btn-action { width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; font-size: 12px; }
+        .list-card { background: #1a1a1a; padding: 12px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #333; }
+        .list-card h4 { margin: 0 0 8px 0; font-size: 13px; color: var(--primary); }
+        .btn-action { width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; font-size: 11px; transition: 0.3s; }
         .btn-add { background: var(--primary); color: #000; }
         .btn-edit { background: #333; color: #fff; }
 
-        /* ÁREA PRINCIPAL */
-        .main { flex: 1; display: flex; flex-direction: column; position: relative; }
-        .top-nav { height: 60px; background: #000; border-bottom: 1px solid var(--accent); display: flex; align-items: center; padding: 0 20px; justify-content: space-between; }
+        .main { flex: 1; display: flex; flex-direction: column; position: relative; background: var(--bg); }
+        .top-nav { height: 60px; background: #000; border-bottom: 1px solid var(--accent); display: flex; align-items: center; padding: 0 20px; justify-content: space-between; gap: 15px; }
         .content-area { flex: 1; overflow-y: auto; padding: 20px; }
         
-        /* GRID DE CANAIS */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
-        .card { background: #111; border-radius: 8px; overflow: hidden; border: 1px solid #222; cursor: pointer; transition: 0.2s; position: relative; }
-        .card:hover { border-color: var(--primary); transform: translateY(-3px); }
-        .card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; opacity: 0.6; }
-        .card-info { padding: 10px; font-size: 11px; text-align: center; font-weight: bold; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
+        .card { background: #111; border-radius: 8px; overflow: hidden; border: 1px solid #222; cursor: pointer; position: relative; }
+        .card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; opacity: 0.7; }
+        .card-info { padding: 8px; font-size: 10px; text-align: center; font-weight: bold; }
         
-        /* EDITOR OVERLAY */
-        #editor-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 5000; display: none; align-items: center; justify-content: center; }
-        .editor-box { background: #1a1a1a; padding: 30px; border-radius: 15px; width: 400px; display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--primary); }
-        input { padding: 12px; border-radius: 5px; border: 1px solid #333; background: #000; color: #fff; }
+        .edit-badge { position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.8); color: var(--primary); padding: 4px; border-radius: 4px; font-size: 10px; border: 1px solid var(--primary); }
+
+        #editor-overlay, #channel-editor { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000; display: none; align-items: center; justify-content: center; }
+        .editor-box { background: #1a1a1a; padding: 25px; border-radius: 15px; width: 90%; max-width: 380px; display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--primary); }
+        input, select { padding: 12px; border-radius: 5px; border: 1px solid #333; background: #000; color: #fff; outline: none; }
 
         #player-modal { position: fixed; inset: 0; background: #000; z-index: 10000; display: none; }
         video { width: 100%; height: 100%; }
-        .close-btn { position: absolute; top: 20px; left: 20px; z-index: 10001; background: var(--primary); padding: 10px; border-radius: 5px; cursor: pointer; color: #000; font-weight: bold; border: none; }
+        .close-btn { position: absolute; top: 20px; left: 20px; z-index: 10001; background: var(--primary); padding: 10px 15px; border-radius: 5px; cursor: pointer; color: #000; font-weight: bold; border: none; }
     </style>
 </head>
 <body>
@@ -48,19 +44,18 @@
     <div class="sidebar">
         <div class="sidebar-header">
             <h2 style="color:var(--primary); margin:0;">GEMINI HUB</h2>
-            <small style="color:#555">IPTV MANAGER V1.0</small>
+            <div style="font-size: 10px; color:#555">SISTEMA GLOBAL DE EDIÇÃO</div>
         </div>
         <div class="sidebar-content">
-            <button class="btn-action btn-add" onclick="openEditor()">+ ADICIONAR NOVA LISTA</button>
-            <div id="playlists-list" style="margin-top: 20px;">
-                </div>
+            <button class="btn-action btn-add" onclick="openEditor()">+ CONFIGURAR NOVA LISTA</button>
+            <div id="playlists-list" style="margin-top: 15px;"></div>
         </div>
     </div>
 
     <div class="main">
         <div class="top-nav">
-            <div id="current-list-name">Nenhuma lista selecionada</div>
-            <input type="text" id="search" placeholder="Buscar canal..." onkeyup="search()" style="width: 250px; padding: 8px;">
+            <div id="current-list-name" style="font-size: 12px; color: var(--primary);">Nenhuma lista carregada</div>
+            <input type="text" id="search" placeholder="Pesquisar na lista..." onkeyup="search()" style="flex: 1; max-width: 400px;">
         </div>
         <div class="content-area">
             <div class="grid" id="main-grid"></div>
@@ -69,30 +64,39 @@
 
     <div id="editor-overlay">
         <div class="editor-box">
-            <h3 style="margin-top:0">Configurar Fonte IPTV</h3>
-            <label>Nome da Lista:</label>
-            <input type="text" id="list-name" placeholder="Ex: Minha Lista 4K">
-            <label>Tipo de Fonte:</label>
-            <select id="list-type" style="padding:10px; background:#000; color:#fff; border:1px solid #333;">
+            <h3 style="margin:0; color:var(--primary)">Nova Fonte IPTV</h3>
+            <input type="text" id="list-name" placeholder="Nome (Ex: Servidor 01)">
+            <select id="list-type">
                 <option value="xtream">Xtream Codes (API)</option>
-                <option value="m3u">M3U (URL)</option>
+                <option value="m3u">M3U (Link Direto)</option>
             </select>
-            <input type="text" id="list-url" placeholder="URL do Servidor ou Lista">
-            <input type="text" id="list-user" placeholder="Usuário (se Xtream)">
-            <input type="password" id="list-pass" placeholder="Senha (se Xtream)">
-            <button class="btn-action btn-add" onclick="saveList()">SALVAR E LANÇAR</button>
+            <input type="text" id="list-url" placeholder="URL / Host">
+            <input type="text" id="list-user" placeholder="Usuário (Xtream)">
+            <input type="password" id="list-pass" placeholder="Senha (Xtream)">
+            <button class="btn-action btn-add" onclick="saveList()">SALVAR LISTA</button>
             <button class="btn-action btn-edit" onclick="closeEditor()">CANCELAR</button>
         </div>
     </div>
 
+    <div id="channel-editor">
+        <div class="editor-box">
+            <h3 style="margin:0; color:var(--primary)">Editar Canal</h3>
+            <input type="text" id="edit-chan-name" placeholder="Nome do Canal">
+            <input type="text" id="edit-chan-logo" placeholder="URL da Logo">
+            <button class="btn-action btn-add" onclick="saveChannelChange()">APLICAR ALTERAÇÃO</button>
+            <button class="btn-action btn-edit" onclick="closeChannelEditor()">CANCELAR</button>
+        </div>
+    </div>
+
     <div id="player-modal">
-        <button class="close-btn" onclick="closePlayer()">VOLTAR</button>
+        <button class="close-btn" onclick="closePlayer()">← VOLTAR</button>
         <video id="video" controls autoplay playsinline></video>
     </div>
 
     <script>
         let playlists = JSON.parse(localStorage.getItem('gemini_hub_data') || '[]');
         let currentStreams = [];
+        let editingIndex = null;
         let PROXY = "https://api.allorigins.win/raw?url=";
 
         window.onload = renderSidebar;
@@ -103,11 +107,12 @@
         function saveList() {
             const newList = {
                 id: Date.now(),
-                name: document.getElementById('list-name').value,
+                name: document.getElementById('list-name').value || 'Sem Nome',
                 type: document.getElementById('list-type').value,
                 url: document.getElementById('list-url').value,
                 user: document.getElementById('list-user').value,
-                pass: document.getElementById('list-pass').value
+                pass: document.getElementById('list-pass').value,
+                customEdits: {} // Onde guardaremos as edições de nomes/logos
             };
             playlists.push(newList);
             localStorage.setItem('gemini_hub_data', JSON.stringify(playlists));
@@ -121,81 +126,86 @@
                 <div class="list-card">
                     <h4>${l.name}</h4>
                     <button class="btn-action btn-add" onclick="loadPlaylist(${l.id})">CARREGAR</button>
-                    <button class="btn-action btn-edit" style="background:#ff4444" onclick="deleteList(${l.id})">REMOVER</button>
+                    <button class="btn-action btn-edit" style="background:#440000" onclick="deleteList(${l.id})">EXCLUIR</button>
                 </div>
             `).join('');
         }
 
         async function loadPlaylist(id) {
             const list = playlists.find(p => p.id === id);
-            document.getElementById('current-list-name').innerText = `Carregando: ${list.name}...`;
-            
-            let url = "";
-            if(list.type === 'xtream') {
-                url = `${list.url}/player_api.php?username=${list.user}&password=${list.pass}&action=get_live_streams`;
-            } else {
-                url = list.url;
-            }
+            document.getElementById('current-list-name').innerText = `Sincronizando: ${list.name}...`;
+            let fetchUrl = list.type === 'xtream' ? `${list.url}/player_api.php?username=${list.user}&password=${list.pass}&action=get_live_streams` : list.url;
 
             try {
-                const res = await fetch(PROXY + encodeURIComponent(url));
+                const res = await fetch(PROXY + encodeURIComponent(fetchUrl));
                 if(list.type === 'xtream') {
                     const data = await res.json();
                     currentStreams = data.map(i => ({
-                        name: i.name,
-                        logo: i.stream_icon,
-                        url: `${list.url}/${list.user}/${list.pass}/${i.stream_id}.ts`
+                        id: i.stream_id,
+                        name: list.customEdits[i.stream_id]?.name || i.name,
+                        logo: list.customEdits[i.stream_id]?.logo || i.stream_icon,
+                        url: `${list.url}/${list.user}/${list.pass}/${i.stream_id}.ts`,
+                        originalIndex: i.stream_id,
+                        parentListId: list.id
                     }));
-                } else {
-                    const text = await res.text();
-                    currentStreams = parseM3U(text);
                 }
-                document.getElementById('current-list-name').innerText = `Lista Ativa: ${list.name}`;
+                document.getElementById('current-list-name').innerText = `LISTA ATIVA: ${list.name.toUpperCase()}`;
                 renderGrid();
-            } catch(e) { alert("Erro ao carregar fonte."); }
+            } catch(e) { alert("Erro ao carregar. Verifique a URL ou o Servidor."); }
         }
 
         function renderGrid(filter = "") {
             const grid = document.getElementById('main-grid');
             grid.innerHTML = currentStreams
                 .filter(s => s.name.toLowerCase().includes(filter.toLowerCase()))
-                .map(s => `
+                .map((s, idx) => `
                 <div class="card" onclick="play('${s.url}')">
+                    <div class="edit-badge" onclick="event.stopPropagation(); openChannelEditor(${idx})">✎</div>
                     <img src="${s.logo}" onerror="this.src='https://via.placeholder.com/160x90?text=SINAL+TV'">
                     <div class="card-info">${s.name}</div>
                 </div>
             `).join('');
         }
 
-        function parseM3U(data) {
-            const lines = data.split('\n');
-            const items = [];
-            for (let i = 0; i < lines.length; i++) {
-                if (lines[i].startsWith('#EXTINF:')) {
-                    const name = lines[i].split(',')[1] || "Sem Nome";
-                    const logo = lines[i].match(/tvg-logo="([^"]+)"/)?.[1] || "";
-                    const url = lines[i+1]?.trim();
-                    if(url) items.push({ name, logo, url });
-                }
-            }
-            return items;
+        function openChannelEditor(index) {
+            editingIndex = index;
+            const item = currentStreams[index];
+            document.getElementById('edit-chan-name').value = item.name;
+            document.getElementById('edit-chan-logo').value = item.logo;
+            document.getElementById('channel-editor').style.display = 'flex';
         }
+
+        function saveChannelChange() {
+            const item = currentStreams[editingIndex];
+            const list = playlists.find(p => p.id === item.parentListId);
+            
+            const newName = document.getElementById('edit-chan-name').value;
+            const newLogo = document.getElementById('edit-chan-logo').value;
+
+            // Salva na memória da lista específica
+            list.customEdits[item.id] = { name: newName, logo: newLogo };
+            localStorage.setItem('gemini_hub_data', JSON.stringify(playlists));
+            
+            // Atualiza a tela na hora
+            item.name = newName;
+            item.logo = newLogo;
+            renderGrid();
+            closeChannelEditor();
+        }
+
+        function closeChannelEditor() { document.getElementById('channel-editor').style.display = 'none'; }
 
         function play(url) {
             const modal = document.getElementById('player-modal');
             const video = document.getElementById('video');
             modal.style.display = 'block';
-            if(Hls.isSupported() && (url.includes('m3u8') || url.includes('ts'))) {
+            if(Hls.isSupported()) {
                 const hls = new Hls(); hls.loadSource(url); hls.attachMedia(video);
             } else { video.src = url; }
         }
 
         function closePlayer() { document.getElementById('video').pause(); document.getElementById('player-modal').style.display = 'none'; }
-        function deleteList(id) { 
-            playlists = playlists.filter(p => p.id !== id); 
-            localStorage.setItem('gemini_hub_data', JSON.stringify(playlists)); 
-            renderSidebar(); 
-        }
+        function deleteList(id) { if(confirm("Remover esta lista?")) { playlists = playlists.filter(p => p.id !== id); localStorage.setItem('gemini_hub_data', JSON.stringify(playlists)); renderSidebar(); } }
         function search() { renderGrid(document.getElementById('search').value); }
     </script>
 </body>
