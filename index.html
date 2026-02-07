@@ -3,245 +3,311 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini TV | Manual do Editor Pro</title>
+    <title>Gemini TV | Professional IPTV Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap');
         
-        :root { --accent: #22d3ee; --bg: #09090b; --row-bg: #18181b; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #e4e4e7; overflow: hidden; height: 100vh; }
+        :root {
+            --fire-blue: #00a8e1;
+            --fire-dark: #0f171e;
+            --fire-card: #1a242f;
+        }
 
-        /* Estilo Slim para Edição Massiva */
-        .slim-row { height: 42px; border-bottom: 1px solid #27272a; transition: background 0.15s; }
-        .slim-row:hover { background: #27272a; }
-        .slim-row input { background: transparent; border: none; font-size: 13px; width: 100%; color: #fafafa; }
-        .slim-row input:focus { color: var(--accent); outline: none; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--fire-dark);
+            color: white;
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
+        }
 
-        .sidebar-panel { width: 300px; background: #0c0c0e; border-right: 1px solid #1f1f23; }
-        .active-view { display: flex !important; }
+        /* Efeito de Vidro Fire Stick */
+        .glass-nav {
+            background: rgba(15, 23, 30, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
 
-        /* Status Pills */
-        .pill { padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
-        .pill-vod { background: #450a0a; color: #f87171; }
-        .pill-live { background: #064e3b; color: #34d399; }
+        .page-transition {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .card-fire {
+            background: var(--fire-card);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid transparent;
+        }
+
+        .card-fire:hover {
+            transform: scale(1.05);
+            border-color: var(--fire-blue);
+            box-shadow: 0 10px 30px rgba(0, 168, 225, 0.2);
+            z-index: 10;
+        }
+
+        .active-tab {
+            color: var(--fire-blue);
+            border-bottom: 3px solid var(--fire-blue);
+        }
+
+        /* Scroll Customizado */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--fire-dark); }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+
+        .editor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
     </style>
 </head>
-<body class="flex flex-col h-screen">
+<body class="flex flex-col">
 
-    <header class="h-14 border-b border-zinc-800 flex items-center justify-between px-6 bg-zinc-950/80 backdrop-blur">
-        <div class="flex items-center space-x-4">
-            <span class="font-black text-cyan-500 tracking-tighter text-xl">GEMINI TV</span>
-            <div class="h-4 w-[1px] bg-zinc-700"></div>
-            <nav class="flex space-x-6 text-xs font-bold uppercase tracking-widest text-zinc-500">
-                <button onclick="showView('home')" class="hover:text-cyan-400">Início</button>
-                <button onclick="showView('editor')" class="hover:text-cyan-400">Editor</button>
-                <button onclick="showView('config')" class="hover:text-cyan-400">Sincronização</button>
-            </nav>
-        </div>
-        <div class="flex items-center space-x-4 text-[10px] font-mono text-zinc-500">
-            <span>MOTOR: <b class="text-green-500">PRONTO</b></span>
-            <span>DNA: <b class="text-cyan-500">V4.0</b></span>
-        </div>
-    </header>
-
-    <div class="flex flex-1 overflow-hidden">
-        
-        <aside class="sidebar-panel p-6 flex flex-col space-y-6 overflow-y-auto">
-            <div>
-                <h3 class="text-[10px] font-black text-zinc-500 uppercase tracking-[2px] mb-4">Comandos de Extração</h3>
-                <div class="space-y-2">
-                    <button onclick="syncAll()" class="w-full text-left p-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs flex items-center">
-                        <i class="fa-solid fa-sync mr-3 text-cyan-500"></i> SINCRONIZAR TUDO
-                    </button>
-                    <button onclick="promptUrl()" class="w-full text-left p-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs flex items-center">
-                        <i class="fa-solid fa-plus mr-3 text-green-500"></i> EXTRAIR REPOSITÓRIO
-                    </button>
-                    <button onclick="scannerGithub()" class="w-full text-left p-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs flex items-center">
-                        <i class="fa-brands fa-github mr-3 text-white"></i> SCANNER GITHUB
-                    </button>
-                </div>
+    <nav class="glass-nav h-20 flex items-center justify-between px-12 z-50">
+        <div class="flex items-center space-x-10">
+            <div class="text-2xl font-bold tracking-tighter text-white cursor-pointer" onclick="navigateTo('home')">
+                GEMINI<span class="text-cyan-500">TV</span>
             </div>
-
-            <div>
-                <h3 class="text-[10px] font-black text-zinc-500 uppercase tracking-[2px] mb-4">Módulo Cleaner</h3>
-                <div class="space-y-2">
-                    <button onclick="runManualCleaner()" class="w-full text-left p-3 rounded-lg bg-cyan-900/20 hover:bg-cyan-900/40 border border-cyan-800/30 text-xs flex items-center text-cyan-400">
-                        <i class="fa-solid fa-wand-sparkles mr-3"></i> WHITELIST & TAG KILLER
-                    </button>
-                    <button onclick="removeVOD()" class="w-full text-left p-3 rounded-lg bg-red-900/20 hover:bg-red-900/40 border border-red-800/30 text-xs flex items-center text-red-400">
-                        <i class="fa-solid fa-filter-circle-xmark mr-3"></i> EXTERMÍNIO VOD
-                    </button>
-                </div>
+            <div class="flex space-x-8 text-sm font-semibold text-gray-400 uppercase tracking-widest">
+                <span id="nav-home" class="cursor-pointer hover:text-white transition-all active-tab py-7" onclick="navigateTo('home')">Início</span>
+                <span id="nav-database" class="cursor-pointer hover:text-white transition-all py-7" onclick="navigateTo('database')">Projetos</span>
+                <span id="nav-editor" class="cursor-pointer hover:text-white transition-all py-7" onclick="navigateTo('editor')">Editor</span>
             </div>
-
-            <div class="flex-1"></div>
-
-            <button onclick="sendToGithub()" class="w-full bg-white text-black p-3 rounded-lg font-bold text-xs hover:bg-cyan-500 hover:text-white transition-all">
-                ENVIAR PARA GITHUB (LIVE)
+        </div>
+        <div class="flex items-center space-x-6">
+            <button onclick="importNewList()" class="bg-white text-black px-5 py-2 rounded-full font-bold text-xs hover:bg-cyan-500 hover:text-white transition-all">
+                + IMPORTAR LISTA
             </button>
-        </aside>
+            <i class="fa-solid fa-gear text-gray-400 cursor-pointer hover:text-white"></i>
+        </div>
+    </nav>
 
-        <main class="flex-1 flex flex-col bg-zinc-950">
+    <div id="app-container" class="flex-1 overflow-y-auto p-12">
+        
+        <section id="page-home" class="page-transition">
+            <div class="mb-10">
+                <h2 class="text-4xl font-bold mb-2 text-white">Olá, Comandante</h2>
+                <p class="text-gray-400">Suas listas e ferramentas estão prontas para ação.</p>
+            </div>
             
-            <section id="view-editor" class="hidden flex-1 flex flex-col active-view">
-                <div class="p-4 border-b border-zinc-900 flex justify-between items-center bg-zinc-900/20">
-                    <div class="flex space-x-2">
-                        <input type="text" id="filterInput" onkeyup="filterTable()" placeholder="Filtrar por nome ou grupo..." class="bg-zinc-900 border border-zinc-800 rounded px-4 py-2 text-xs w-64 focus:border-cyan-500 outline-none">
-                        <button onclick="renameInMass()" class="px-4 py-2 bg-zinc-800 rounded text-xs hover:bg-zinc-700">Renomear Massa</button>
-                    </div>
-                    <div id="counter" class="text-[10px] font-bold text-zinc-500 uppercase">CANAIS: 0</div>
+            <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6">Listas Recentes</h3>
+            <div id="recent-lists-grid" class="flex space-x-6 overflow-x-auto pb-6">
                 </div>
+        </section>
 
-                <div class="flex-1 overflow-auto custom-scrollbar">
-                    <table class="w-full border-collapse">
-                        <thead class="sticky top-0 bg-zinc-950 z-10">
-                            <tr class="text-[10px] text-zinc-600 uppercase tracking-widest text-left">
-                                <th class="p-3 w-10 text-center"><input type="checkbox"></th>
-                                <th class="p-3 w-12">LOGO</th>
-                                <th class="p-3">NOME DO CANAL</th>
-                                <th class="p-3 w-48">CATEGORIA</th>
-                                <th class="p-3 w-64">EPG ID (.BRASIL.)</th>
-                                <th class="p-3 w-16">TIPO</th>
-                            </tr>
-                        </thead>
-                        <tbody id="canal-list">
-                            </tbody>
-                    </table>
+        <section id="page-database" class="page-transition hidden">
+            <h2 class="text-3xl font-bold mb-8">Gerenciar Projetos</h2>
+            <div id="full-projects-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 </div>
-            </section>
+        </section>
 
-            <section id="view-home" class="hidden flex-1 p-12 space-y-8">
+        <section id="page-editor" class="page-transition hidden">
+            <div class="flex justify-between items-center mb-8">
                 <div>
-                    <h1 class="text-4xl font-black mb-2">Editor de Elite</h1>
-                    <p class="text-zinc-500">Gestão de listas M3U com Protocolo DNA v4.0.</p>
+                    <h2 class="text-3xl font-bold" id="editing-project-name text-white">Editor Profissional</h2>
+                    <p class="text-sm text-cyan-500 font-mono mt-1" id="project-stats">Selecione um projeto para começar</p>
                 </div>
-                <div class="grid grid-cols-3 gap-6">
-                    <div class="p-8 rounded-2xl bg-zinc-900 border border-zinc-800">
-                        <div class="text-xs text-zinc-500 uppercase font-bold mb-2">Total na Base</div>
-                        <div id="stat-total" class="text-5xl font-black">0</div>
-                    </div>
-                    <div class="p-8 rounded-2xl bg-cyan-950/20 border border-cyan-900/30">
-                        <div class="text-xs text-cyan-500 uppercase font-bold mb-2">Sincronizados</div>
-                        <div id="stat-sync" class="text-5xl font-black text-cyan-500">0</div>
-                    </div>
+                <div class="flex space-x-3">
+                    <button onclick="aplicarDNA()" class="bg-cyan-600 text-white px-6 py-2 rounded-lg font-bold text-xs hover:bg-cyan-500 transition-all"><i class="fa-solid fa-dna mr-2"></i> EXECUTAR DNA</button>
+                    <button onclick="exportarM3U()" class="bg-gray-800 text-white px-6 py-2 rounded-lg font-bold text-xs hover:bg-gray-700 transition-all"><i class="fa-solid fa-download mr-2"></i> EXPORTAR</button>
                 </div>
-            </section>
+            </div>
 
-        </main>
+            <div class="flex space-x-2 mb-8 bg-black/30 p-2 rounded-xl border border-white/5 overflow-x-auto">
+                <button onclick="limparNomes()" class="shrink-0 px-4 py-2 text-[11px] font-bold uppercase tracking-tighter hover:text-cyan-400"><i class="fa-solid fa-broom mr-2"></i> Limpar Nomes</button>
+                <button onclick="removerDuplicados()" class="shrink-0 px-4 py-2 text-[11px] font-bold uppercase tracking-tighter hover:text-cyan-400"><i class="fa-solid fa-clone mr-2"></i> Duplicados</button>
+                <button onclick="addPrefix()" class="shrink-0 px-4 py-2 text-[11px] font-bold uppercase tracking-tighter hover:text-cyan-400"><i class="fa-solid fa-plus mr-2"></i> Prefixo</button>
+                <button onclick="addSuffix()" class="shrink-0 px-4 py-2 text-[11px] font-bold uppercase tracking-tighter hover:text-cyan-400"><i class="fa-solid fa-plus mr-2"></i> Sufixo</button>
+                <button onclick="deleteEmptyGroups()" class="shrink-0 px-4 py-2 text-[11px] font-bold uppercase tracking-tighter hover:text-cyan-400"><i class="fa-solid fa-folder-minus mr-2"></i> Grupos Vazios</button>
+                <button onclick="sortAlpha()" class="shrink-0 px-4 py-2 text-[11px] font-bold uppercase tracking-tighter hover:text-cyan-400"><i class="fa-solid fa-sort mr-2"></i> Ordem A-Z</button>
+                <button onclick="clearAll()" class="shrink-0 px-4 py-2 text-[11px] font-bold uppercase tracking-tighter text-red-500"><i class="fa-solid fa-trash mr-2"></i> Limpar Tudo</button>
+            </div>
+
+            <div id="editor-grid" class="editor-grid">
+                </div>
+        </section>
     </div>
 
     <script>
-        let baseCanais = [];
-        let tagKillerList = ['FHD', '4K', 'RAW', '1080P', '60FPS', 'SD', 'HD', 'BR:', 'PT|', '[H265]'];
+        let db = JSON.parse(localStorage.getItem('gemini_v3_db')) || [];
+        let projetoAtivo = null;
 
-        function showView(id) {
-            document.querySelectorAll('section').forEach(s => s.classList.remove('active-view'));
-            document.getElementById('view-' + id).classList.add('active-view');
+        // SISTEMA DE ROTEAMENTO REAL
+        function navigateTo(pageId) {
+            // Esconde todas as páginas
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden', 'opacity-0'));
+            // Remove tabs ativas
+            document.querySelectorAll('.glass-nav span').forEach(n => n.classList.remove('active-tab'));
+            
+            // Mostra a página alvo
+            const target = document.getElementById('page-' + pageId);
+            target.classList.remove('hidden');
+            setTimeout(() => target.classList.remove('opacity-0'), 50);
+            
+            // Ativa tab no menu
+            document.getElementById('nav-' + pageId).classList.add('active-tab');
+            
+            // Atualiza URL (Simulado para GitHub Pages)
+            history.pushState(null, "", "/" + pageId);
+
+            if (pageId === 'home') renderHome();
+            if (pageId === 'database') renderDatabase();
         }
 
-        async function promptUrl() {
-            const url = prompt("URL do Repositório/Lista:");
-            if (url) importList(url);
+        // BANCO DE DADOS: SALVAR E CARREGAR
+        function saveToDB() {
+            localStorage.setItem('gemini_v3_db', JSON.stringify(db));
         }
 
-        async function importList(url) {
+        async function importNewList() {
+            const url = prompt("URL da Lista M3U:");
+            if (!url) return;
+            const name = prompt("Nome do Projeto:", "Nova Lista " + new Date().toLocaleDateString());
+
             try {
                 const res = await fetch(`https://geminitv-proxy.jcdoni.workers.dev/?url=${encodeURIComponent(url)}`);
                 const data = await res.text();
-                processarM3U(data);
-                showView('editor');
-            } catch (e) { alert("Falha no Motor de Extração."); }
-        }
+                const canais = parseM3U(data);
+                
+                const novoProjeto = {
+                    id: Date.now(),
+                    name: name,
+                    url: url,
+                    canais: canais,
+                    data: new Date().toLocaleString()
+                };
 
-        function processarM3U(text) {
-            const lines = text.split('\n');
-            lines.forEach(l => {
-                if(l.startsWith('#EXTINF:')) {
-                    const nameRaw = l.split(',')[1] || "Sem Nome";
-                    const group = l.match(/group-title="([^"]+)"/);
-                    const epg = l.match(/tvg-id="([^"]+)"/);
-                    const logo = l.match(/tvg-logo="([^"]+)"/);
-                    
-                    // APLICAÇÃO AUTOMÁTICA DO MANUAL DO EDITOR NA IMPORTAÇÃO
-                    let nomeLimpo = normalizarTexto(nameRaw);
-                    nomeLimpo = aplicarTagKiller(nomeLimpo);
-                    
-                    const canal = {
-                        id: Math.random().toString(36).substr(2, 9),
-                        nome: nomeLimpo,
-                        grupo: group ? group[1].toUpperCase() : "GERAL",
-                        epg: epg ? epg[1] : nomeLimpo.replace(/\s+/g, '') + ".BRASIL.",
-                        logo: logo ? logo[1] : "",
-                        isVod: checkVod(nomeLimpo, group ? group[1] : "")
-                    };
-                    baseCanais.push(canal);
-                }
-            });
-            renderTable();
-        }
-
-        function normalizarTexto(t) {
-            return t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-        }
-
-        function aplicarTagKiller(t) {
-            let temp = t;
-            tagKillerList.forEach(tag => {
-                const regex = new RegExp(tag, 'gi');
-                temp = temp.replace(regex, '');
-            });
-            // Whitelist Radical: Apenas A-Z, 0-9 e espaços simples
-            return temp.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s+/g, ' ').trim();
-        }
-
-        function checkVod(nome, grupo) {
-            const padraoVod = /S\d+E\d+|Temporada|Episodio|Filme/gi;
-            return padraoVod.test(nome) || padraoVod.test(grupo);
-        }
-
-        function renderTable() {
-            const body = document.getElementById('canal-list');
-            body.innerHTML = baseCanais.map((c, i) => `
-                <tr class="slim-row ${c.isVod ? 'opacity-40' : ''}">
-                    <td class="p-3 text-center"><input type="checkbox" class="accent-cyan-500"></td>
-                    <td class="p-3"><img src="${c.logo}" class="w-6 h-6 object-contain rounded bg-zinc-900" onerror="this.src='https://via.placeholder.com/24'"></td>
-                    <td class="p-3"><input type="text" value="${c.nome}" onblur="baseCanais[${i}].nome = this.value"></td>
-                    <td class="p-3"><input type="text" value="${c.grupo}" class="text-zinc-500 font-bold" onblur="baseCanais[${i}].grupo = this.value"></td>
-                    <td class="p-3"><input type="text" value="${c.epg}" class="font-mono text-cyan-600" onblur="baseCanais[${i}].epg = this.value"></td>
-                    <td class="p-3">
-                        <span class="pill ${c.isVod ? 'pill-vod' : 'pill-live'}">${c.isVod ? 'VOD' : 'LIVE'}</span>
-                    </td>
-                </tr>
-            `).join('');
-            document.getElementById('counter').innerText = `CANAIS: ${baseCanais.length}`;
-            document.getElementById('stat-total').innerText = baseCanais.length;
-        }
-
-        function removeVOD() {
-            baseCanais = baseCanais.filter(c => !c.isVod);
-            renderTable();
-        }
-
-        function renameInMass() {
-            const de = prompt("Renomear qual categoria?");
-            const para = prompt("Para qual nome?");
-            if (de && para) {
-                baseCanais.forEach(c => { if(c.grupo === de.toUpperCase()) c.grupo = para.toUpperCase(); });
-                renderTable();
+                db.unshift(novoProjeto);
+                saveToDB();
+                renderHome();
+                alert("Projeto salvo no Banco de Dados!");
+            } catch (e) {
+                alert("Erro ao importar lista via motor Cloudflare.");
             }
         }
 
-        function filterTable() {
-            const q = document.getElementById('filterInput').value.toLowerCase();
-            const rows = document.querySelectorAll('.slim-row');
-            rows.forEach((row, i) => {
-                const text = baseCanais[i].nome.toLowerCase() + baseCanais[i].grupo.toLowerCase();
-                row.style.display = text.includes(q) ? '' : 'none';
+        function parseM3U(text) {
+            const lines = text.split('\n');
+            const canais = [];
+            let current = {};
+            lines.forEach(l => {
+                if(l.startsWith('#EXTINF:')) {
+                    const group = l.match(/group-title="([^"]+)"/);
+                    const epg = l.match(/tvg-id="([^"]+)"/);
+                    const logo = l.match(/tvg-logo="([^"]+)"/);
+                    current = { 
+                        nome: l.split(',')[1]?.trim() || "Sem Nome",
+                        grupo: group ? group[1] : "GERAL",
+                        epg: epg ? epg[1] : "",
+                        logo: logo ? logo[1] : ""
+                    };
+                } else if(l.startsWith('http')) {
+                    current.url = l.trim();
+                    canais.push(current);
+                }
             });
+            return canais;
         }
 
-        window.onload = () => showView('home');
+        function renderHome() {
+            const grid = document.getElementById('recent-lists-grid');
+            if (db.length === 0) {
+                grid.innerHTML = '<div class="text-gray-600 italic">Nenhuma lista salva. Importe uma para começar.</div>';
+                return;
+            }
+            grid.innerHTML = db.slice(0, 5).map(p => `
+                <div class="card-fire min-w-[300px] p-6 rounded-2xl cursor-pointer" onclick="abrirProjeto(${p.id})">
+                    <div class="h-32 bg-gradient-to-br from-cyan-900 to-black rounded-xl mb-4 flex items-center justify-center">
+                        <i class="fa-solid fa-clapperboard text-4xl text-cyan-500"></i>
+                    </div>
+                    <h4 class="font-bold text-lg truncate">${p.name}</h4>
+                    <p class="text-xs text-gray-500 mt-1">${p.canais.length} Canais | ${p.data}</p>
+                </div>
+            `).join('');
+        }
+
+        function renderDatabase() {
+            const grid = document.getElementById('full-projects-list');
+            grid.innerHTML = db.map(p => `
+                <div class="card-fire p-6 rounded-2xl">
+                    <h4 class="font-bold text-lg mb-4">${p.name}</h4>
+                    <div class="flex space-x-2">
+                        <button onclick="abrirProjeto(${p.id})" class="flex-1 bg-cyan-600 py-2 rounded font-bold text-xs">ABRIR</button>
+                        <button onclick="deletarProjeto(${p.id})" class="bg-red-900/30 text-red-500 px-3 py-2 rounded"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function abrirProjeto(id) {
+            projetoAtivo = db.find(p => p.id === id);
+            navigateTo('editor');
+            document.getElementById('project-stats').innerText = `${projetoAtivo.name} | ${projetoAtivo.canais.length} Canais`;
+            renderEditorGrid();
+        }
+
+        function renderEditorGrid() {
+            const grid = document.getElementById('editor-grid');
+            grid.innerHTML = projetoAtivo.canais.map((c, i) => `
+                <div class="card-fire p-4 rounded-xl text-center">
+                    <img src="${c.logo || 'https://via.placeholder.com/100'}" class="w-16 h-16 mx-auto mb-3 object-contain">
+                    <div class="text-xs font-bold truncate mb-1 outline-none" contenteditable="true" onblur="projetoAtivo.canais[${i}].nome = this.innerText">${c.nome}</div>
+                    <div class="text-[9px] text-cyan-500 uppercase tracking-widest outline-none" contenteditable="true" onblur="projetoAtivo.canais[${i}].grupo = this.innerText">${c.grupo}</div>
+                    <div class="text-[9px] text-gray-500 mt-2 font-mono">DNA: ${c.epg || '---'}</div>
+                </div>
+            `).join('');
+        }
+
+        function deletarProjeto(id) {
+            if(!confirm("Deseja apagar este projeto do banco de dados?")) return;
+            db = db.filter(p => p.id !== id);
+            saveToDB();
+            renderDatabase();
+            renderHome();
+        }
+
+        // FUNÇÕES DO MEMORIAL (DNA E LIMPEZA)
+        function aplicarDNA() {
+            if(!projetoAtivo) return;
+            projetoAtivo.canais.forEach(c => {
+                if (c.epg && !c.epg.endsWith('.BRASIL.')) c.epg = c.epg.split('.')[0] + ".BRASIL.";
+                else if (!c.epg) c.epg = c.nome.replace(/\s+/g, '').toUpperCase() + ".BRASIL.";
+            });
+            saveToDB();
+            renderEditorGrid();
+            alert("Protocolo DNA Finalizado!");
+        }
+
+        function limparNomes() {
+            if(!projetoAtivo) return;
+            projetoAtivo.canais.forEach(c => {
+                c.nome = c.nome.replace(/\[.*?\]|\{.*?\}|fhd|4k|sd|h265|vip|full hd|premium/gi, "").trim();
+            });
+            renderEditorGrid();
+        }
+
+        function exportarM3U() {
+            if(!projetoAtivo) return;
+            let m3u = "#EXTM3U\n";
+            projetoAtivo.canais.forEach(c => {
+                m3u += `#EXTINF:-1 tvg-id="${c.epg}" tvg-logo="${c.logo}" group-title="${c.grupo}",${c.nome}\n${c.url}\n`;
+            });
+            const blob = new Blob([m3u], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${projetoAtivo.name}_Gemini.m3u`;
+            a.click();
+        }
+
+        // Inicialização
+        window.onload = () => {
+            renderHome();
+            navigateTo('home');
+        };
     </script>
 </body>
 </html>
