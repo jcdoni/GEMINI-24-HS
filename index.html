@@ -3,278 +3,268 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini TV | Professional IPTV Editor</title>
+    <title>Gemini TV | Enterprise IPTV Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0b0e14;
-            color: #e2e8f0;
-        }
-
-        .glass {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .sidebar-item:hover {
-            background: rgba(0, 242, 255, 0.1);
-            color: #00f2ff;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
-
-        input:focus { outline: none; border-color: #00f2ff; box-shadow: 0 0 10px rgba(0, 242, 255, 0.3); }
-
-        /* Animação de Pulse para o DNA */
-        .dna-pulse { animation: pulse 2s infinite; }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(0, 242, 255, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(0, 242, 255, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(0, 242, 255, 0); }
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #09090b; color: #fafafa; }
+        .glass-card { background: rgba(24, 24, 27, 0.8); backdrop-filter: blur(8px); border: 1px solid #27272a; }
+        .sidebar-btn.active { background: #27272a; color: #22d3ee; border-right: 2px solid #22d3ee; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .btn-action { transition: all 0.2s; border: 1px solid #3f3f46; }
+        .btn-action:hover { background: #27272a; border-color: #22d3ee; color: #22d3ee; }
+        .table-row:hover { background: rgba(39, 39, 42, 0.5); }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden">
 
-    <aside class="w-64 glass flex flex-col border-r border-slate-800">
-        <div class="p-6 text-center border-bottom border-slate-800">
-            <h1 class="text-2xl font-bold tracking-tighter text-cyan-400">GEMINI <span class="text-white">TV</span></h1>
-            <p class="text-xs text-slate-500 mt-1">DNA PROTOCOL V2.0</p>
+    <aside class="w-64 glass-card flex flex-col">
+        <div class="p-6">
+            <h1 class="text-xl font-bold tracking-tighter text-cyan-400">GEMINI TV <span class="text-[10px] text-slate-500 font-mono">PRO</span></h1>
         </div>
-
-        <nav class="flex-1 px-4 py-4 space-y-2 overflow-y-auto custom-scrollbar">
-            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 px-2">Menu Principal</div>
-            <a href="#" class="sidebar-item flex items-center p-3 rounded-lg transition-all text-cyan-400 bg-slate-800/50">
-                <i class="fa-solid fa-gauge-high mr-3"></i> Dashboard
-            </a>
-            <a href="#" class="sidebar-item flex items-center p-3 rounded-lg transition-all text-slate-400">
-                <i class="fa-solid fa-list-ul mr-3"></i> Canais Online
-            </a>
-            <a href="#" class="sidebar-item flex items-center p-3 rounded-lg transition-all text-slate-400">
-                <i class="fa-solid fa-layer-group mr-3"></i> Categorias
-            </a>
-            
-            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-6 mb-2 px-2">Ações Rápidas</div>
-            <button onclick="promptUrl()" class="w-full sidebar-item flex items-center p-3 rounded-lg transition-all text-slate-400 hover:text-green-400">
-                <i class="fa-solid fa-file-import mr-3 text-green-500"></i> Importar Lista
+        
+        <nav class="flex-1 px-3 space-y-1">
+            <button onclick="switchTab('home')" id="btn-home" class="sidebar-btn active w-full flex items-center p-3 rounded-lg text-sm font-medium transition-all">
+                <i class="fa-solid fa-house mr-3 w-5"></i> Dashboard
             </button>
-            <button onclick="exportarM3U()" class="w-full sidebar-item flex items-center p-3 rounded-lg transition-all text-slate-400 hover:text-cyan-400">
-                <i class="fa-solid fa-file-export mr-3 text-cyan-500"></i> Exportar M3U
+            <button onclick="switchTab('database')" id="btn-database" class="sidebar-btn w-full flex items-center p-3 rounded-lg text-sm font-medium transition-all text-slate-400">
+                <i class="fa-solid fa-database mr-3 w-5"></i> Meus Projetos
+            </button>
+            <button onclick="switchTab('editor')" id="btn-editor" class="sidebar-btn w-full flex items-center p-3 rounded-lg text-sm font-medium transition-all text-slate-400">
+                <i class="fa-solid fa-wand-magic-sparkles mr-3 w-5"></i> Editor Master
             </button>
         </nav>
 
-        <div class="p-4 border-t border-slate-800 text-[10px] text-slate-600 text-center">
-            &copy; 2026 GEMINI DNA SYSTEM
+        <div class="p-4 border-t border-zinc-800">
+            <button onclick="promptImport()" class="w-full py-2 bg-cyan-600 hover:bg-cyan-500 text-black font-bold rounded-md text-xs transition-all">
+                <i class="fa-solid fa-plus mr-1"></i> NOVO PROJETO
+            </button>
         </div>
     </aside>
 
-    <main class="flex-1 flex flex-col overflow-hidden bg-[#0f111a]">
+    <main class="flex-1 flex flex-col overflow-hidden">
         
-        <header class="h-16 glass flex items-center justify-between px-8 border-b border-slate-800">
-            <div class="flex items-center space-x-4 flex-1">
-                <i class="fa-solid fa-magnifying-glass text-slate-500"></i>
-                <input type="text" id="filtroNome" onkeyup="filtrarCanais()" placeholder="Buscar canal, grupo ou EPG..." class="bg-transparent border-none text-sm w-full">
-            </div>
-            <div class="flex items-center space-x-6">
-                <div id="statusMotor" class="text-xs font-bold text-green-500 flex items-center">
-                    <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span> MOTOR CLOUDFLARE ONLINE
-                </div>
-                <button onclick="aplicarDNA()" class="dna-pulse bg-cyan-500 hover:bg-cyan-400 text-black text-xs font-bold py-2 px-4 rounded-full transition-all">
-                    EXECUTAR PROTOCOLO DNA
-                </button>
+        <header class="h-14 border-b border-zinc-800 flex items-center justify-between px-8 bg-zinc-950/50">
+            <div id="current-project-name" class="text-sm font-medium text-slate-400">Nenhum projeto selecionado</div>
+            <div class="flex items-center space-x-4">
+                <button onclick="exportarM3U()" class="text-xs font-semibold hover:text-cyan-400 transition-colors">EXPORTAR M3U</button>
+                <div class="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700"></div>
             </div>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 p-6">
-            <div class="glass p-4 rounded-xl flex items-center">
-                <div class="p-3 bg-cyan-500/20 rounded-lg text-cyan-400 mr-4"><i class="fa-solid fa-tv fa-xl"></i></div>
-                <div><p class="text-xs text-slate-400">Total de Canais</p><h3 class="text-xl font-bold" id="cardTotal">0</h3></div>
-            </div>
-            <div class="glass p-4 rounded-xl flex items-center">
-                <div class="p-3 bg-purple-500/20 rounded-lg text-purple-400 mr-4"><i class="fa-solid fa-tags fa-xl"></i></div>
-                <div><p class="text-xs text-slate-400">Categorias</p><h3 class="text-xl font-bold" id="cardGrupos">0</h3></div>
-            </div>
-            <div class="glass p-4 rounded-xl flex items-center">
-                <div class="p-3 bg-yellow-500/20 rounded-lg text-yellow-400 mr-4"><i class="fa-solid fa-circle-exclamation fa-xl"></i></div>
-                <div><p class="text-xs text-slate-400">Sem EPG</p><h3 class="text-xl font-bold" id="cardSemEpg">0</h3></div>
-            </div>
-            <div class="glass p-4 rounded-xl flex items-center border-cyan-500/50">
-                <div class="p-3 bg-green-500/20 rounded-lg text-green-400 mr-4"><i class="fa-solid fa-dna fa-xl"></i></div>
-                <div><p class="text-xs text-slate-400">DNA Brasil</p><h3 class="text-xl font-bold" id="cardDna">OFF</h3></div>
-            </div>
-        </div>
+        <div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
+            
+            <section id="tab-home" class="tab-content active space-y-8">
+                <div>
+                    <h2 class="text-3xl font-bold">Bem-vindo, Comandante.</h2>
+                    <p class="text-slate-500 mt-2">Gerencie suas listas M3U com precisão cirúrgica.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="glass-card p-6 rounded-2xl">
+                        <p class="text-xs font-medium text-slate-500 uppercase">Canais Processados</p>
+                        <h3 class="text-4xl font-bold mt-2" id="stat-channels">0</h3>
+                    </div>
+                    <div class="glass-card p-6 rounded-2xl">
+                        <p class="text-xs font-medium text-slate-500 uppercase">EPG Brasilizado</p>
+                        <h3 class="text-4xl font-bold mt-2 text-cyan-400" id="stat-dna">0%</h3>
+                    </div>
+                    <div class="glass-card p-6 rounded-2xl">
+                        <p class="text-xs font-medium text-slate-500 uppercase">Última Edição</p>
+                        <h3 class="text-xl font-bold mt-4" id="stat-date">--/--</h3>
+                    </div>
+                </div>
+            </section>
 
-        <div class="px-6 pb-4 flex flex-wrap gap-2">
-            <button onclick="limparNomes()" class="bg-slate-800 hover:bg-slate-700 text-xs py-2 px-3 rounded flex items-center"><i class="fa-solid fa-broom mr-2"></i> Limpar Nomes</button>
-            <button onclick="removerDuplicados()" class="bg-slate-800 hover:bg-slate-700 text-xs py-2 px-3 rounded flex items-center"><i class="fa-solid fa-copy mr-2"></i> Duplicados</button>
-            <button onclick="addPrefix()" class="bg-slate-800 hover:bg-slate-700 text-xs py-2 px-3 rounded flex items-center"><i class="fa-solid fa-plus mr-2"></i> Add Prefixo</button>
-            <button onclick="addSuffix()" class="bg-slate-800 hover:bg-slate-700 text-xs py-2 px-3 rounded flex items-center"><i class="fa-solid fa-plus mr-2"></i> Add Sufixo</button>
-            <button onclick="fixEpgLinks()" class="bg-slate-800 hover:bg-slate-700 text-xs py-2 px-3 rounded flex items-center"><i class="fa-solid fa-link-slash mr-2"></i> Corrigir EPG</button>
-            <button onclick="deleteEmptyGroups()" class="bg-slate-800 hover:bg-slate-700 text-xs py-2 px-3 rounded flex items-center"><i class="fa-solid fa-folder-minus mr-2"></i> Del Grupos Vazios</button>
-            <button onclick="sortAlpha()" class="bg-slate-800 hover:bg-slate-700 text-xs py-2 px-3 rounded flex items-center"><i class="fa-solid fa-sort-alpha-down mr-2"></i> Ordem A-Z</button>
-            <button onclick="limparCategorias()" class="bg-slate-800 hover:bg-slate-700 text-xs py-2 px-3 rounded flex items-center"><i class="fa-solid fa-filter mr-2"></i> Reset Grupos</button>
-            <button onclick="clearAll()" class="bg-red-900/40 hover:bg-red-800 text-red-400 text-xs py-2 px-3 rounded flex items-center"><i class="fa-solid fa-trash-can mr-2"></i> Limpar Tudo</button>
-        </div>
+            <section id="tab-database" class="tab-content space-y-6">
+                <h2 class="text-2xl font-bold">Base de Dados</h2>
+                <div id="project-list" class="grid grid-cols-1 gap-4">
+                    <p class="text-slate-500 italic">Nenhuma lista salva na base local.</p>
+                </div>
+            </section>
 
-        <div class="flex-1 overflow-auto px-6 custom-scrollbar">
-            <table class="w-full text-left border-separate border-spacing-y-2">
-                <thead>
-                    <tr class="text-slate-500 text-xs uppercase tracking-widest">
-                        <th class="p-4"><input type="checkbox" onclick="toggleSelectAll(this)" class="rounded border-slate-700 bg-slate-800 text-cyan-500"></th>
-                        <th class="p-4">Canal / Stream</th>
-                        <th class="p-4">Grupo / Categoria</th>
-                        <th class="p-4">EPG ID (DNA)</th>
-                        <th class="p-4">Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="corpoTabela" class="text-sm">
-                    </tbody>
-            </table>
-        </div>
+            <section id="tab-editor" class="tab-content h-full flex flex-col">
+                <div class="flex flex-wrap gap-2 mb-6 p-4 glass-card rounded-xl">
+                    <button onclick="limparNomes()" class="btn-action px-3 py-2 rounded-lg text-xs flex items-center"><i class="fa-solid fa-scissors mr-2"></i> Limpar Nomes</button>
+                    <button onclick="removerDuplicados()" class="btn-action px-3 py-2 rounded-lg text-xs flex items-center"><i class="fa-solid fa-clone mr-2"></i> Remover Duplicados</button>
+                    <button onclick="aplicarDNA()" class="btn-action px-3 py-2 rounded-lg text-xs flex items-center text-cyan-400 font-bold"><i class="fa-solid fa-dna mr-2"></i> Aplicar DNA</button>
+                    <button onclick="addPrefix()" class="btn-action px-3 py-2 rounded-lg text-xs flex items-center"><i class="fa-solid fa-heading mr-2"></i> Add Prefixo</button>
+                    <button onclick="addSuffix()" class="btn-action px-3 py-2 rounded-lg text-xs flex items-center"><i class="fa-solid fa-t mr-2"></i> Add Sufixo</button>
+                    <button onclick="fixEpgLinks()" class="btn-action px-3 py-2 rounded-lg text-xs flex items-center"><i class="fa-solid fa-link-slash mr-2"></i> Corrigir EPG</button>
+                    <button onclick="deleteEmptyGroups()" class="btn-action px-3 py-2 rounded-lg text-xs flex items-center"><i class="fa-solid fa-folder-minus mr-2"></i> Del Grupos Vazios</button>
+                    <button onclick="sortAlpha()" class="btn-action px-3 py-2 rounded-lg text-xs flex items-center"><i class="fa-solid fa-sort mr-2"></i> Ordem A-Z</button>
+                    <button onclick="clearAll()" class="btn-action px-3 py-2 rounded-lg text-xs flex items-center text-red-400"><i class="fa-solid fa-trash-can mr-2"></i> Reset</button>
+                </div>
 
-        <footer class="h-10 glass border-t border-slate-800 flex items-center px-6 text-[10px] text-slate-500 justify-between">
-            <div>STATUS: <span id="logStatus" class="text-cyan-400">AGUARDANDO INPUT</span></div>
-            <div>LINK ATIVO: https://geminitv-proxy.jcdoni.workers.dev/</div>
-        </footer>
+                <div class="flex-1 overflow-auto rounded-xl border border-zinc-800">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-zinc-900/50 sticky top-0">
+                            <tr>
+                                <th class="p-4 font-medium text-slate-500"><input type="checkbox"></th>
+                                <th class="p-4 font-medium text-slate-500">CANAL / STREAM</th>
+                                <th class="p-4 font-medium text-slate-500">GRUPO</th>
+                                <th class="p-4 font-medium text-slate-500">EPG ID (DNA)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="editor-body">
+                            </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
     </main>
 
     <script>
-        let canaisGlobal = [];
-        const PROXY_URL = "https://geminitv-proxy.jcdoni.workers.dev/?url=";
+        let currentList = [];
+        let dbProjetos = JSON.parse(localStorage.getItem('gemini_db')) || [];
 
-        async function promptUrl() {
-            const url = prompt("Cole a URL da lista M3U:");
-            if (url) carregarLista(url);
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active', 'text-cyan-400'));
+            
+            document.getElementById('tab-' + tabId).classList.add('active');
+            document.getElementById('btn-' + tabId).classList.add('active');
+            if (tabId === 'database') renderDatabase();
         }
 
-        async function carregarLista(url) {
-            updateStatus("Processando via Cloudflare...");
+        async function promptImport() {
+            const url = prompt("URL da Lista M3U:");
+            if (!url) return;
+            
+            const name = prompt("Nome do Projeto:", "Nova Lista " + new Date().toLocaleDateString());
+            await fetchList(url, name);
+        }
+
+        async function fetchList(url, name) {
             try {
-                const response = await fetch(PROXY_URL + encodeURIComponent(url));
-                const data = await response.text();
-                processarM3U(data);
-                updateStatus("Lista carregada com sucesso.");
-            } catch (e) {
-                alert("Erro no Worker!");
-                updateStatus("Falha no carregamento.");
-            }
+                const res = await fetch(`https://geminitv-proxy.jcdoni.workers.dev/?url=${encodeURIComponent(url)}`);
+                const data = await res.text();
+                const canais = parseM3U(data);
+                
+                const projeto = { id: Date.now(), name, canais, date: new Date().toLocaleString() };
+                dbProjetos.push(projeto);
+                saveDB();
+                loadProject(projeto.id);
+            } catch (e) { alert("Erro ao importar lista."); }
         }
 
-        function processarM3U(texto) {
-            const linhas = texto.split('\n');
-            canaisGlobal = [];
-            let item = {};
-
-            linhas.forEach(linha => {
-                if (linha.startsWith('#EXTINF:')) {
-                    const nome = linha.split(',')[1] || "Sem Nome";
-                    const grupo = linha.match(/group-title="([^"]+)"/);
-                    const epg = linha.match(/tvg-id="([^"]+)"/);
-                    const logo = linha.match(/tvg-logo="([^"]+)"/);
-                    item = {
-                        nome: nome.trim(),
-                        grupo: grupo ? grupo[1] : "GERAL",
+        function parseM3U(text) {
+            const lines = text.split('\n');
+            const canais = [];
+            let current = {};
+            lines.forEach(l => {
+                if(l.startsWith('#EXTINF:')) {
+                    const group = l.match(/group-title="([^"]+)"/);
+                    const epg = l.match(/tvg-id="([^"]+)"/);
+                    const logo = l.match(/tvg-logo="([^"]+)"/);
+                    current = { 
+                        nome: l.split(',')[1]?.trim() || "Sem Nome",
+                        grupo: group ? group[1] : "GERAL",
                         epg: epg ? epg[1] : "",
-                        logo: logo ? logo[1] : "",
-                        selecionado: false
+                        logo: logo ? logo[1] : ""
                     };
-                } else if (linha.startsWith('http')) {
-                    item.url = linha.trim();
-                    canaisGlobal.push(item);
-                    item = {};
+                } else if(l.startsWith('http')) {
+                    current.url = l.trim();
+                    canais.push(current);
                 }
             });
-            atualizarInterface();
+            return canais;
         }
 
-        function renderizarTabela(dados) {
-            const corpo = document.getElementById('corpoTabela');
-            corpo.innerHTML = "";
-            dados.forEach((c, i) => {
-                const tr = document.createElement('tr');
-                tr.className = "glass hover:bg-slate-800/50 transition-all rounded-xl";
-                tr.innerHTML = `
-                    <td class="p-4 rounded-l-xl"><input type="checkbox" ${c.selecionado ? 'checked' : ''} onchange="canaisGlobal[${i}].selecionado = this.checked"></td>
-                    <td class="p-4">
-                        <div class="flex items-center">
-                            <img src="${c.logo || 'https://via.placeholder.com/30'}" class="w-8 h-8 rounded mr-3 bg-slate-700">
-                            <div>
-                                <div class="font-bold text-white content-editable" onblur="canaisGlobal[${i}].nome = this.innerText" contenteditable="true">${c.nome}</div>
-                                <div class="text-[10px] text-slate-500 truncate w-48">${c.url}</div>
-                            </div>
-                        </div>
+        function loadProject(id) {
+            const p = dbProjetos.find(x => x.id === id);
+            currentList = p.canais;
+            document.getElementById('current-project-name').innerText = p.name;
+            updateStats();
+            renderEditor();
+            switchTab('editor');
+        }
+
+        function renderEditor() {
+            const body = document.getElementById('editor-body');
+            body.innerHTML = currentList.map((c, i) => `
+                <tr class="table-row border-b border-zinc-800/50">
+                    <td class="p-4"><input type="checkbox"></td>
+                    <td class="p-4 flex items-center">
+                        <img src="${c.logo}" class="w-8 h-8 rounded mr-3 bg-zinc-800">
+                        <div class="font-medium outline-none" contenteditable="true" onblur="currentList[${i}].nome = this.innerText">${c.nome}</div>
                     </td>
-                    <td class="p-4">
-                        <span class="bg-cyan-500/10 text-cyan-400 px-3 py-1 rounded-full text-xs font-semibold content-editable" onblur="canaisGlobal[${i}].grupo = this.innerText" contenteditable="true">${c.grupo}</span>
-                    </td>
-                    <td class="p-4">
-                        <span class="text-xs font-mono text-slate-400 content-editable" onblur="canaisGlobal[${i}].epg = this.innerText" contenteditable="true">${c.epg || '---'}</span>
-                    </td>
-                    <td class="p-4 rounded-r-xl">
-                        <button class="text-slate-400 hover:text-white"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-                    </td>
-                `;
-                corpo.appendChild(tr);
-            });
-            atualizarCards();
+                    <td class="p-4"><span class="bg-zinc-800 px-2 py-1 rounded text-xs outline-none" contenteditable="true" onblur="currentList[${i}].grupo = this.innerText">${c.grupo}</span></td>
+                    <td class="p-4 font-mono text-xs text-cyan-500/70 outline-none" contenteditable="true" onblur="currentList[${i}].epg = this.innerText">${c.epg}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderDatabase() {
+            const list = document.getElementById('project-list');
+            if (dbProjetos.length === 0) return;
+            list.innerHTML = dbProjetos.map(p => `
+                <div class="glass-card p-4 rounded-xl flex items-center justify-between">
+                    <div>
+                        <h4 class="font-bold text-lg">${p.name}</h4>
+                        <p class="text-xs text-slate-500">${p.canais.length} canais | ${p.date}</p>
+                    </div>
+                    <div class="space-x-2">
+                        <button onclick="loadProject(${p.id})" class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-xs">ABRIR</button>
+                        <button onclick="deleteProject(${p.id})" class="px-4 py-2 bg-red-900/20 text-red-400 rounded-lg text-xs">DEL</button>
+                    </div>
+                </div>
+            `).join('');
         }
 
         function aplicarDNA() {
-            canaisGlobal.forEach(c => {
-                if (c.epg && !c.epg.endsWith('.BRASIL.')) {
-                    c.epg = c.epg.split('.')[0] + ".BRASIL.";
-                } else if (!c.epg) {
-                    c.epg = c.nome.replace(/\s+/g, '').toUpperCase() + ".BRASIL.";
-                }
+            currentList.forEach(c => {
+                if (c.epg && !c.epg.endsWith('.BRASIL.')) c.epg = c.epg.split('.')[0] + ".BRASIL.";
+                else if (!c.epg) c.epg = c.nome.replace(/\s+/g, '').toUpperCase() + ".BRASIL.";
             });
-            atualizarInterface();
-            document.getElementById('cardDna').innerText = "ATIVO";
-            updateStatus("Protocolo DNA Finalizado.");
+            renderEditor();
+            updateStats();
         }
 
-        function atualizarCards() {
-            document.getElementById('cardTotal').innerText = canaisGlobal.length;
-            document.getElementById('cardGrupos').innerText = [...new Set(canaisGlobal.map(c => c.grupo))].length;
-            document.getElementById('cardSemEpg').innerText = canaisGlobal.filter(c => !c.epg).length;
+        function updateStats() {
+            document.getElementById('stat-channels').innerText = currentList.length;
+            const dnaCount = currentList.filter(c => c.epg.endsWith('.BRASIL.')).length;
+            const perc = currentList.length ? Math.round((dnaCount / currentList.length) * 100) : 0;
+            document.getElementById('stat-dna').innerText = perc + "%";
+            document.getElementById('stat-date').innerText = new Date().toLocaleDateString();
         }
 
-        function filtrarCanais() {
-            const busca = document.getElementById('filtroNome').value.toLowerCase();
-            const filtrados = canaisGlobal.filter(c => 
-                c.nome.toLowerCase().includes(busca) || c.grupo.toLowerCase().includes(busca) || c.epg.toLowerCase().includes(busca)
-            );
-            renderizarTabela(filtrados);
+        function saveDB() { localStorage.setItem('gemini_db', JSON.stringify(dbProjetos)); }
+        function deleteProject(id) { 
+            dbProjetos = dbProjetos.filter(x => x.id !== id); 
+            saveDB(); 
+            renderDatabase(); 
         }
 
-        function atualizarInterface() {
-            renderizarTabela(canaisGlobal);
+        // Funções do Memorial Descritivo (Implementação de Lógica)
+        function limparNomes() {
+            currentList.forEach(c => c.nome = c.nome.replace(/\[.*?\]|\{.*?\}|fhd|4k|sd|h265|vip/gi, "").trim());
+            renderEditor();
         }
 
-        function updateStatus(msg) {
-            document.getElementById('logStatus').innerText = msg.toUpperCase();
+        function removerDuplicados() {
+            const unique = [];
+            const urls = new Set();
+            currentList.forEach(c => {
+                if (!urls.has(c.url)) { urls.add(c.url); unique.push(c); }
+            });
+            currentList = unique;
+            renderEditor();
+            updateStats();
         }
 
         function exportarM3U() {
             let m3u = "#EXTM3U\n";
-            canaisGlobal.forEach(c => {
+            currentList.forEach(c => {
                 m3u += `#EXTINF:-1 tvg-id="${c.epg}" tvg-logo="${c.logo}" group-title="${c.grupo}",${c.nome}\n${c.url}\n`;
             });
             const blob = new Blob([m3u], { type: 'text/plain' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = "GeminiTV_Master.m3u";
+            a.download = "Gemini_Export.m3u";
             a.click();
-        }
-
-        function toggleSelectAll(source) {
-            canaisGlobal.forEach(c => c.selecionado = source.checked);
-            renderizarTabela(canaisGlobal);
         }
     </script>
 </body>
