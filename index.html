@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini TV | IPTV Manager 2026</title>
+    <title>Gemini TV | Professional IPTV Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -15,6 +15,7 @@
             --fire-card: #1a242f;
             --text-main: #ffffff;
             --border: rgba(255, 255, 255, 0.05);
+            --bg-sidebar: #131a22;
         }
 
         .light-mode {
@@ -22,6 +23,7 @@
             --fire-card: #ffffff;
             --text-main: #1a242f;
             --border: rgba(0, 0, 0, 0.1);
+            --bg-sidebar: #e1e4e8;
         }
 
         body {
@@ -39,57 +41,94 @@
             border-bottom: 1px solid var(--border);
         }
 
-        .card-fire {
-            background: var(--fire-card);
-            border: 1px solid var(--border);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        /* Layout M3U4U - Editor de 2 Colunas */
+        .editor-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            height: calc(100vh - 80px);
+            background: var(--fire-dark);
         }
 
-        .card-fire:hover {
-            transform: scale(1.02);
-            border-color: var(--fire-blue);
+        .sidebar-groups {
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
         }
 
-        /* Linhas de Edição */
-        .edit-row {
+        .main-content-channels {
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .group-item {
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-x-3;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .group-item:hover, .group-item.active {
+            background: var(--fire-blue);
+            color: white;
+        }
+
+        .channel-row {
             display: flex;
             align-items: center;
-            padding: 14px 24px;
+            padding: 10px 15px;
             background: var(--fire-card);
-            border-bottom: 1px solid var(--border);
-            transition: background 0.2s;
-        }
-        .edit-row:hover { background: rgba(0, 168, 225, 0.03); }
-        .edit-row.item-hidden { opacity: 0.3; }
-        .edit-row input { background: transparent; border: none; color: inherit; width: 100%; outline: none; font-size: 13px; }
-
-        .active-tab { color: var(--fire-blue); border-bottom: 3px solid var(--fire-blue); }
-        
-        /* Botão Importar Dropdown */
-        .import-group .dropdown-content {
-            display: none;
-            position: absolute;
-            top: 100%;
-            right: 0;
-            width: 200px;
-            background: var(--fire-card);
-            border-radius: 12px;
+            border-radius: 6px;
+            margin-bottom: 4px;
             border: 1px solid var(--border);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-            z-index: 1000;
         }
-        .import-group:hover .dropdown-content { display: block; }
 
-        #modal-config { 
-            display: none; 
-            position: fixed; 
-            inset: 0; 
-            background: rgba(0,0,0,0.8); 
-            z-index: 1000; 
-            align-items: center; 
-            justify-content: center; 
-            backdrop-filter: blur(10px); 
+        .channel-row:hover { border-color: var(--fire-blue); }
+        .channel-row.hidden-item { opacity: 0.4; }
+
+        /* Tabela Playlists */
+        .playlist-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
         }
+        .playlist-table th {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 2px solid var(--border);
+            color: var(--fire-blue);
+            text-transform: uppercase;
+        }
+        .playlist-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .btn-action {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: opacity 0.2s;
+        }
+
+        #modal-config {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        input { background: transparent; border: none; color: inherit; outline: none; width: 100%; }
+        
+        .active-tab { color: var(--fire-blue); border-bottom: 3px solid var(--fire-blue); }
     </style>
 </head>
 <body class="flex flex-col">
@@ -106,70 +145,92 @@
             </div>
         </div>
         <div class="flex items-center space-x-6">
-            <button onclick="openTheater()" class="bg-cyan-600 text-white px-5 py-2 rounded-full font-bold text-xs hover:bg-cyan-500 transition-all uppercase">Theater Mode</button>
-            <div class="relative import-group">
-                <button class="bg-white text-black px-5 py-2 rounded-full font-bold text-xs hover:bg-cyan-500 hover:text-white transition-all">+ IMPORTAR LISTA</button>
-                <div class="dropdown-content p-2">
-                    <button onclick="importFlow('m3u')" class="w-full text-left p-3 hover:bg-cyan-500/10 rounded-lg text-[11px] font-bold"><i class="fa-solid fa-file-import mr-2"></i> SYNC M3U</button>
-                    <button onclick="importFlow('xtream')" class="w-full text-left p-3 hover:bg-cyan-500/10 rounded-lg text-[11px] font-bold"><i class="fa-solid fa-server mr-2"></i> XTREAM CODES</button>
-                    <button onclick="importFlow('scanner')" class="w-full text-left p-3 hover:bg-cyan-500/10 rounded-lg text-[11px] font-bold"><i class="fa-brands fa-github mr-2"></i> SCANNER USER</button>
-                </div>
-            </div>
-            <i class="fa-solid fa-gear text-gray-400 cursor-pointer hover:text-white text-lg" onclick="openConfig()"></i>
+            <button onclick="openTheater()" class="bg-cyan-600 text-white px-5 py-2 rounded-full font-bold text-xs hover:bg-cyan-500 transition-all">THEATER MODE</button>
+            <button onclick="importPlaylist()" class="bg-white text-black px-5 py-2 rounded-full font-bold text-xs hover:bg-cyan-500 hover:text-white transition-all">+ IMPORTAR</button>
+            <i class="fa-solid fa-gear text-gray-400 cursor-pointer hover:text-white text-xl" onclick="openConfig()"></i>
         </div>
     </nav>
 
-    <div id="app-container" class="flex-1 overflow-y-auto p-12">
+    <div id="app-container" class="flex-1 overflow-hidden">
         
-        <section id="page-home" class="flex flex-col">
+        <section id="page-home" class="p-12">
             <div class="grid grid-cols-2 gap-10">
                 <div>
                     <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6">Listas Recentes</h3>
-                    <div id="recent-grid" class="flex space-x-6 overflow-x-auto pb-4"></div>
+                    <div id="recent-grid" class="flex space-x-6 overflow-x-auto"></div>
                 </div>
                 <div>
                     <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6">Acervo VOD</h3>
-                    <div id="vod-grid" class="flex space-x-6 overflow-x-auto pb-4"></div>
+                    <div id="vod-grid" class="flex space-x-6 overflow-x-auto"></div>
                 </div>
             </div>
         </section>
 
-        <section id="page-playlists" class="hidden">
-            <h2 class="text-3xl font-bold mb-8">Gerenciar Playlists</h2>
-            <div id="playlists-grid" class="grid grid-cols-4 gap-6"></div>
+        <section id="page-playlists" class="hidden p-12 overflow-y-auto h-full">
+            <div class="flex justify-between items-center mb-10">
+                <h2 class="text-3xl font-bold">Gestão de Playlists</h2>
+                <div class="flex space-x-3">
+                    <button class="bg-cyan-600 text-white px-4 py-2 rounded font-bold text-xs uppercase">Push All</button>
+                    <button class="bg-gray-700 text-white px-4 py-2 rounded font-bold text-xs uppercase">Backup</button>
+                </div>
+            </div>
+            <table class="playlist-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Source</th>
+                        <th>Groups</th>
+                        <th>Channels</th>
+                        <th>Last Sync</th>
+                        <th>Expiration</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="playlist-rows"></tbody>
+            </table>
         </section>
 
         <section id="page-editor" class="hidden">
-            <div class="flex justify-between items-center mb-8">
-                <h2 class="text-3xl font-bold">Editor Profissional</h2>
-                <button onclick="exportarM3U()" class="bg-gray-700 text-white px-6 py-2 rounded-lg font-bold text-xs uppercase tracking-widest">Exportar Lista</button>
+            <div class="editor-container">
+                <div class="sidebar-groups" id="editor-groups">
+                    </div>
+                <div class="main-content-channels flex flex-col">
+                    <div class="flex justify-between items-center mb-6 bg-black/10 p-4 rounded-xl border border-white/5">
+                        <div class="flex items-center space-x-4">
+                            <span class="text-xs font-bold uppercase text-cyan-500" id="active-group-name">Selecione um grupo</span>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="bulkTool('prefix')" class="text-[10px] font-bold uppercase hover:text-cyan-400"><i class="fa-solid fa-plus mr-1"></i> Prefix</button>
+                            <button onclick="bulkTool('replace')" class="text-[10px] font-bold uppercase hover:text-cyan-400"><i class="fa-solid fa-search mr-1"></i> Find/Replace</button>
+                            <button onclick="bulkTool('sort')" class="text-[10px] font-bold uppercase hover:text-cyan-400"><i class="fa-solid fa-sort mr-1"></i> A-Z</button>
+                            <button onclick="exportM3U()" class="bg-gray-800 px-3 py-1 rounded text-[10px] font-bold">EXPORT</button>
+                        </div>
+                    </div>
+                    <div id="editor-channels-list" class="flex-1">
+                        </div>
+                </div>
             </div>
-
-            <div class="flex space-x-4 mb-8 bg-black/20 p-4 rounded-2xl border border-white/5 overflow-x-auto">
-                <button onclick="syncAll()" class="shrink-0 text-[10px] font-bold uppercase hover:text-cyan-400"><i class="fa-solid fa-sync mr-2"></i> Sync All</button>
-                <button onclick="renameGroup()" class="shrink-0 text-[10px] font-bold uppercase hover:text-cyan-400"><i class="fa-solid fa-pen mr-2"></i> Rename Group</button>
-                <button onclick="cleanMass()" class="shrink-0 text-[10px] font-bold uppercase hover:text-cyan-400"><i class="fa-solid fa-broom mr-2"></i> Clean</button>
-                <button onclick="runTagKiller()" class="shrink-0 text-[10px] font-bold uppercase hover:text-cyan-400"><i class="fa-solid fa-skull mr-2"></i> Tag Killer</button>
-                <button onclick="sendGithub()" class="shrink-0 text-[10px] font-bold uppercase text-green-500"><i class="fa-solid fa-upload mr-2"></i> Send Github</button>
-            </div>
-
-            <div id="editor-container" class="rounded-xl overflow-hidden bg-black/10"></div>
         </section>
     </div>
 
     <div id="modal-config">
-        <div class="bg-[var(--fire-card)] p-8 rounded-3xl w-[400px] border border-[var(--border)]">
-            <div class="flex justify-between items-center mb-8">
-                <h3 class="font-bold text-xl">Configurações</h3>
-                <i class="fa-solid fa-xmark cursor-pointer text-gray-500 hover:text-white" onclick="closeConfig()"></i>
+        <div class="bg-[var(--fire-card)] p-8 rounded-3xl w-[400px] border border-[var(--border)] relative">
+            <i class="fa-solid fa-xmark absolute top-6 right-6 cursor-pointer text-gray-500 hover:text-white text-xl" onclick="closeConfig()"></i>
+            <h3 class="font-bold text-xl mb-8">Configurações</h3>
+            <div class="space-y-4">
+                <button onclick="toggleTheme()" class="w-full bg-cyan-600 py-3 rounded-xl font-bold text-xs uppercase tracking-widest">Alternar Tema (Claro/Escuro)</button>
+                <div class="p-4 bg-black/20 rounded-xl">
+                    <p class="text-[10px] font-bold text-gray-500 mb-2 uppercase">Informações do Sistema</p>
+                    <p class="text-xs text-cyan-500">Versão Gemini TV 6.1 PRO</p>
+                </div>
             </div>
-            <button onclick="toggleTheme()" class="w-full bg-cyan-600 py-3 rounded-xl font-bold text-xs uppercase tracking-widest">Trocar Tema (Claro/Escuro)</button>
         </div>
     </div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('gemini_v6_db')) || [];
-        let activeProject = null;
+        let db = JSON.parse(localStorage.getItem('gemini_v61_db')) || [];
+        let activeList = null;
+        let activeGroup = null;
 
         function navigateTo(id) {
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
@@ -180,98 +241,143 @@
             if(id === 'playlists') renderPlaylists();
         }
 
-        async function importFlow(type) {
-            const url = prompt(`URL para ${type.toUpperCase()}:`);
+        async function importPlaylist() {
+            const url = prompt("URL da Lista (M3U ou Xtream):");
             if(!url) return;
-            try {
-                const res = await fetch(`https://geminitv-proxy.jcdoni.workers.dev/?url=${encodeURIComponent(url)}`);
-                const text = await res.text();
-                processM3U(text, url);
-            } catch(e) { alert("Erro ao extrair."); }
-        }
-
-        function processM3U(text, url) {
+            const res = await fetch(`https://geminitv-proxy.jcdoni.workers.dev/?url=${encodeURIComponent(url)}`);
+            const text = await res.text();
+            
             const lines = text.split('\n');
-            let canais = [];
+            let channels = [];
             let vods = [];
+            let groupsSet = new Set();
+
             lines.forEach(l => {
                 if(l.startsWith('#EXTINF:')) {
-                    const name = l.split(',')[1] || "Sem Nome";
+                    const name = l.split(',')[1]?.trim() || "Sem Nome";
                     const isVod = /S\d+E\d+|Filme|Serie|Temporada/gi.test(name);
+                    const group = (l.match(/group-title="([^"]+)"/) || ["","GERAL"])[1].toUpperCase();
                     const epg = (l.match(/tvg-id="([^"]+)"/) || ["",""])[1];
+                    groupsSet.add(group);
+
                     const obj = {
                         id: Math.random().toString(36).substr(2,9),
-                        nome: name.replace(/[^a-zA-Z0-9 ]/g, "").trim(), // Whitelist auto
-                        grupo: (l.match(/group-title="([^"]+)"/) || ["","GERAL"])[1].toUpperCase(),
+                        nome: name.replace(/[^a-zA-Z0-9 ]/g, "").trim(),
+                        grupo: group,
                         logo: (l.match(/tvg-logo="([^"]+)"/) || ["",""])[1],
                         epg: epg.endsWith('.BRASIL.') ? epg : (epg || name.replace(/\s+/g,'')) + '.BRASIL.',
                         oculto: false
                     };
-                    if(isVod) vods.push(obj); else canais.push(obj);
+                    if(isVod) vods.push(obj); else channels.push(obj);
                 }
             });
-            const newProj = { id: Date.now(), name: "Lista "+new Date().toLocaleDateString(), canais, vods, url };
-            db.unshift(newProj);
+
+            const newPlaylist = {
+                id: Date.now(),
+                name: "Nova Lista " + new Date().toLocaleDateString(),
+                source: url,
+                channels: channels,
+                vods: vods,
+                groups: Array.from(groupsSet),
+                lastSync: new Date().toLocaleString(),
+                exp: "31/12/2026"
+            };
+
+            db.unshift(newPlaylist);
             save();
             renderHome();
         }
 
-        function renderEditor() {
-            const container = document.getElementById('editor-container');
-            container.innerHTML = activeProject.canais.map((c, i) => `
-                <div class="edit-row ${c.oculto ? 'item-hidden' : ''}">
-                    <img src="${c.logo}" class="w-10 h-10 object-contain mr-6 bg-black/20 rounded">
-                    <div class="flex-1 grid grid-cols-2 gap-8">
-                        <input type="text" value="${c.nome}" onblur="activeProject.canais[${i}].nome=this.value">
-                        <input type="text" value="${c.grupo}" class="text-cyan-500 font-bold" onblur="activeProject.canais[${i}].grupo=this.value.toUpperCase()">
+        function renderPlaylists() {
+            const container = document.getElementById('playlist-rows');
+            container.innerHTML = db.map(p => `
+                <tr>
+                    <td class="font-bold">${p.name}</td>
+                    <td class="text-xs text-gray-500 truncate max-w-[200px]">${p.source}</td>
+                    <td class="text-cyan-500 font-bold">${p.groups.length}</td>
+                    <td>${p.channels.length}</td>
+                    <td class="text-[10px]">${p.lastSync}</td>
+                    <td class="text-green-500 font-bold">${p.exp}</td>
+                    <td class="flex space-x-2">
+                        <i class="fa-solid fa-pen-to-square cursor-pointer hover:text-cyan-500" onclick="openEditor(${p.id})"></i>
+                        <i class="fa-solid fa-sync cursor-pointer hover:text-green-500"></i>
+                        <i class="fa-solid fa-trash cursor-pointer hover:text-red-500" onclick="deleteList(${p.id})"></i>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openEditor(id) {
+            activeList = db.find(p => p.id === id);
+            navigateTo('editor');
+            renderEditorGroups();
+        }
+
+        function renderEditorGroups() {
+            const container = document.getElementById('editor-groups');
+            container.innerHTML = activeList.groups.map(g => {
+                const count = activeList.channels.filter(c => c.grupo === g).length;
+                return `
+                    <div class="group-item ${activeGroup === g ? 'active' : ''}" onclick="selectGroup('${g}')">
+                        <i class="fa-solid fa-folder-open text-xs"></i>
+                        <div class="flex-1 text-xs font-bold truncate">${g}</div>
+                        <span class="text-[9px] bg-black/30 px-2 py-1 rounded-full">${count}</span>
                     </div>
-                    <div class="ml-6 flex items-center space-x-6">
-                        <span class="text-[10px] font-mono opacity-50">${c.epg}</span>
-                        <i class="fa-solid ${c.oculto ? 'fa-eye-slash text-red-500' : 'fa-eye text-cyan-500'} cursor-pointer" onclick="toggleEye(${i})"></i>
+                `;
+            }).join('');
+        }
+
+        function selectGroup(g) {
+            activeGroup = g;
+            document.getElementById('active-group-name').innerText = g;
+            renderEditorGroups();
+            renderChannels();
+        }
+
+        function renderChannels() {
+            const container = document.getElementById('editor-channels-list');
+            const filtered = activeList.channels.filter(c => c.grupo === activeGroup);
+            container.innerHTML = filtered.map((c, i) => `
+                <div class="channel-row ${c.oculto ? 'hidden-item' : ''}">
+                    <i class="fa-solid fa-grip-vertical text-gray-600 mr-4 cursor-move"></i>
+                    <img src="${c.logo}" class="w-8 h-8 object-contain mr-4 bg-black/20 rounded">
+                    <input type="text" value="${c.nome}" class="flex-1 font-semibold" onblur="updateChannelName('${c.id}', this.value)">
+                    <div class="flex items-center space-x-4 ml-4">
+                        <span class="text-[9px] font-mono opacity-50">${c.epg}</span>
+                        <i class="fa-solid ${c.oculto ? 'fa-eye-slash text-red-500' : 'fa-eye text-cyan-500'} cursor-pointer" onclick="toggleHide('${c.id}')"></i>
+                        <i class="fa-solid fa-trash text-gray-600 hover:text-red-500 cursor-pointer" onclick="deleteChannel('${c.id}')"></i>
                     </div>
                 </div>
             `).join('');
         }
 
-        function toggleEye(i) {
-            activeProject.canais[i].oculto = !activeProject.canais[i].oculto;
-            renderEditor();
+        function updateChannelName(id, val) {
+            const channel = activeList.channels.find(c => c.id === id);
+            if(channel) channel.nome = val;
             save();
         }
 
-        function renderHome() {
-            const grid = document.getElementById('recent-grid');
-            grid.innerHTML = db.slice(0, 5).map(p => `
-                <div class="card-fire min-w-[250px] p-6 rounded-2xl cursor-pointer" onclick="openProject(${p.id})">
-                    <div class="h-20 bg-cyan-900/20 rounded-xl mb-4 flex items-center justify-center"><i class="fa-solid fa-list text-cyan-500 text-2xl"></i></div>
-                    <h4 class="font-bold text-sm truncate">${p.name}</h4>
-                    <p class="text-[10px] opacity-50 mt-1">${p.canais.length} Canais</p>
-                </div>
-            `).join('');
-            
-            const vodGrid = document.getElementById('vod-grid');
-            const allVods = db.flatMap(p => p.vods).slice(0, 10);
-            vodGrid.innerHTML = allVods.length ? allVods.map(v => `
-                <div class="card-fire min-w-[150px] p-4 rounded-xl text-center">
-                    <div class="h-24 bg-zinc-800 rounded mb-2 flex items-center justify-center"><i class="fa-solid fa-film text-xl"></i></div>
-                    <p class="text-[10px] font-bold truncate">${v.nome}</p>
-                </div>
-            `).join('') : '<p class="text-gray-600 italic">Nenhum VOD.</p>';
+        function toggleHide(id) {
+            const channel = activeList.channels.find(c => c.id === id);
+            if(channel) channel.oculto = !channel.oculto;
+            renderChannels();
+            save();
         }
 
-        function openProject(id) {
-            activeProject = db.find(p => p.id === id);
-            navigateTo('editor');
-            renderEditor();
+        function deleteChannel(id) {
+            activeList.channels = activeList.channels.filter(c => c.id !== id);
+            renderChannels();
+            renderEditorGroups();
+            save();
         }
 
-        function save() { localStorage.setItem('gemini_v6_db', JSON.stringify(db)); }
-        
         function toggleTheme() {
             const isLight = document.body.classList.toggle('light-mode');
             localStorage.setItem('gemini_theme', isLight ? 'light' : 'dark');
         }
 
+        function save() { localStorage.setItem('gemini_v61_db', JSON.stringify(db)); }
+        
         function openConfig() { document.getElementById('modal-config').style.display = 'flex'; }
         function closeConfig() { document.getElementById('modal-config').style.display = 'none'; }
 
@@ -282,3 +388,5 @@
     </script>
 </body>
 </html>
+``` Você pode me pedir, a qualquer momento, para editar ou excluir a ação que você agendou. Quando a ação estiver pronta, vai aparecer um ponto ao lado desta conversa, na seção "Recentes".
+http://googleusercontent.com/task_confirmation_content/19
