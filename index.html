@@ -3,210 +3,254 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GEMINI GLOBAL | HUB & EDITOR</title>
+    <title>GEMINI GLOBAL HUB | V10 PREMIUM</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        :root { --primary: #00ff88; --bg: #050505; --panel: #111; --text: #fff; --accent: #222; }
-        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; display: flex; height: 100vh; overflow: hidden; }
-        
-        .sidebar { width: 300px; background: var(--panel); border-right: 1px solid var(--accent); display: flex; flex-direction: column; z-index: 100; }
-        .sidebar-header { padding: 20px; border-bottom: 1px solid var(--accent); text-align: center; }
-        .sidebar-content { flex: 1; overflow-y: auto; padding: 10px; }
-        
-        .list-card { background: #1a1a1a; padding: 12px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #333; }
-        .list-card h4 { margin: 0 0 8px 0; font-size: 13px; color: var(--primary); }
-        .btn-action { width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; font-size: 11px; transition: 0.3s; }
-        .btn-add { background: var(--primary); color: #000; }
-        .btn-edit { background: #333; color: #fff; }
+        /* DIRETRIZES VISUAIS GEMINI GLOBAL */
+        :root {
+            --primary: #00ff88;
+            --bg-dark: #000000;
+            --surface: #121212;
+            --surface-light: #1e1e1e;
+            --text-main: #ffffff;
+            --text-dim: #888888;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-        .main { flex: 1; display: flex; flex-direction: column; position: relative; background: var(--bg); }
-        .top-nav { height: 60px; background: #000; border-bottom: 1px solid var(--accent); display: flex; align-items: center; padding: 0 20px; justify-content: space-between; gap: 15px; }
-        .content-area { flex: 1; overflow-y: auto; padding: 20px; }
-        
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
-        .card { background: #111; border-radius: 8px; overflow: hidden; border: 1px solid #222; cursor: pointer; position: relative; }
-        .card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; opacity: 0.7; }
-        .card-info { padding: 8px; font-size: 10px; text-align: center; font-weight: bold; }
-        
-        .edit-badge { position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.8); color: var(--primary); padding: 4px; border-radius: 4px; font-size: 10px; border: 1px solid var(--primary); }
+        body {
+            margin: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
 
-        #editor-overlay, #channel-editor { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000; display: none; align-items: center; justify-content: center; }
-        .editor-box { background: #1a1a1a; padding: 25px; border-radius: 15px; width: 90%; max-width: 380px; display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--primary); }
-        input, select { padding: 12px; border-radius: 5px; border: 1px solid #333; background: #000; color: #fff; outline: none; }
+        /* MENU LATERAL - ESTILO FIRE TV */
+        .sidebar {
+            width: 70px;
+            background: linear-gradient(180deg, #0a0a0a 0%, #000 100%);
+            border-right: 1px solid #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            transition: var(--transition);
+            z-index: 100;
+        }
 
-        #player-modal { position: fixed; inset: 0; background: #000; z-index: 10000; display: none; }
-        video { width: 100%; height: 100%; }
-        .close-btn { position: absolute; top: 20px; left: 20px; z-index: 10001; background: var(--primary); padding: 10px 15px; border-radius: 5px; cursor: pointer; color: #000; font-weight: bold; border: none; }
+        .sidebar:hover { width: 220px; }
+
+        .nav-item {
+            width: 100%;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            padding: 0 25px;
+            margin: 10px 0;
+            cursor: pointer;
+            color: var(--text-dim);
+            transition: var(--transition);
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .nav-item i { min-width: 25px; font-size: 20px; text-align: center; }
+        .nav-item span { margin-left: 20px; opacity: 0; transition: 0.2s; font-weight: 600; }
+        .sidebar:hover .nav-item span { opacity: 1; }
+        .nav-item:hover, .nav-item.active { color: var(--primary); background: rgba(0, 255, 136, 0.05); border-left: 4px solid var(--primary); }
+
+        /* PAINEL PRINCIPAL */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            background: radial-gradient(circle at top right, #0a150f 0%, #000 50%);
+            position: relative;
+        }
+
+        /* DASHBOARD HERO */
+        .hero-banner {
+            height: 45vh;
+            padding: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: linear-gradient(to right, #000 20%, transparent 100%);
+            position: relative;
+        }
+
+        .hero-banner h1 { font-size: 4rem; margin: 0; letter-spacing: -2px; color: var(--primary); }
+        .hero-banner p { max-width: 500px; color: var(--text-dim); line-height: 1.6; }
+
+        /* GRADES E CARDS DINÂMICOS */
+        .section-title { padding: 0 60px; margin-top: 30px; font-size: 1.2rem; font-weight: bold; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px; }
+
+        .scroll-row {
+            display: flex;
+            gap: 20px;
+            padding: 20px 60px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .card {
+            min-width: 220px;
+            aspect-ratio: 16/9;
+            background: var(--surface);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 2px solid transparent;
+        }
+
+        .card:hover {
+            transform: scale(1.1);
+            z-index: 10;
+            border-color: var(--primary);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+        }
+
+        .card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; transition: var(--transition); }
+        .card:hover img { opacity: 1; }
+
+        .card-info {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        /* HEADER SUPERIOR - CONFIGURAÇÕES */
+        .top-bar {
+            position: absolute;
+            top: 20px;
+            right: 60px;
+            display: flex;
+            gap: 20px;
+            z-index: 50;
+        }
+
+        .icon-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #fff;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .icon-btn:hover { background: var(--primary); color: #000; border-color: var(--primary); transform: rotate(45deg); }
+
+        /* PLAYER MODAL */
+        #player-overlay {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 1000;
+            display: none;
+        }
+
+        .close-player {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            z-index: 1001;
+            padding: 12px 25px;
+            background: var(--primary);
+            color: #000;
+            border: none;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <h2 style="color:var(--primary); margin:0;">GEMINI HUB</h2>
-            <div style="font-size: 10px; color:#555">SISTEMA GLOBAL DE EDIÇÃO</div>
+    <nav class="sidebar">
+        <div class="nav-item active"><i>🏠</i><span>INÍCIO</span></div>
+        <div class="nav-item"><i>📺</i><span>TV AO VIVO</span></div>
+        <div class="nav-item"><i>🎬</i><span>FILMES</span></div>
+        <div class="nav-item"><i>📂</i><span>SÉRIES</span></div>
+        <div class="nav-item"><i>⚙️</i><span>AJUSTES</span></div>
+    </nav>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="icon-btn" title="Busca">🔍</div>
+            <div class="icon-btn" title="Configurações" onclick="alert('Painel de Configurações Global em breve!')">⚙️</div>
+            <div class="icon-btn" title="Perfil">👤</div>
         </div>
-        <div class="sidebar-content">
-            <button class="btn-action btn-add" onclick="openEditor()">+ CONFIGURAR NOVA LISTA</button>
-            <div id="playlists-list" style="margin-top: 15px;"></div>
+
+        <section class="hero-banner">
+            <h1>GEMINI <span style="color:#fff">PRO</span></h1>
+            <p>Sua central definitiva de entretenimento global. Conecte suas listas Xtream ou M3U e gerencie tudo em uma interface de elite.</p>
+            <div style="display: flex; gap: 15px; margin-top: 20px;">
+                <button style="padding: 15px 40px; border-radius: 30px; border:none; background: var(--primary); font-weight: bold; cursor:pointer;">ASSISTIR AGORA</button>
+                <button style="padding: 15px 40px; border-radius: 30px; border:1px solid #fff; background: transparent; color:#fff; font-weight: bold; cursor:pointer;">MINHA LISTA</button>
+            </div>
+        </section>
+
+        <div class="section-title">Canais Recomendados</div>
+        <div class="scroll-row" id="row-channels">
+            <div class="card" onclick="openPlayer()">
+                <img src="https://images.unsplash.com/photo-1594909122845-11baa439b7bf?auto=format&fit=crop&w=500&q=60" alt="">
+                <div class="card-info">CANAIS DE ESPORTES 4K</div>
+            </div>
+            <div class="card" onclick="openPlayer()">
+                <img src="https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=500&q=60" alt="">
+                <div class="card-info">LANÇAMENTOS CINEMA</div>
+            </div>
+            <div class="card" onclick="openPlayer()">
+                <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=500&q=60" alt="">
+                <div class="card-info">SÉRIES PREMIUM</div>
+            </div>
+            <div class="card" onclick="openPlayer()">
+                <img src="https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&w=500&q=60" alt="">
+                <div class="card-info">CANAIS ABERTOS</div>
+            </div>
+        </div>
+
+        <div class="section-title">Adicionados Recentemente</div>
+        <div class="scroll-row">
+            <div class="card"><img src="https://via.placeholder.com/300x168/111/00ff88?text=TV+1" alt=""><div class="card-info">CANAL 01</div></div>
+            <div class="card"><img src="https://via.placeholder.com/300x168/111/00ff88?text=TV+2" alt=""><div class="card-info">CANAL 02</div></div>
+            <div class="card"><img src="https://via.placeholder.com/300x168/111/00ff88?text=TV+3" alt=""><div class="card-info">CANAL 03</div></div>
+            <div class="card"><img src="https://via.placeholder.com/300x168/111/00ff88?text=TV+4" alt=""><div class="card-info">CANAL 04</div></div>
         </div>
     </div>
 
-    <div class="main">
-        <div class="top-nav">
-            <div id="current-list-name" style="font-size: 12px; color: var(--primary);">Nenhuma lista carregada</div>
-            <input type="text" id="search" placeholder="Pesquisar na lista..." onkeyup="search()" style="flex: 1; max-width: 400px;">
-        </div>
-        <div class="content-area">
-            <div class="grid" id="main-grid"></div>
-        </div>
-    </div>
-
-    <div id="editor-overlay">
-        <div class="editor-box">
-            <h3 style="margin:0; color:var(--primary)">Nova Fonte IPTV</h3>
-            <input type="text" id="list-name" placeholder="Nome (Ex: Servidor 01)">
-            <select id="list-type">
-                <option value="xtream">Xtream Codes (API)</option>
-                <option value="m3u">M3U (Link Direto)</option>
-            </select>
-            <input type="text" id="list-url" placeholder="URL / Host">
-            <input type="text" id="list-user" placeholder="Usuário (Xtream)">
-            <input type="password" id="list-pass" placeholder="Senha (Xtream)">
-            <button class="btn-action btn-add" onclick="saveList()">SALVAR LISTA</button>
-            <button class="btn-action btn-edit" onclick="closeEditor()">CANCELAR</button>
-        </div>
-    </div>
-
-    <div id="channel-editor">
-        <div class="editor-box">
-            <h3 style="margin:0; color:var(--primary)">Editar Canal</h3>
-            <input type="text" id="edit-chan-name" placeholder="Nome do Canal">
-            <input type="text" id="edit-chan-logo" placeholder="URL da Logo">
-            <button class="btn-action btn-add" onclick="saveChannelChange()">APLICAR ALTERAÇÃO</button>
-            <button class="btn-action btn-edit" onclick="closeChannelEditor()">CANCELAR</button>
-        </div>
-    </div>
-
-    <div id="player-modal">
-        <button class="close-btn" onclick="closePlayer()">← VOLTAR</button>
-        <video id="video" controls autoplay playsinline></video>
+    <div id="player-overlay">
+        <button class="close-player" onclick="closePlayer()">FECHAR PLAYER</button>
+        <video id="video-main" style="width: 100%; height: 100%;" controls autoplay></video>
     </div>
 
     <script>
-        let playlists = JSON.parse(localStorage.getItem('gemini_hub_data') || '[]');
-        let currentStreams = [];
-        let editingIndex = null;
-        let PROXY = "https://api.allorigins.win/raw?url=";
-
-        window.onload = renderSidebar;
-
-        function openEditor() { document.getElementById('editor-overlay').style.display = 'flex'; }
-        function closeEditor() { document.getElementById('editor-overlay').style.display = 'none'; }
-
-        function saveList() {
-            const newList = {
-                id: Date.now(),
-                name: document.getElementById('list-name').value || 'Sem Nome',
-                type: document.getElementById('list-type').value,
-                url: document.getElementById('list-url').value,
-                user: document.getElementById('list-user').value,
-                pass: document.getElementById('list-pass').value,
-                customEdits: {} // Onde guardaremos as edições de nomes/logos
-            };
-            playlists.push(newList);
-            localStorage.setItem('gemini_hub_data', JSON.stringify(playlists));
-            renderSidebar();
-            closeEditor();
+        function openPlayer() {
+            document.getElementById('player-overlay').style.display = 'block';
         }
 
-        function renderSidebar() {
-            const container = document.getElementById('playlists-list');
-            container.innerHTML = playlists.map(l => `
-                <div class="list-card">
-                    <h4>${l.name}</h4>
-                    <button class="btn-action btn-add" onclick="loadPlaylist(${l.id})">CARREGAR</button>
-                    <button class="btn-action btn-edit" style="background:#440000" onclick="deleteList(${l.id})">EXCLUIR</button>
-                </div>
-            `).join('');
+        function closePlayer() {
+            const v = document.getElementById('video-main');
+            v.pause();
+            document.getElementById('player-overlay').style.display = 'none';
         }
 
-        async function loadPlaylist(id) {
-            const list = playlists.find(p => p.id === id);
-            document.getElementById('current-list-name').innerText = `Sincronizando: ${list.name}...`;
-            let fetchUrl = list.type === 'xtream' ? `${list.url}/player_api.php?username=${list.user}&password=${list.pass}&action=get_live_streams` : list.url;
-
-            try {
-                const res = await fetch(PROXY + encodeURIComponent(fetchUrl));
-                if(list.type === 'xtream') {
-                    const data = await res.json();
-                    currentStreams = data.map(i => ({
-                        id: i.stream_id,
-                        name: list.customEdits[i.stream_id]?.name || i.name,
-                        logo: list.customEdits[i.stream_id]?.logo || i.stream_icon,
-                        url: `${list.url}/${list.user}/${list.pass}/${i.stream_id}.ts`,
-                        originalIndex: i.stream_id,
-                        parentListId: list.id
-                    }));
-                }
-                document.getElementById('current-list-name').innerText = `LISTA ATIVA: ${list.name.toUpperCase()}`;
-                renderGrid();
-            } catch(e) { alert("Erro ao carregar. Verifique a URL ou o Servidor."); }
-        }
-
-        function renderGrid(filter = "") {
-            const grid = document.getElementById('main-grid');
-            grid.innerHTML = currentStreams
-                .filter(s => s.name.toLowerCase().includes(filter.toLowerCase()))
-                .map((s, idx) => `
-                <div class="card" onclick="play('${s.url}')">
-                    <div class="edit-badge" onclick="event.stopPropagation(); openChannelEditor(${idx})">✎</div>
-                    <img src="${s.logo}" onerror="this.src='https://via.placeholder.com/160x90?text=SINAL+TV'">
-                    <div class="card-info">${s.name}</div>
-                </div>
-            `).join('');
-        }
-
-        function openChannelEditor(index) {
-            editingIndex = index;
-            const item = currentStreams[index];
-            document.getElementById('edit-chan-name').value = item.name;
-            document.getElementById('edit-chan-logo').value = item.logo;
-            document.getElementById('channel-editor').style.display = 'flex';
-        }
-
-        function saveChannelChange() {
-            const item = currentStreams[editingIndex];
-            const list = playlists.find(p => p.id === item.parentListId);
-            
-            const newName = document.getElementById('edit-chan-name').value;
-            const newLogo = document.getElementById('edit-chan-logo').value;
-
-            // Salva na memória da lista específica
-            list.customEdits[item.id] = { name: newName, logo: newLogo };
-            localStorage.setItem('gemini_hub_data', JSON.stringify(playlists));
-            
-            // Atualiza a tela na hora
-            item.name = newName;
-            item.logo = newLogo;
-            renderGrid();
-            closeChannelEditor();
-        }
-
-        function closeChannelEditor() { document.getElementById('channel-editor').style.display = 'none'; }
-
-        function play(url) {
-            const modal = document.getElementById('player-modal');
-            const video = document.getElementById('video');
-            modal.style.display = 'block';
-            if(Hls.isSupported()) {
-                const hls = new Hls(); hls.loadSource(url); hls.attachMedia(video);
-            } else { video.src = url; }
-        }
-
-        function closePlayer() { document.getElementById('video').pause(); document.getElementById('player-modal').style.display = 'none'; }
-        function deleteList(id) { if(confirm("Remover esta lista?")) { playlists = playlists.filter(p => p.id !== id); localStorage.setItem('gemini_hub_data', JSON.stringify(playlists)); renderSidebar(); } }
-        function search() { renderGrid(document.getElementById('search').value); }
+        // Simulação de foco para TV Box (Setas do Teclado)
+        document.addEventListener('keydown', (e) => {
+            console.log('Tecla pressionada para navegação D-Pad:', e.key);
+        });
     </script>
 </body>
 </html>
