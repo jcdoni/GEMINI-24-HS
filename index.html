@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini TV v6.3 | Pro Management</title>
+    <title>Gemini TV v6.4 | Pro Editor</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -14,7 +14,7 @@
             --fire-dark: #0f171e;
             --fire-card: #1a242f;
             --text-main: #ffffff;
-            --border: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.08);
             --bg-sidebar: #131a22;
         }
 
@@ -36,110 +36,112 @@
         }
 
         .glass-nav {
-            background: rgba(15, 23, 30, 0.9);
+            background: rgba(15, 23, 30, 0.95);
             backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border);
         }
 
-        /* Editor Dual Pane - Espaçoso */
+        /* Layout Editor Pro */
         .editor-container {
             display: grid;
-            grid-template-columns: 320px 1fr;
+            grid-template-columns: 350px 1fr;
             height: calc(100vh - 80px);
         }
 
-        .groups-column {
+        .col-groups {
             background: var(--bg-sidebar);
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
         }
 
-        .channels-column {
+        .col-channels {
             background: var(--fire-dark);
             display: flex;
             flex-direction: column;
-            overflow: hidden;
         }
 
-        /* Toolbars Superiores */
-        .toolbar-top {
+        /* Toolbars */
+        .toolbar-pro {
             display: flex;
-            gap: 6px;
-            padding: 10px;
-            background: rgba(0,0,0,0.15);
-            border-bottom: 1px solid var(--border);
-            min-height: 50px;
             align-items: center;
+            gap: 8px;
+            padding: 12px;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid var(--border);
         }
 
-        .btn-tool {
+        .btn-action-tool {
             background: var(--fire-card);
             border: 1px solid var(--border);
-            padding: 4px 8px;
-            border-radius: 4px;
+            padding: 6px 10px;
+            border-radius: 6px;
             font-size: 10px;
-            font-weight: 700;
+            font-weight: 800;
             color: var(--text-main);
             text-transform: uppercase;
             cursor: pointer;
             transition: 0.2s;
-            white-space: nowrap;
         }
 
-        .btn-tool:hover {
+        .btn-action-tool:hover {
             border-color: var(--fire-blue);
             color: var(--fire-blue);
+            transform: translateY(-1px);
         }
 
-        /* Linhas Estilizadas */
+        /* Linhas de Itens */
         .item-row {
             display: flex;
             align-items: center;
-            padding: 10px 15px;
+            padding: 12px 20px;
             border-bottom: 1px solid var(--border);
-            transition: 0.2s;
+            transition: all 0.2s;
         }
 
-        .item-row:hover { background: rgba(0, 168, 225, 0.05); }
-        .item-row.active { background: var(--fire-blue); color: white; }
-        .item-row.hidden-item { opacity: 0.4; }
+        .item-row:hover { background: rgba(0, 168, 225, 0.08); }
+        .item-row.active { background: var(--fire-blue); color: white; border-left: 4px solid white; }
+        .item-row.hidden-item { opacity: 0.35; filter: grayscale(1); }
+
+        .row-actions { display: flex; gap: 15px; opacity: 0.2; transition: 0.2s; }
+        .item-row:hover .row-actions { opacity: 1; }
 
         /* Tabela Playlists */
-        .table-pl { width: 100%; border-collapse: collapse; }
-        .table-pl th { text-align: left; padding: 15px; border-bottom: 2px solid var(--border); color: var(--fire-blue); font-size: 11px; text-transform: uppercase; }
-        .table-pl td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 13px; }
+        .pl-table { width: 100%; border-collapse: collapse; }
+        .pl-table th { text-align: left; padding: 18px; border-bottom: 2px solid var(--border); color: var(--fire-blue); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+        .pl-table td { padding: 18px; border-bottom: 1px solid var(--border); font-size: 13px; }
 
         /* Modais */
-        .modal-overlay {
+        .modal-base {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.85);
-            z-index: 2000;
+            background: rgba(0,0,0,0.9);
+            z-index: 9999;
             align-items: center;
             justify-content: center;
-            backdrop-filter: blur(8px);
+            backdrop-filter: blur(10px);
         }
 
-        .modal-content {
+        .modal-box {
             background: var(--fire-card);
-            padding: 30px;
-            border-radius: 24px;
-            width: 450px;
+            padding: 35px;
+            border-radius: 28px;
+            width: 480px;
             border: 1px solid var(--border);
             position: relative;
         }
 
-        input { background: transparent; border: none; color: inherit; outline: none; }
-        .active-tab { color: var(--fire-blue); border-bottom: 3px solid var(--fire-blue); }
+        .active-tab { color: var(--fire-blue); border-bottom: 4px solid var(--fire-blue); }
+        
+        select { background: var(--fire-card); border: 1px solid var(--border); color: white; padding: 5px; border-radius: 5px; font-size: 11px; outline: none; }
     </style>
 </head>
 <body class="flex flex-col">
 
     <nav class="glass-nav h-20 flex items-center justify-between px-12 z-50">
         <div class="flex items-center space-x-10">
-            <div class="text-2xl font-bold tracking-tighter text-white cursor-pointer" onclick="navigateTo('home')">
+            <div class="text-2xl font-bold tracking-tighter text-white" onclick="navigateTo('home')" style="cursor:pointer">
                 GEMINI<span class="text-cyan-500">TV</span>
             </div>
             <div class="flex space-x-8 text-sm font-semibold text-gray-400 uppercase tracking-widest">
@@ -149,129 +151,119 @@
             </div>
         </div>
         <div class="flex items-center space-x-6">
-            <button onclick="openTheater()" class="bg-cyan-600 text-white px-5 py-2 rounded-full font-bold text-xs uppercase hover:bg-cyan-500 transition-all">Theater Mode</button>
-            <button onclick="triggerImport()" class="bg-white text-black px-5 py-2 rounded-full font-bold text-xs uppercase hover:bg-cyan-500 hover:text-white transition-all">+ Importar</button>
-            <i class="fa-solid fa-gear text-gray-400 cursor-pointer hover:text-white text-xl" onclick="toggleModal('modal-config', true)"></i>
+            <button class="bg-cyan-600 text-white px-5 py-2 rounded-full font-bold text-xs uppercase hover:bg-cyan-500 transition-all">Theater Mode</button>
+            <button onclick="importUI()" class="bg-white text-black px-5 py-2 rounded-full font-bold text-xs uppercase hover:bg-cyan-500 hover:text-white transition-all">+ Importar</button>
+            <i class="fa-solid fa-gear text-gray-400 cursor-pointer hover:text-white text-xl" onclick="toggleM('modal-config', true)"></i>
         </div>
     </nav>
 
-    <div id="app-container" class="flex-1 overflow-hidden">
+    <div id="main-view" class="flex-1 overflow-hidden">
         
-        <section id="page-home" class="p-12 overflow-y-auto h-full">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+        <section id="page-home" class="p-12 h-full overflow-y-auto">
+            <div class="grid grid-cols-2 gap-10">
                 <div>
                     <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6">Playlists Recentes</h3>
-                    <div id="recent-grid" class="flex space-x-6"></div>
-                </div>
-                <div>
-                    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6">Acervo VOD</h3>
-                    <div id="vod-grid" class="flex space-x-6"></div>
+                    <div id="home-playlists" class="space-y-4"></div>
                 </div>
             </div>
         </section>
 
-        <section id="page-playlists" class="hidden p-12 overflow-y-auto h-full">
-            <h2 class="text-3xl font-bold mb-8">Gerenciador de Bases</h2>
-            <table class="table-pl">
+        <section id="page-playlists" class="hidden p-12 h-full overflow-y-auto">
+            <h2 class="text-3xl font-bold mb-8">Bases de Dados</h2>
+            <table class="pl-table">
                 <thead>
                     <tr>
                         <th>Nome</th>
-                        <th>URL / Source</th>
+                        <th>URL Origem</th>
                         <th>Grupos</th>
                         <th>Canais</th>
-                        <th>Último Sync</th>
-                        <th>Validade</th>
+                        <th>Expira em</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
-                <tbody id="playlist-rows"></tbody>
+                <tbody id="pl-body"></tbody>
             </table>
         </section>
 
         <section id="page-editor" class="hidden h-full">
             <div class="editor-container">
-                <div class="groups-column">
-                    <div class="toolbar-top">
-                        <button class="btn-tool" onclick="bulkGroup('az')">A-Z</button>
-                        <button class="btn-tool" onclick="bulkGroup('add')"><i class="fa-solid fa-plus"></i></button>
+                <div class="col-groups">
+                    <div class="toolbar-pro">
+                        <select id="pl-selector" onchange="switchPL(this.value)" title="Trocar Playlist Ativa"></select>
+                        <button class="btn-action-tool" onclick="groupAction('az')" title="Ordenar Grupos A-Z">A-Z</button>
+                        <button class="btn-action-tool" onclick="groupAction('add')" title="Criar Novo Grupo">+</button>
                     </div>
-                    <div id="editor-group-list" class="flex-1 overflow-y-auto"></div>
+                    <div id="group-list-editor" class="flex-1 overflow-y-auto"></div>
                 </div>
-                <div class="channels-column">
-                    <div class="toolbar-top">
-                        <button class="btn-tool" onclick="bulkChan('az')">Ordenar A-Z</button>
-                        <button class="btn-tool" onclick="bulkChan('prefix')">Prefixo/Sufixo</button>
-                        <button class="btn-tool" onclick="bulkChan('replace')">Find & Replace</button>
-                        <button class="btn-tool" onclick="bulkChan('hide')">Bulk Hide</button>
+                <div class="col-channels">
+                    <div class="toolbar-pro">
+                        <button class="btn-action-tool" onclick="chanAction('az')" title="Ordenar Canais A-Z">Ordenar A-Z</button>
+                        <button class="btn-action-tool" onclick="chanAction('prefix')" title="Adicionar Prefixo">Prefix</button>
+                        <button class="btn-action-tool" onclick="chanAction('replace')" title="Localizar e Substituir">Find/Replace</button>
+                        <button class="btn-action-tool" onclick="chanAction('hide')" title="Ocultar Visíveis">Bulk Hide</button>
                         <div class="flex-1"></div>
-                        <button onclick="exportFullM3U()" class="bg-cyan-600 px-4 py-1 rounded text-[10px] font-bold uppercase">Exportar Lista</button>
+                        <button onclick="exportM3U()" class="bg-cyan-600 px-4 py-1 rounded text-[10px] font-bold uppercase">Exportar Lista</button>
                     </div>
-                    <div id="editor-channel-list" class="flex-1 overflow-y-auto p-4"></div>
+                    <div id="chan-list-editor" class="flex-1 overflow-y-auto p-2"></div>
                 </div>
             </div>
         </section>
     </div>
 
-    <div id="modal-config" class="modal-overlay">
-        <div class="modal-content">
-            <i class="fa-solid fa-xmark absolute top-6 right-6 cursor-pointer opacity-50 hover:opacity-100" onclick="toggleModal('modal-config', false)"></i>
-            <h3 class="font-bold text-xl mb-6">Configurações</h3>
-            <button onclick="toggleTheme()" class="w-full bg-cyan-600 py-3 rounded-xl font-bold text-xs uppercase tracking-widest">Alternar Modo Claro/Escuro</button>
+    <div id="modal-config" class="modal-base">
+        <div class="modal-box text-center">
+            <i class="fa-solid fa-xmark absolute top-6 right-6 cursor-pointer opacity-50" onclick="toggleM('modal-config', false)"></i>
+            <h3 class="font-bold text-xl mb-8">Ajustes</h3>
+            <button onclick="toggleLight()" class="w-full bg-cyan-600 py-4 rounded-2xl font-bold text-xs uppercase tracking-widest">Alternar Tema</button>
         </div>
     </div>
 
-    <div id="modal-download" class="modal-overlay">
-        <div class="modal-content">
-            <i class="fa-solid fa-xmark absolute top-6 right-6 cursor-pointer opacity-50 hover:opacity-100" onclick="toggleModal('modal-download', false)"></i>
-            <h3 class="font-bold text-xl mb-6">Acesso à Playlist</h3>
-            <div class="mb-6 p-4 bg-black/20 rounded-xl">
-                <p class="text-[10px] text-gray-500 uppercase mb-2">Link Direto (Players)</p>
-                <div class="flex">
-                    <input type="text" id="share-link" readonly value="https://gemini.tv/p/demo-link" class="text-xs text-cyan-500 flex-1">
-                    <button class="text-xs font-bold text-white hover:text-cyan-500" onclick="copyLink()">COPIAR</button>
+    <div id="modal-dl" class="modal-base">
+        <div class="modal-box">
+            <i class="fa-solid fa-xmark absolute top-6 right-6 cursor-pointer opacity-50" onclick="toggleM('modal-dl', false)"></i>
+            <h3 class="font-bold text-xl mb-6">Download & Link</h3>
+            <div class="bg-black/30 p-4 rounded-xl mb-6">
+                <p class="text-[10px] text-gray-500 uppercase mb-2">URL M3U para Player</p>
+                <div class="flex items-center">
+                    <input type="text" id="pl-link" readonly class="text-cyan-500 text-xs flex-1">
+                    <button class="text-[10px] font-bold ml-2" onclick="copyL()">COPIAR</button>
                 </div>
             </div>
-            <button onclick="downloadM3UFile()" class="w-full bg-white text-black py-3 rounded-xl font-bold text-xs uppercase tracking-widest">Baixar Arquivo .M3U</button>
+            <button class="w-full bg-white text-black py-4 rounded-2xl font-bold text-xs uppercase tracking-widest">Baixar Arquivo .M3U</button>
         </div>
     </div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('gemini_v63_db')) || [];
-        let activeList = null;
-        let activeGroup = null;
+        let db = JSON.parse(localStorage.getItem('gtv_v64_db')) || [];
+        let curPL = null;
+        let curGR = null;
 
         function navigateTo(id) {
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
-            document.querySelectorAll('.glass-nav span').forEach(n => n.classList.remove('active-tab'));
-            document.getElementById('page-' + id).classList.remove('hidden');
-            document.getElementById('nav-' + id).classList.add('active-tab');
-            if(id === 'home') renderHome();
-            if(id === 'playlists') renderPlaylists();
+            document.querySelectorAll('.glass-nav span').forEach(s => s.classList.remove('active-tab'));
+            document.getElementById('page-'+id).classList.remove('hidden');
+            document.getElementById('nav-'+id).classList.add('active-tab');
+            if(id === 'playlists') renderPL();
+            if(id === 'editor') renderEditorBase();
         }
 
-        async function triggerImport() {
-            const url = prompt("URL da Lista M3U:");
+        async function importUI() {
+            const url = prompt("Cole a URL M3U:");
             if(!url) return;
-            try {
-                const res = await fetch(`https://geminitv-proxy.jcdoni.workers.dev/?url=${encodeURIComponent(url)}`);
-                const text = await res.text();
-                processM3U(text, url);
-            } catch(e) { alert("Erro ao carregar lista."); }
-        }
-
-        function processM3U(text, url) {
+            const res = await fetch(`https://geminitv-proxy.jcdoni.workers.dev/?url=${encodeURIComponent(url)}`);
+            const text = await res.text();
             const lines = text.split('\n');
-            let channels = [];
-            let groupsSet = new Set();
+            let chans = [];
+            let groups = new Set();
             lines.forEach(l => {
                 if(l.startsWith('#EXTINF:')) {
-                    const name = l.split(',')[1] || "Sem Nome";
+                    const name = l.split(',')[1] || "Canal";
                     const g = (l.match(/group-title="([^"]+)"/) || ["","GERAL"])[1].toUpperCase();
                     const epg = (l.match(/tvg-id="([^"]+)"/) || ["",""])[1];
-                    groupsSet.add(g);
-                    channels.push({
+                    groups.add(g);
+                    chans.push({
                         id: Math.random().toString(36).substr(2,9),
-                        nome: name.replace(/[^a-zA-Z0-9 ]/g, "").trim(),
+                        nome: name.trim(),
                         grupo: g,
                         logo: (l.match(/tvg-logo="([^"]+)"/) || ["",""])[1],
                         epg: epg.endsWith('.BRASIL.') ? epg : (epg || name.replace(/\s+/g,'')) + '.BRASIL.',
@@ -279,102 +271,130 @@
                     });
                 }
             });
-            db.unshift({
-                id: Date.now(),
-                name: "Minha Playlist " + (db.length + 1),
-                source: url,
-                channels: channels,
-                groups: Array.from(groupsSet),
-                lastSync: new Date().toLocaleString(),
-                exp: "31/12/2026"
-            });
+            db.unshift({ id: Date.now(), name: "Playlist "+(db.length+1), source: url, channels: chans, groups: Array.from(groups), exp: "31/12/2026" });
             save(); navigateTo('playlists');
         }
 
-        function renderPlaylists() {
-            const container = document.getElementById('playlist-rows');
-            container.innerHTML = db.map(p => `
+        function renderPL() {
+            const b = document.getElementById('pl-body');
+            b.innerHTML = db.map(p => `
                 <tr>
                     <td class="font-bold">${p.name}</td>
-                    <td class="text-xs opacity-40 truncate max-w-[200px]">${p.source}</td>
+                    <td class="text-xs opacity-40 truncate max-w-[180px]">${p.source}</td>
                     <td>${p.groups.length}</td>
                     <td>${p.channels.length}</td>
-                    <td class="text-[10px] opacity-60">${p.lastSync}</td>
                     <td class="text-green-500 font-bold">${p.exp}</td>
                     <td>
-                        <div class="flex space-x-4">
-                            <i class="fa-solid fa-pen-to-square cursor-pointer hover:text-cyan-500" onclick="editMetadata(${p.id})"></i>
-                            <i class="fa-solid fa-cloud-arrow-down cursor-pointer hover:text-white" onclick="openDownloadModal(${p.id})"></i>
-                            <i class="fa-solid fa-table-list cursor-pointer hover:text-cyan-500" onclick="loadEditor(${p.id})"></i>
-                            <i class="fa-solid fa-trash cursor-pointer hover:text-red-500" onclick="deletePlaylist(${p.id})"></i>
+                        <div class="flex gap-4 text-gray-400">
+                            <i class="fa-solid fa-pen cursor-pointer hover:text-cyan-500" title="Editar Metadados" onclick="editMeta(${p.id})"></i>
+                            <i class="fa-solid fa-cloud-arrow-down cursor-pointer hover:text-white" title="Download e Link" onclick="openDL(${p.id})"></i>
+                            <i class="fa-solid fa-table-list cursor-pointer hover:text-cyan-500" title="Abrir no Editor" onclick="goEd(${p.id})"></i>
+                            <i class="fa-solid fa-trash cursor-pointer hover:text-red-500" title="Excluir" onclick="delPL(${p.id})"></i>
                         </div>
                     </td>
                 </tr>
             `).join('');
         }
 
-        function loadEditor(id) {
-            activeList = db.find(x => x.id === id);
-            navigateTo('editor');
-            renderEditorGroups();
+        function renderEditorBase() {
+            const sel = document.getElementById('pl-selector');
+            sel.innerHTML = `<option value="">Escolha uma Playlist</option>` + db.map(p => `<option value="${p.id}" ${curPL && curPL.id == p.id ? 'selected':''}>${p.name}</option>`).join('');
+            if(curPL) renderGR();
         }
 
-        function renderEditorGroups() {
-            const container = document.getElementById('editor-group-list');
-            container.innerHTML = activeList.groups.map(g => `
-                <div class="item-row cursor-pointer ${activeGroup === g ? 'active' : ''}" onclick="selectGroup('${g}')">
-                    <span class="text-xs font-bold flex-1 truncate">${g}</span>
-                    <div class="flex space-x-2 opacity-0 hover:opacity-100 ml-2">
-                        <i class="fa-solid fa-pen text-[9px] cursor-pointer"></i>
-                        <i class="fa-solid fa-eye text-[9px] cursor-pointer"></i>
-                        <i class="fa-solid fa-trash text-[9px] cursor-pointer"></i>
+        function goEd(id) { curPL = db.find(x=>x.id==id); navigateTo('editor'); }
+        function switchPL(id) { if(!id) return; curPL = db.find(x=>x.id==id); renderGR(); }
+
+        function renderGR() {
+            const list = document.getElementById('group-list-editor');
+            list.innerHTML = curPL.groups.map(g => `
+                <div class="item-row cursor-pointer ${curGR === g ? 'active' : ''}" onclick="setGR('${g}')">
+                    <span class="flex-1 font-bold text-xs truncate">${g}</span>
+                    <div class="row-actions">
+                        <i class="fa-solid fa-pen text-[10px]" title="Renomear Grupo" onclick="editGR('${g}')"></i>
+                        <i class="fa-solid fa-eye text-[10px]" title="Ocultar Grupo"></i>
+                        <i class="fa-solid fa-trash text-[10px]" title="Apagar Grupo" onclick="delGR('${g}')"></i>
                     </div>
                 </div>
             `).join('');
         }
 
-        function selectGroup(g) {
-            activeGroup = g;
-            renderEditorGroups();
-            renderChannels();
-        }
+        function setGR(g) { curGR = g; renderGR(); renderCH(); }
 
-        function renderChannels() {
-            const container = document.getElementById('editor-channel-list');
-            const filtered = activeList.channels.filter(c => c.grupo === activeGroup);
-            container.innerHTML = filtered.map(c => `
-                <div class="item-row ${c.oculto ? 'hidden-item' : ''}">
+        function renderCH() {
+            const list = document.getElementById('chan-list-editor');
+            const filtered = curPL.channels.filter(c => c.grupo === curGR);
+            list.innerHTML = filtered.map(c => `
+                <div class="item-row ${c.oculto ? 'hidden-item':''}">
                     <img src="${c.logo}" class="w-8 h-8 object-contain mr-4 bg-black/20 rounded">
-                    <input type="text" value="${c.nome}" class="flex-1 font-semibold text-sm" onblur="updateChan('${c.id}', this.value)">
-                    <div class="flex space-x-4 ml-4">
-                        <i class="fa-solid fa-pen text-xs cursor-pointer opacity-30 hover:opacity-100"></i>
-                        <i class="fa-solid ${c.oculto ? 'fa-eye-slash text-red-500' : 'fa-eye text-cyan-500'} cursor-pointer" onclick="toggleChan('${c.id}')"></i>
-                        <i class="fa-solid fa-trash text-xs cursor-pointer opacity-30 hover:text-red-500"></i>
+                    <span class="flex-1 font-semibold text-sm">${c.nome}</span>
+                    <div class="row-actions">
+                        <i class="fa-solid fa-pen text-xs cursor-pointer" title="Renomear Canal" onclick="editCH('${c.id}')"></i>
+                        <i class="fa-solid ${c.oculto ? 'fa-eye-slash text-red-500':'fa-eye text-cyan-500'} cursor-pointer" title="Ocultar" onclick="togCH('${c.id}')"></i>
+                        <i class="fa-solid fa-trash text-xs cursor-pointer" title="Apagar Canal" onclick="delCH('${c.id}')"></i>
                     </div>
                 </div>
             `).join('');
         }
 
-        function toggleModal(id, show) { document.getElementById(id).style.display = show ? 'flex' : 'none'; }
-        function save() { localStorage.setItem('gemini_v63_db', JSON.stringify(db)); }
-        function updateChan(id, val) { const c = activeList.channels.find(x => x.id === id); if(c) c.nome = val; save(); }
-        function toggleChan(id) { const c = activeList.channels.find(x => x.id === id); if(c) c.oculto = !c.oculto; renderChannels(); save(); }
-
-        function toggleTheme() {
-            const isLight = document.body.classList.toggle('light-mode');
-            localStorage.setItem('gemini_theme', isLight ? 'light' : 'dark');
+        // FUNÇÕES REAIS DE BOTÕES
+        function groupAction(act) {
+            if(!curPL) return;
+            if(act === 'az') {
+                curPL.groups.sort((a,b) => a.localeCompare(b));
+                renderGR(); save();
+            }
         }
 
-        function openDownloadModal(id) {
-            activeList = db.find(x => x.id === id);
-            document.getElementById('share-link').value = `https://gemini.tv/p/${activeList.id}.m3u`;
-            toggleModal('modal-download', true);
+        function chanAction(act) {
+            if(!curPL || !curGR) return;
+            if(act === 'az') {
+                curPL.channels.sort((a,b) => a.nome.localeCompare(b.nome));
+                renderCH(); save();
+            }
+            if(act === 'prefix') {
+                const p = prompt("Digite o prefixo:");
+                if(p) {
+                    curPL.channels.forEach(c => { if(c.grupo === curGR) c.nome = p + " " + c.nome; });
+                    renderCH(); save();
+                }
+            }
         }
 
-        window.onload = () => {
-            if(localStorage.getItem('gemini_theme') === 'light') document.body.classList.add('light-mode');
-            navigateTo('home');
-        };
+        function editCH(id) {
+            const c = curPL.channels.find(x=>x.id==id);
+            const n = prompt("Novo nome:", c.nome);
+            if(n) { c.nome = n; renderCH(); save(); }
+        }
+
+        function delCH(id) {
+            if(confirm("Apagar este canal?")) {
+                curPL.channels = curPL.channels.filter(x=>x.id !== id);
+                renderCH(); save();
+            }
+        }
+
+        function togCH(id) {
+            const c = curPL.channels.find(x=>x.id==id);
+            c.oculto = !c.oculto; renderCH(); save();
+        }
+
+        function editGR(oldG) {
+            const n = prompt("Novo nome para o grupo:", oldG);
+            if(n) {
+                curPL.channels.forEach(c => { if(c.grupo === oldG) c.grupo = n.toUpperCase(); });
+                const idx = curPL.groups.indexOf(oldG);
+                curPL.groups[idx] = n.toUpperCase();
+                curGR = n.toUpperCase();
+                renderGR(); renderCH(); save();
+            }
+        }
+
+        function toggleM(id, show) { document.getElementById(id).style.display = show ? 'flex' : 'none'; }
+        function save() { localStorage.setItem('gtv_v64_db', JSON.stringify(db)); }
+        function toggleLight() { document.body.classList.toggle('light-mode'); }
+
+        window.onload = () => navigateTo('home');
     </script>
 </body>
 </html>
