@@ -1,237 +1,155 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GEMINI TV | V31 DNA AUTO</title>
+    <title>Editor Gemini TV - DNA Pro</title>
     <style>
-        :root { --primary: #00ff88; --bg: #0b0b0b; --surface: #151515; --neon: 0 0 15px rgba(0, 255, 136, 0.3); }
-        body { margin: 0; background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; height: 100vh; overflow: hidden; }
-        
-        .sidebar { width: 70px; background: #000; border-right: 1px solid #222; display: flex; flex-direction: column; align-items: center; padding: 20px 0; transition: 0.3s; z-index: 1000; }
-        .sidebar:hover { width: 200px; }
-        .nav-item { width: 100%; height: 50px; display: flex; align-items: center; padding: 0 25px; cursor: pointer; color: #666; transition: 0.2s; white-space: nowrap; overflow: hidden; }
-        .nav-item:hover, .nav-item.active { color: var(--primary); background: rgba(0,255,136,0.05); border-left: 4px solid var(--primary); }
-        .nav-item span { margin-left: 20px; opacity: 0; font-weight: bold; }
-        .sidebar:hover .nav-item span { opacity: 1; }
-
-        .main { flex: 1; overflow-y: auto; padding: 30px; position: relative; }
-        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-
-        .card { background: var(--surface); border-radius: 12px; padding: 15px; border: 1px solid #222; transition: 0.3s; position: relative; }
-        .card:hover { border-color: var(--primary); box-shadow: var(--neon); }
-        .card img { width: 60px; height: 40px; object-fit: contain; background: #000; border-radius: 5px; margin-bottom: 10px; }
-        .card input { width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 8px; margin: 5px 0; border-radius: 5px; font-size: 12px; box-sizing: border-box; }
-        .card label { font-size: 10px; color: #888; text-transform: uppercase; font-weight: bold; }
-        .id-badge { color: var(--primary); font-size: 10px; font-weight: bold; margin-top: 5px; display: block; }
-
-        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 2000; }
-        .modal { background: #111; padding: 30px; border-radius: 20px; width: 95%; max-width: 500px; border: 1px solid #333; }
-        .btn { padding: 12px 25px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-primary { background: var(--primary); color: #000; }
-        .btn-outline { background: transparent; border: 1px solid #444; color: #fff; margin-top: 10px; width: 100%; }
-        
-        textarea { width: 100%; height: 120px; background: #000; color: var(--primary); border: 1px solid #333; border-radius: 8px; padding: 10px; font-family: monospace; font-size: 11px; margin-top: 10px; box-sizing: border-box; }
-        #loading { position: fixed; top: 20px; right: 20px; background: var(--primary); color: #000; padding: 10px 20px; border-radius: 5px; display: none; font-weight: bold; z-index: 3000; box-shadow: var(--neon); }
+        :root {
+            --primary: #00ff88;
+            --bg: #121212;
+            --card: #1e1e1e;
+            --text: #ffffff;
+        }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 20px; }
+        .container { max-width: 1200px; margin: auto; }
+        .controls { background: var(--card); padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--primary); }
+        input, button { padding: 10px; border-radius: 4px; border: none; margin: 5px; }
+        input[type="text"] { width: 60%; background: #333; color: white; }
+        button { background: var(--primary); color: #000; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { opacity: 0.8; transform: scale(1.05); }
+        table { width: 100%; border-collapse: collapse; background: var(--card); }
+        th, td { padding: 12px; border: 1px solid #333; text-align: left; }
+        th { background: #252525; color: var(--primary); }
+        .status { color: var(--primary); margin-top: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div id="loading">EXECUTANDO DNA...</div>
-
-    <nav class="sidebar">
-        <div class="nav-item active" onclick="location.reload()">🏠<span>DASHBOARD</span></div>
-        <div class="nav-item" onclick="openModal('import-modal')">📥<span>EXTRAIR CANAIS</span></div>
-        <div class="nav-item" onclick="openModal('config-modal')">⚙️<span>CONFIG</span></div>
-        <div class="nav-item" onclick="exportToGithub()" style="margin-top: auto; color: var(--primary);">🚀<span>ENVIAR GITHUB</span></div>
-    </nav>
-
-    <main class="main">
-        <div class="header-actions">
-            <h1>GEMINI <span style="color:var(--primary)">V31 DNA</span></h1>
-            <div id="counter">Canais: 0</div>
-        </div>
-        <div id="grid-area" class="grid"></div>
-    </main>
-
-    <div class="overlay" id="import-modal">
-        <div class="modal">
-            <h2>EXTRAIR CANAIS</h2>
-            <p style="font-size: 12px; color: #888;">Insira o link M3U ou cole o conteúdo da lista abaixo:</p>
-            <textarea id="smart-input" placeholder="Cole aqui o Link ou o Conteúdo M3U..."></textarea>
-            
-            <button class="btn btn-primary" style="width:100%; margin-top:15px;" onclick="handleSmartImport()">INICIAR EXTRAÇÃO</button>
-            <button class="btn btn-outline" onclick="closeModal('import-modal')">FECHAR</button>
-        </div>
+<div class="container">
+    <h2>🧬 Gemini TV - Editor Pro (DNA Ativo)</h2>
+    
+    <div class="controls">
+        <input type="text" id="m3uUrl" placeholder="Cole o link da lista M3U aqui...">
+        <button onclick="carregarLista()">CARREGAR LISTA</button>
+        <button onclick="aplicarDNA()">APLICAR DNA</button>
+        <button onclick="exportarM3U()">EXPORTAR M3U</button>
+        <div id="statusMsg" class="status">Sistema pronto.</div>
     </div>
 
-    <div class="overlay" id="config-modal">
-        <div class="modal">
-            <h2>SETUP GITHUB</h2>
-            <input type="text" id="gh-token" placeholder="Token GitHub" class="btn-outline" style="text-align:left; padding:12px;">
-            <input type="text" id="gh-repo" placeholder="Repositório (usuario/repo)" class="btn-outline" style="text-align:left; padding:12px;">
-            <button class="btn btn-primary" style="width:100%; margin-top:15px;" onclick="saveConfig()">SALVAR AJUSTES</button>
-            <button class="btn btn-outline" onclick="closeModal('config-modal')">FECHAR</button>
-        </div>
-    </div>
+    <table id="tabelaCanais">
+        <thead>
+            <tr>
+                <th>Nome do Canal</th>
+                <th>Grupo/Categoria</th>
+                <th>EPG ID (BRASIL)</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody id="corpoTabela">
+            </tbody>
+    </table>
+</div>
 
-    <script>
-        let CHANNELS = JSON.parse(localStorage.getItem('gemini_db')) || [];
-        let CONFIG = JSON.parse(localStorage.getItem('gemini_config')) || { token: '', repo: '' };
+<script>
+    let canaisData = [];
+    const PROXY_URL = "https://geminitv-proxy.jcdoni.workers.dev/?url=";
 
-        window.onload = () => { 
-            render();
-            document.getElementById('gh-token').value = CONFIG.token || "";
-            document.getElementById('gh-repo').value = CONFIG.repo || "";
-        };
+    async function carregarLista() {
+        const urlOriginal = document.getElementById('m3uUrl').value;
+        if (!urlOriginal) return alert("Insira uma URL!");
 
-        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        const msg = document.getElementById('statusMsg');
+        msg.innerText = "Buscando lista via Túnel Cloudflare...";
 
-        function higienizarDNA(texto) {
-            if (!texto) return "";
-            let n = texto.toString().toUpperCase();
-            n = n.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/Ç/g, "C");
-            n = n.replace(/^[A-Z]{2,3}\s*[:|/-]\s*/i, "");
-            const lixo = [/\b(1080P|720P|4K|FHD|HD|SD|RAW|60FPS|H265|HEVC|BR:|PT:|US:)\b/g, /[^A-Z0-9\s]/g];
-            lixo.forEach(reg => n = n.replace(reg, " "));
-            return n.replace(/\s+/g, " ").trim();
+        try {
+            // Uso do motor Cloudflare para pular bloqueios
+            const response = await fetch(PROXY_URL + encodeURIComponent(urlOriginal));
+            const data = await response.text();
+            processarM3U(data);
+            msg.innerText = "Lista carregada com sucesso!";
+        } catch (error) {
+            msg.innerText = "Erro ao carregar lista. Verifique o link ou o Worker.";
+            console.error(error);
         }
+    }
 
-        function generateID(nome) {
-            return nome.replace(/[^A-Z0-9]/g, "") + ".BRASIL";
-        }
+    function processarM3U(conteudo) {
+        const linhas = conteudo.split('\n');
+        canaisData = [];
+        let canalAtual = {};
 
-        async function handleSmartImport() {
-            const input = document.getElementById('smart-input').value.trim();
-            const loader = document.getElementById('loading');
-            
-            if (!input) return alert("Entrada vazia!");
-            loader.style.display = 'block';
+        linhas.forEach(linha => {
+            if (linha.startsWith('#EXTINF:')) {
+                const info = linha;
+                const nome = info.split(',')[1] || "Sem Nome";
+                const grupoMatch = info.match(/group-title="([^"]+)"/);
+                const epgMatch = info.match(/tvg-id="([^"]+)"/);
 
-            // Verifica se é link ou texto bruto
-            if (input.startsWith("http")) {
-                await fetchWithProxies(input);
-            } else {
-                processM3U(input);
+                canalAtual = {
+                    nome: nome.trim(),
+                    grupo: grupoMatch ? grupoMatch[1] : "Geral",
+                    epg: epgMatch ? epgMatch[1] : ""
+                };
+            } else if (linha.startsWith('http')) {
+                canalAtual.url = linha.trim();
+                canaisData.push(canalAtual);
+                canalAtual = {};
             }
-            loader.style.display = 'none';
-        }
+        });
+        renderizarTabela();
+    }
 
-        async function fetchWithProxies(url) {
-            const proxies = [
-                "https://api.allorigins.win/raw?url=",
-                "https://corsproxy.io/?",
-                "https://thingproxy.freeboard.io/fetch/"
-            ];
+    function renderizarTabela() {
+        const corpo = document.getElementById('corpoTabela');
+        corpo.innerHTML = "";
+        canaisData.forEach((canal, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="text" value="${canal.nome}" onchange="atualizarCanal(${index}, 'nome', this.value)"></td>
+                <td><input type="text" value="${canal.grupo}" onchange="atualizarCanal(${index}, 'grupo', this.value)"></td>
+                <td><input type="text" value="${canal.epg}" onchange="atualizarCanal(${index}, 'epg', this.value)"></td>
+                <td><button onclick="removerCanal(${index})" style="background:#ff4444; color:white;">Remover</button></td>
+            `;
+            corpo.appendChild(tr);
+        });
+    }
 
-            for (let proxy of proxies) {
-                try {
-                    const res = await fetch(proxy + encodeURIComponent(url));
-                    if (res.ok) {
-                        const text = await res.text();
-                        processM3U(text);
-                        return;
-                    }
-                } catch (e) { console.log(`Falha no proxy: ${proxy}`); }
+    function aplicarDNA() {
+        canaisData = canaisData.map(canal => {
+            let novoEpg = canal.epg;
+            // Regra DNA: EPG ID tem que terminar com .BRASIL.
+            if (novoEpg && !novoEpg.endsWith('.BRASIL.')) {
+                novoEpg = novoEpg.split('.')[0] + ".BRASIL.";
+            } else if (!novoEpg) {
+                novoEpg = canal.nome.replace(/\s+/g, '') + ".BRASIL.";
             }
-            alert("Não foi possível carregar o link devido a bloqueios de rede. Tente colar o texto da lista diretamente.");
-        }
+            return { ...canal, epg: novoEpg };
+        });
+        renderizarTabela();
+        document.getElementById('statusMsg').innerText = "Protocolo DNA aplicado: IDs ajustados.";
+    }
 
-        function processM3U(text) {
-            const lines = text.split('\n');
-            let temp = [];
-            for(let i=0; i<lines.length; i++) {
-                if(lines[i].includes("#EXTINF:")) {
-                    let nameRaw = lines[i].split(',').pop();
-                    let nomeLimpo = higienizarDNA(nameRaw);
-                    let logo = lines[i].match(/tvg-logo="(.*?)"/)?.[1] || "";
-                    let group = lines[i].match(/group-title="(.*?)"/)?.[1] || "GERAL";
-                    let stream = lines[i+1]?.trim();
+    function atualizarCanal(index, campo, valor) {
+        canaisData[index][campo] = valor;
+    }
 
-                    if(stream && !stream.startsWith("#")) {
-                        temp.push({
-                            nome: nomeLimpo,
-                            id: generateID(nomeLimpo),
-                            logo: logo,
-                            grupo: higienizarDNA(group),
-                            url: stream
-                        });
-                    }
-                }
-            }
-            CHANNELS = temp;
-            saveData();
-            render();
-            closeModal('import-modal');
-        }
+    function removerCanal(index) {
+        canaisData.splice(index, 1);
+        renderizarTabela();
+    }
 
-        function render() {
-            const area = document.getElementById('grid-area');
-            document.getElementById('counter').innerText = `Canais: ${CHANNELS.length}`;
-            area.innerHTML = CHANNELS.map((c, index) => `
-                <div class="card">
-                    <img src="${c.logo}" onerror="this.src='https://via.placeholder.com/60x40/000/00ff88?text=TV'">
-                    <label>Nome do Canal</label>
-                    <input type="text" value="${c.nome}" onchange="updateChannel(${index}, 'nome', this.value)">
-                    <label>Grupo</label>
-                    <input type="text" value="${c.grupo}" onchange="updateChannel(${index}, 'grupo', this.value)">
-                    <span class="id-badge">ID: ${c.id}</span>
-                </div>
-            `).join('');
-        }
+    function exportarM3U() {
+        let m3u = "#EXTM3U\n";
+        canaisData.forEach(canal => {
+            m3u += `#EXTINF:-1 tvg-id="${canal.epg}" group-title="${canal.grupo}",${canal.nome}\n${canal.url}\n`;
+        });
+        const blob = new Blob([m3u], { type: 'text/plain' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = "lista_gemini_tv.m3u";
+        a.click();
+    }
+</script>
 
-        function updateChannel(index, field, value) {
-            CHANNELS[index][field] = field === 'nome' ? higienizarDNA(value) : value;
-            if(field === 'nome') CHANNELS[index].id = generateID(CHANNELS[index].nome);
-            saveData();
-            render();
-        }
-
-        function saveData() { localStorage.setItem('gemini_db', JSON.stringify(CHANNELS)); }
-        
-        function saveConfig() {
-            CONFIG.token = document.getElementById('gh-token').value;
-            CONFIG.repo = document.getElementById('gh-repo').value;
-            localStorage.setItem('gemini_config', JSON.stringify(CONFIG));
-            closeModal('config-modal');
-        }
-
-        async function exportToGithub() {
-            if(!CONFIG.token || !CONFIG.repo) return alert("Configure o Token e Repo primeiro!");
-            const loader = document.getElementById('loading');
-            loader.innerText = "SINCRONIZANDO GITHUB...";
-            loader.style.display = 'block';
-
-            let m3u = "#EXTM3U\n";
-            CHANNELS.forEach(c => {
-                m3u += `#EXTINF:-1 tvg-id="${c.id}" tvg-logo="${c.logo}" group-title="${c.grupo}", ${c.nome}\n${c.url}\n`;
-            });
-
-            const fileName = "GEMINI_24HS.m3u";
-            const url = `https://api.github.com/repos/${CONFIG.repo}/contents/${fileName}`;
-            
-            try {
-                const getFile = await fetch(url, { headers: { Authorization: `token ${CONFIG.token}` }});
-                const fileData = await getFile.json();
-                const sha = fileData.sha || null;
-
-                const res = await fetch(url, {
-                    method: 'PUT',
-                    headers: { Authorization: `token ${CONFIG.token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        message: "Sync DNA Web V31",
-                        content: btoa(unescape(encodeURIComponent(m3u))),
-                        sha: sha
-                    })
-                });
-
-                if(res.ok) alert("🚀 SUCESSO! Lista atualizada no GitHub.");
-                else alert("Erro ao salvar. Verifique se o Token tem permissão 'repo'.");
-            } catch(e) { alert("Falha na conexão GitHub."); }
-            loader.style.display = 'none';
-        }
-    </script>
 </body>
 </html>
