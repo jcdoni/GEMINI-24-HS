@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TV PLAYER | DNA SYSTEM</title>
+    <title>SISTEMA TV | DNA V5.2</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         :root { --primary: #00ff88; --bg: #0a0a0a; --card: #151515; --text: #ffffff; }
-        body { margin: 0; background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; }
+        body { margin: 0; background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
         
         #login-area { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .input-group { display: flex; flex-direction: column; gap: 15px; width: 85%; max-width: 320px; }
@@ -15,42 +15,45 @@
         button.btn-main { padding: 18px; border-radius: 12px; border: none; background: var(--primary); color: #000; font-weight: 800; cursor: pointer; text-transform: uppercase; }
 
         #app-area { display: none; }
-        .header { padding: 15px; background: rgba(0,0,0,0.9); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
+        .header { padding: 15px; background: rgba(0,0,0,0.9); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; sticky: top; z-index: 100; }
         
-        .tabs { display: flex; gap: 10px; padding: 15px; overflow-x: auto; justify-content: center; }
-        .tab { padding: 10px 20px; background: #1a1a1a; border-radius: 20px; font-size: 12px; cursor: pointer; color: #666; font-weight: bold; border: 1px solid #333; }
+        .tabs { display: flex; gap: 10px; padding: 15px; overflow-x: auto; justify-content: center; scrollbar-width: none; }
+        .tab { padding: 10px 20px; background: #1a1a1a; border-radius: 20px; font-size: 12px; cursor: pointer; color: #666; font-weight: bold; border: 1px solid #333; white-space: nowrap; }
         .tab.active { background: var(--primary); color: #000; border-color: var(--primary); }
 
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; padding: 15px; }
-        .card { background: var(--card); border-radius: 12px; overflow: hidden; position: relative; aspect-ratio: 16/9; cursor: pointer; border: 1px solid #222; }
-        .card img { width: 100%; height: 100%; object-fit: cover; }
-        .card-name { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.8); padding: 5px; font-size: 10px; text-align: center; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; padding: 15px; }
+        .card { background: var(--card); border-radius: 12px; overflow: hidden; position: relative; aspect-ratio: 16/9; cursor: pointer; border: 1px solid #222; transition: 0.2s; }
+        .card:active { transform: scale(0.95); }
+        .card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
+        .card-info { position: absolute; bottom: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.9) 40%); padding: 10px 5px; text-align: center; }
+        .card-name { font-size: 11px; font-weight: bold; margin-bottom: 2px; }
+        .card-epg { font-size: 9px; color: var(--primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         #player-modal { position: fixed; inset: 0; background: #000; z-index: 10000; display: none; flex-direction: column; }
         video { width: 100%; height: 100%; }
-        .close-btn { position: absolute; top: 20px; left: 20px; background: rgba(255,255,255,0.2); color: #fff; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; z-index: 10001; }
+        .close-btn { position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid #444; padding: 10px 15px; border-radius: 8px; cursor: pointer; z-index: 10001; }
     </style>
 </head>
 <body>
 
     <div id="login-area">
-        <h1 style="color:var(--primary)">SISTEMA DNA</h1>
+        <h1 style="color:var(--primary); letter-spacing: -2px;">SISTEMA DNA</h1>
         <div class="input-group">
-            <input type="text" id="user" placeholder="Login">
-            <input type="password" id="pass" placeholder="Senha">
-            <button class="btn-main" onclick="handleLogin()">Entrar</button>
-            <p id="msg" style="color:red; font-size:12px;"></p>
+            <input type="text" id="user" placeholder="Seu Login">
+            <input type="password" id="pass" placeholder="Sua Senha">
+            <button class="btn-main" onclick="handleLogin()">Entrar agora</button>
+            <p id="msg" style="color:#ff4444; font-size:12px; margin-top:10px;"></p>
         </div>
     </div>
 
     <div id="app-area">
         <div class="header">
-            <div style="color:var(--primary); font-weight:900;">TV PREMIUM</div>
-            <button onclick="logout()" style="background:none; border:1px solid #333; color:#555; border-radius:5px; padding:5px;">SAIR</button>
+            <div style="color:var(--primary); font-weight:900; font-size: 1.2rem;">GEMINI <span style="color:#fff">TV</span></div>
+            <button onclick="logout()" style="background:none; border:1px solid #333; color:#555; border-radius:5px; padding:6px 12px; font-size: 10px;">SAIR</button>
         </div>
         
         <div class="tabs">
-            <div class="tab active" onclick="setTab('live', this)">TV AO VIVO</div>
+            <div class="tab active" onclick="setTab('live', this)">CANAIS AO VIVO</div>
             <div class="tab" onclick="setTab('movies', this)">FILMES</div>
             <div class="tab" onclick="setTab('series', this)">SÉRIES</div>
         </div>
@@ -58,7 +61,7 @@
     </div>
 
     <div id="player-modal">
-        <button class="close-btn" onclick="closePlayer()">VOLTAR</button>
+        <button class="close-btn" onclick="closePlayer()">← VOLTAR</button>
         <video id="video" controls autoplay playsinline></video>
     </div>
 
@@ -66,25 +69,28 @@
         let DB = { live: [], movies: [], series: [] };
         let USERS = {};
         let TAB = 'live';
+        let EPG_DATA = {};
 
         window.onload = async () => {
             await loadUsers();
-            if(localStorage.getItem('sessao_dna') === 'ativa') mostrarApp();
+            if(localStorage.getItem('sessao_dna_v5') === 'ativa') mostrarApp();
         };
 
         async function loadUsers() {
-            const r = await fetch('users.json?t=' + Date.now());
-            USERS = await r.json();
+            try {
+                const r = await fetch('users.json?t=' + Date.now());
+                USERS = await r.json();
+            } catch(e) { console.log("Erro usuários"); }
         }
 
         async function handleLogin() {
             const u = document.getElementById('user').value.trim();
             const p = document.getElementById('pass').value.trim();
             if(USERS[u] && USERS[u] === p) {
-                localStorage.setItem('sessao_dna', 'ativa');
+                localStorage.setItem('sessao_dna_v5', 'ativa');
                 mostrarApp();
             } else {
-                document.getElementById('msg').innerText = "Acesso Negado!";
+                document.getElementById('msg').innerText = "Acesso Negado ou Conta Inativa!";
             }
         }
 
@@ -95,9 +101,13 @@
         }
 
         async function loadData() {
-            const r = await fetch('database.json?t=' + Date.now());
-            DB = await r.json();
-            render();
+            try {
+                const r = await fetch('database.json?t=' + Date.now());
+                DB = await r.json();
+                // Tenta carregar o EPG externo (Exemplo de fonte pública para teste)
+                // Em um projeto real, você usaria o XML gerado pela sua planilha
+                render();
+            } catch(e) { console.log("Erro database"); }
         }
 
         function render() {
@@ -106,7 +116,14 @@
             (DB[TAB] || []).forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.innerHTML = `<img src="${item.logo}"><div class="card-name">${item.name}</div>`;
+                // Adicionamos a classe card-epg para mostrar o sufixo ou info futura
+                card.innerHTML = `
+                    <img src="${item.logo || ''}" onerror="this.src='https://via.placeholder.com/160x90?text=TV'">
+                    <div class="card-info">
+                        <div class="card-name">${item.name}</div>
+                        <div class="card-epg">${TAB === 'live' ? 'Carregando guia...' : ''}</div>
+                    </div>
+                `;
                 card.onclick = () => play(item.url);
                 container.appendChild(card);
             });
@@ -128,7 +145,8 @@
         }
 
         function closePlayer() {
-            document.getElementById('video').pause();
+            const v = document.getElementById('video');
+            v.pause(); v.src = "";
             document.getElementById('player-modal').style.display = 'none';
         }
 
