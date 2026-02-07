@@ -2,154 +2,281 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Editor Gemini TV - DNA Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini TV - Professional Editor</title>
     <style>
         :root {
             --primary: #00ff88;
-            --bg: #121212;
-            --card: #1e1e1e;
-            --text: #ffffff;
+            --bg-dark: #0f0f0f;
+            --sidebar-bg: #1a1a1a;
+            --card-bg: #252525;
+            --text-main: #e0e0e0;
+            --border: #333;
         }
-        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 20px; }
-        .container { max-width: 1200px; margin: auto; }
-        .controls { background: var(--card); padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--primary); }
-        input, button { padding: 10px; border-radius: 4px; border: none; margin: 5px; }
-        input[type="text"] { width: 60%; background: #333; color: white; }
-        button { background: var(--primary); color: #000; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:hover { opacity: 0.8; transform: scale(1.05); }
-        table { width: 100%; border-collapse: collapse; background: var(--card); }
-        th, td { padding: 12px; border: 1px solid #333; text-align: left; }
-        th { background: #252525; color: var(--primary); }
-        .status { color: var(--primary); margin-top: 10px; font-weight: bold; }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar - Estilo M3U4U */
+        .sidebar {
+            width: 260px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+        }
+
+        .sidebar h2 { color: var(--primary); font-size: 1.2rem; margin-bottom: 20px; }
+
+        .group-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .group-item {
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            transition: 0.2s;
+        }
+
+        .group-item:hover { background: #333; }
+        .group-item.active { background: var(--primary); color: #000; font-weight: bold; }
+
+        /* Área Principal */
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .top-bar {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        input[type="text"] {
+            background: #121212;
+            border: 1px solid var(--border);
+            color: white;
+            padding: 10px;
+            border-radius: 4px;
+            flex-grow: 1;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .btn-primary { background: var(--primary); color: #000; }
+        .btn-action { background: #444; color: white; }
+        button:hover { opacity: 0.8; transform: translateY(-2px); }
+
+        /* Tabela Estilo IPTV Editor */
+        .table-container {
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th { background: #1a1a1a; color: var(--primary); position: sticky; top: 0; }
+
+        .status-msg { margin-top: 10px; color: var(--primary); font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>🧬 Gemini TV - Editor Pro (DNA Ativo)</h2>
-    
-    <div class="controls">
-        <input type="text" id="m3uUrl" placeholder="Cole o link da lista M3U aqui...">
-        <button onclick="carregarLista()">CARREGAR LISTA</button>
-        <button onclick="aplicarDNA()">APLICAR DNA</button>
-        <button onclick="exportarM3U()">EXPORTAR M3U</button>
-        <div id="statusMsg" class="status">Sistema pronto.</div>
+    <div class="sidebar">
+        <h2>🧬 Gemini TV DNA</h2>
+        <div class="group-list" id="listaGrupos">
+            <div class="group-item active" onclick="filtrarGrupo('Todos')">Todos os Canais</div>
+        </div>
+        <button class="btn-action" style="margin-top:10px" onclick="aplicarDNA()">APLICAR DNA (.BRASIL.)</button>
     </div>
 
-    <table id="tabelaCanais">
-        <thead>
-            <tr>
-                <th>Nome do Canal</th>
-                <th>Grupo/Categoria</th>
-                <th>EPG ID (BRASIL)</th>
-                <th>Ações</th>
-            </tr>
-        </thead>
-        <tbody id="corpoTabela">
-            </tbody>
-    </table>
-</div>
+    <div class="main-content">
+        <div class="top-bar">
+            <input type="text" id="m3uUrl" placeholder="URL da Lista M3U...">
+            <button class="btn-primary" onclick="carregarLista()">IMPORTAR</button>
+            <input type="text" id="buscaCanal" placeholder="Buscar canal..." oninput="buscarNaTabela()">
+            <button class="btn-action" onclick="exportarM3U()">EXPORTAR LISTA</button>
+        </div>
+        
+        <div id="statusMsg" class="status-msg">Aguardando comando...</div>
+
+        <div class="table-container">
+            <table id="tabelaCanais">
+                <thead>
+                    <tr>
+                        <th width="30"><input type="checkbox" onclick="selecionarTodos(this)"></th>
+                        <th>Nome do Canal</th>
+                        <th>Grupo</th>
+                        <th>EPG ID</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="corpoTabela">
+                    </tbody>
+            </table>
+        </div>
+    </div>
 
 <script>
     let canaisData = [];
+    let grupoAtual = 'Todos';
     const PROXY_URL = "https://geminitv-proxy.jcdoni.workers.dev/?url=";
 
     async function carregarLista() {
-        const urlOriginal = document.getElementById('m3uUrl').value;
-        if (!urlOriginal) return alert("Insira uma URL!");
+        const url = document.getElementById('m3uUrl').value;
+        if(!url) return alert("Insira o link!");
 
         const msg = document.getElementById('statusMsg');
-        msg.innerText = "Buscando lista via Túnel Cloudflare...";
+        msg.innerText = "Conectando ao motor Cloudflare...";
 
         try {
-            // Uso do motor Cloudflare para pular bloqueios
-            const response = await fetch(PROXY_URL + encodeURIComponent(urlOriginal));
+            const response = await fetch(PROXY_URL + encodeURIComponent(url));
             const data = await response.text();
             processarM3U(data);
-            msg.innerText = "Lista carregada com sucesso!";
-        } catch (error) {
-            msg.innerText = "Erro ao carregar lista. Verifique o link ou o Worker.";
-            console.error(error);
+            msg.innerText = "Sucesso! " + canaisData.length + " canais carregados.";
+        } catch (e) {
+            msg.innerText = "Erro no motor. Verifique o Worker.";
         }
     }
 
-    function processarM3U(conteudo) {
-        const linhas = conteudo.split('\n');
+    function processarM3U(texto) {
+        const linhas = texto.split('\n');
         canaisData = [];
-        let canalAtual = {};
+        let tempCanal = {};
+        const grupos = new Set();
 
         linhas.forEach(linha => {
-            if (linha.startsWith('#EXTINF:')) {
-                const info = linha;
-                const nome = info.split(',')[1] || "Sem Nome";
-                const grupoMatch = info.match(/group-title="([^"]+)"/);
-                const epgMatch = info.match(/tvg-id="([^"]+)"/);
-
-                canalAtual = {
-                    nome: nome.trim(),
-                    grupo: grupoMatch ? grupoMatch[1] : "Geral",
-                    epg: epgMatch ? epgMatch[1] : ""
-                };
-            } else if (linha.startsWith('http')) {
-                canalAtual.url = linha.trim();
-                canaisData.push(canalAtual);
-                canalAtual = {};
+            if(linha.startsWith('#EXTINF:')) {
+                const nome = linha.split(',')[1] || "Sem Nome";
+                const grupo = (linha.match(/group-title="([^"]+)"/) || [null, "Geral"])[1];
+                const epg = (linha.match(/tvg-id="([^"]+)"/) || [null, ""])[1];
+                tempCanal = { nome: nome.trim(), grupo, epg };
+                grupos.add(grupo);
+            } else if(linha.startsWith('http')) {
+                tempCanal.url = linha.trim();
+                canaisData.push(tempCanal);
             }
         });
+
+        atualizarSidebar(Array.from(grupos));
         renderizarTabela();
     }
 
-    function renderizarTabela() {
+    function atualizarSidebar(grupos) {
+        const div = document.getElementById('listaGrupos');
+        div.innerHTML = '<div class="group-item active" onclick="filtrarGrupo(\'Todos\')">Todos os Canais</div>';
+        grupos.sort().forEach(g => {
+            div.innerHTML += `<div class="group-item" onclick="filtrarGrupo('${g}')">${g}</div>`;
+        });
+    }
+
+    function renderizarTabela(data = canaisData) {
         const corpo = document.getElementById('corpoTabela');
         corpo.innerHTML = "";
-        canaisData.forEach((canal, index) => {
+        
+        const filtered = grupoAtual === 'Todos' ? data : data.filter(c => c.grupo === grupoAtual);
+
+        filtered.forEach((c, idx) => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td><input type="text" value="${canal.nome}" onchange="atualizarCanal(${index}, 'nome', this.value)"></td>
-                <td><input type="text" value="${canal.grupo}" onchange="atualizarCanal(${index}, 'grupo', this.value)"></td>
-                <td><input type="text" value="${canal.epg}" onchange="atualizarCanal(${index}, 'epg', this.value)"></td>
-                <td><button onclick="removerCanal(${index})" style="background:#ff4444; color:white;">Remover</button></td>
+                <td><input type="checkbox" class="chk-canal"></td>
+                <td><input type="text" value="${c.nome}" onchange="atualizarDado(${idx}, 'nome', this.value)"></td>
+                <td><input type="text" value="${c.grupo}" onchange="atualizarDado(${idx}, 'grupo', this.value)"></td>
+                <td><input type="text" value="${c.epg}" onchange="atualizarDado(${idx}, 'epg', this.value)"></td>
+                <td><button onclick="removerCanal(${idx})" style="color:red; background:none;">✖</button></td>
             `;
             corpo.appendChild(tr);
         });
     }
 
+    function atualizarDado(idx, campo, valor) {
+        canaisData[idx][campo] = valor;
+    }
+
     function aplicarDNA() {
-        canaisData = canaisData.map(canal => {
-            let novoEpg = canal.epg;
-            // Regra DNA: EPG ID tem que terminar com .BRASIL.
-            if (novoEpg && !novoEpg.endsWith('.BRASIL.')) {
-                novoEpg = novoEpg.split('.')[0] + ".BRASIL.";
-            } else if (!novoEpg) {
-                novoEpg = canal.nome.replace(/\s+/g, '') + ".BRASIL.";
+        canaisData.forEach(c => {
+            if(c.epg && !c.epg.endsWith('.BRASIL.')) {
+                c.epg = c.epg.split('.')[0] + ".BRASIL.";
+            } else if(!c.epg) {
+                c.epg = c.nome.replace(/\s+/g, '') + ".BRASIL.";
             }
-            return { ...canal, epg: novoEpg };
         });
         renderizarTabela();
-        document.getElementById('statusMsg').innerText = "Protocolo DNA aplicado: IDs ajustados.";
+        document.getElementById('statusMsg').innerText = "DNA Aplicado: Todos IDs terminam em .BRASIL.";
     }
 
-    function atualizarCanal(index, campo, valor) {
-        canaisData[index][campo] = valor;
+    function buscarNaTabela() {
+        const termo = document.getElementById('buscaCanal').value.toLowerCase();
+        const filtrados = canaisData.filter(c => c.nome.toLowerCase().includes(termo));
+        renderizarTabela(filtrados);
     }
 
-    function removerCanal(index) {
-        canaisData.splice(index, 1);
+    function filtrarGrupo(g) {
+        grupoAtual = g;
+        document.querySelectorAll('.group-item').forEach(el => el.classList.remove('active'));
+        event.target.classList.add('active');
         renderizarTabela();
     }
 
     function exportarM3U() {
         let m3u = "#EXTM3U\n";
-        canaisData.forEach(canal => {
-            m3u += `#EXTINF:-1 tvg-id="${canal.epg}" group-title="${canal.grupo}",${canal.nome}\n${canal.url}\n`;
+        canaisData.forEach(c => {
+            m3u += `#EXTINF:-1 tvg-id="${c.epg}" group-title="${c.grupo}",${c.nome}\n${c.url}\n`;
         });
         const blob = new Blob([m3u], { type: 'text/plain' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = "lista_gemini_tv.m3u";
+        a.download = "lista_gemini_pro.m3u";
         a.click();
     }
-</script>
 
+    function selecionarTodos(master) {
+        document.querySelectorAll('.chk-canal').forEach(c => c.checked = master.checked);
+    }
+
+    function removerCanal(idx) {
+        canaisData.splice(idx, 1);
+        renderizarTabela();
+    }
+</script>
 </body>
 </html>
