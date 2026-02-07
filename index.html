@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GEMINI TV | V6.5</title>
+    <title>GEMINI TV | PREMIUM V7</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         :root { --primary: #00ff88; --bg: #0a0a0a; --card: #151515; --text: #ffffff; }
@@ -16,7 +16,7 @@
         button.btn-main { padding: 18px; border-radius: 12px; border: none; background: var(--primary); color: #000; font-weight: 800; cursor: pointer; text-transform: uppercase; }
 
         #app-area { display: none; }
-        .header { padding: 15px; background: rgba(0,0,0,0.9); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; position: sticky; top: 0; z-index: 100; }
+        .header { padding: 15px; background: rgba(0,0,0,0.9); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px); }
         
         .search-bar { padding: 10px 15px; background: #111; }
         .search-bar input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #000; color: #fff; box-sizing: border-box; }
@@ -29,14 +29,15 @@
         .tab.active { background: var(--primary); color: #000; border-color: var(--primary); }
 
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; padding: 12px; }
-        .card { background: var(--card); border-radius: 10px; overflow: hidden; position: relative; aspect-ratio: 16/9; cursor: pointer; border: 1px solid #222; }
-        .card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
-        .card-info { position: absolute; bottom: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.9)); padding: 8px 4px; text-align: center; }
+        .card { background: var(--card); border-radius: 10px; overflow: hidden; position: relative; aspect-ratio: 16/9; cursor: pointer; border: 1px solid #222; transition: 0.2s; }
+        .card:active { transform: scale(0.98); }
+        .card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.5; }
+        .card-info { position: absolute; bottom: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.95)); padding: 8px 4px; text-align: center; }
         .card-name { font-size: 9px; font-weight: bold; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
         #player-modal { position: fixed; inset: 0; background: #000; z-index: 10000; display: none; flex-direction: column; }
         video { width: 100%; height: 100%; }
-        .close-btn { position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.6); color: #fff; border: 1px solid #444; padding: 10px 15px; border-radius: 8px; cursor: pointer; z-index: 10001; }
+        .close-btn { position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.7); color: #fff; border: 1px solid #444; padding: 12px 18px; border-radius: 8px; cursor: pointer; z-index: 10001; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -46,7 +47,7 @@
         <div class="input-group">
             <input type="text" id="user" placeholder="Usuário">
             <input type="password" id="pass" placeholder="Senha">
-            <button class="btn-main" onclick="handleLogin()">ACESSAR</button>
+            <button class="btn-main" onclick="handleLogin()">ACESSAR AGORA</button>
             <p id="msg" style="color:#ff4444; font-size:11px;"></p>
         </div>
     </div>
@@ -63,7 +64,7 @@
         </div>
 
         <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="Pesquisar canal, filme ou série..." onkeyup="filterContent()">
+            <input type="text" id="searchInput" placeholder="O que você quer assistir hoje?" onkeyup="handleSearch()">
         </div>
         
         <div class="tabs">
@@ -75,7 +76,7 @@
     </div>
 
     <div id="player-modal">
-        <button class="close-btn" onclick="closePlayer()">← VOLTAR</button>
+        <button class="close-btn" onclick="closePlayer()">FECHAR</button>
         <video id="video" controls autoplay playsinline></video>
     </div>
 
@@ -83,10 +84,11 @@
         let DB = { live: [], movies: [], series: [] };
         let USERS = {};
         let TAB = 'live';
+        let itemsToShow = 40;
 
         window.onload = async () => {
             await loadUsers();
-            if(localStorage.getItem('sessao_gemini_v65') === 'ativa') {
+            if(localStorage.getItem('sessao_v7') === 'ativa') {
                 mostrarApp(localStorage.getItem('user_logado'));
             }
         };
@@ -102,10 +104,10 @@
             const u = document.getElementById('user').value.trim();
             const p = document.getElementById('pass').value.trim();
             if(USERS[u] && USERS[u].pass === p) {
-                localStorage.setItem('sessao_gemini_v65', 'ativa');
+                localStorage.setItem('sessao_v7', 'ativa');
                 localStorage.setItem('user_logado', u);
                 mostrarApp(u);
-            } else { document.getElementById('msg').innerText = "Dados incorretos!"; }
+            } else { document.getElementById('msg').innerText = "Dados inválidos!"; }
         }
 
         function mostrarApp(u) {
@@ -124,30 +126,40 @@
             render();
         }
 
-        function render(filter = "") {
+        function render(filter = "", append = false) {
             const container = document.getElementById('content');
-            container.innerHTML = "";
-            const items = DB[TAB] || [];
-            items.forEach(item => {
-                if(item.name.toLowerCase().includes(filter.toLowerCase())) {
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    card.innerHTML = `<img src="${item.logo}" onerror="this.src='https://via.placeholder.com/160x90?text=TV'"><div class="card-info"><div class="card-name">${item.name}</div></div>`;
-                    card.onclick = () => play(item.url);
-                    container.appendChild(card);
-                }
+            if(!append) {
+                container.innerHTML = "";
+                itemsToShow = 40;
+            }
+            
+            const fullList = DB[TAB] || [];
+            const filtered = fullList.filter(i => i.name.toLowerCase().includes(filter.toLowerCase()));
+            const slice = filtered.slice(append ? itemsToShow - 40 : 0, itemsToShow);
+
+            slice.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `<img src="${item.logo}" onerror="this.src='https://via.placeholder.com/160x90?text=SINAL+TV'"><div class="card-info"><div class="card-name">${item.name}</div></div>`;
+                card.onclick = () => play(item.url);
+                container.appendChild(card);
             });
         }
 
-        function filterContent() {
-            const val = document.getElementById('searchInput').value;
-            render(val);
-        }
+        // Scroll Infinito
+        window.onscroll = () => {
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500) {
+                itemsToShow += 40;
+                render(document.getElementById('searchInput').value, true);
+            }
+        };
+
+        function handleSearch() { render(document.getElementById('searchInput').value); }
 
         function setTab(t, el) {
             document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
             el.classList.add('active');
-            TAB = t; 
+            TAB = t;
             document.getElementById('searchInput').value = "";
             render();
         }
