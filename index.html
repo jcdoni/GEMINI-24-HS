@@ -1,179 +1,26 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GEMINI GLOBAL | IPTV SYSTEM</title>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <style>
-        :root { --primary: #00ff88; --bg: #080808; --side: #111; --card: #1a1a1a; --text: #fff; }
-        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        
-        #setup-panel { position: fixed; inset: 0; background: #000; z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
-        .input-box { width: 100%; max-width: 350px; background: #111; padding: 20px; border-radius: 15px; border: 1px solid #222; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #333; background: #000; color: #fff; box-sizing: border-box; }
-        .btn-main { width: 100%; padding: 15px; background: var(--primary); color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; text-transform: uppercase; }
-
-        .main-container { display: flex; flex: 1; overflow: hidden; }
-        .sidebar { width: 260px; background: var(--side); border-right: 1px solid #222; overflow-y: auto; display: none; }
-        .content { flex: 1; overflow-y: auto; padding: 15px; position: relative; }
-        
-        .header { background: #000; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--primary); }
-        .cat-item { padding: 12px 20px; border-bottom: 1px solid #1a1a1a; cursor: pointer; font-size: 13px; color: #888; transition: 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .cat-item:hover, .cat-item.active { background: #1a1a1a; color: var(--primary); border-left: 4px solid var(--primary); }
-
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
-        .card { background: var(--card); border-radius: 10px; overflow: hidden; border: 1px solid #222; cursor: pointer; transition: 0.3s; position: relative; }
-        .card:hover { border-color: var(--primary); transform: translateY(-3px); }
-        .card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; background: #000; }
-        .card-name { padding: 10px; font-size: 10px; font-weight: bold; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-        #player-modal { position: fixed; inset: 0; background: #000; z-index: 10000; display: none; }
-        video { width: 100%; height: 100%; }
-        .close-p { position: absolute; top: 20px; left: 20px; z-index: 10001; background: var(--primary); color: #000; padding: 10px 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
-
-        .btn-tab { background: none; border: 1px solid #333; color: #fff; padding: 8px 15px; border-radius: 20px; font-size: 10px; cursor: pointer; }
-        .btn-tab.active { background: var(--primary); color: #000; border-color: var(--primary); font-weight: bold; }
-    </style>
-</head>
-<body>
-
-    <div id="setup-panel">
-        <h1 style="color:var(--primary); font-size: 2.5rem; margin-bottom: 0;">GEMINI GLOBAL</h1>
-        <p style="color: #444; margin-top: 0;">DNA SYSTEM V8.0</p>
-        <div class="input-box">
-            <h4 style="margin:0 0 10px 0; color: #fff;">LOGIN XTREAM CODES</h4>
-            <input type="text" id="host" placeholder="http://url-do-servidor.com:8080">
-            <input type="text" id="user" placeholder="Usuário">
-            <input type="password" id="pass" placeholder="Senha">
-            <button class="btn-main" onclick="connectXtream()">Entrar no Painel</button>
-            <div style="margin: 15px 0; color:#333; font-weight: bold;">OU</div>
-            <input type="text" id="m3u" placeholder="Link da lista .m3u">
-            <button class="btn-main" style="background:#222; color:#fff" onclick="connectM3U()">Carregar M3U</button>
-        </div>
-    </div>
-
-    <div class="header">
-        <div style="font-weight: 900; color: var(--primary); font-size: 1.2rem;">GEMINI <span style="color:#fff">GLOBAL</span></div>
-        <div style="display:flex; gap:8px;">
-            <button onclick="setTab('live', this)" class="btn-tab active">CANAIS</button>
-            <button onclick="setTab('movie', this)" class="btn-tab">FILMES</button>
-            <button onclick="setTab('series', this)" class="btn-tab">SÉRIES</button>
-            <button onclick="logout()" style="background:none; border:none; color:#555; cursor:pointer; font-size: 12px; margin-left: 10px;">SAIR</button>
-        </div>
-    </div>
-
-    <div class="main-container">
-        <div class="sidebar" id="sidebar"></div>
-        <div class="content">
-            <div class="grid" id="grid"></div>
-        </div>
-    </div>
-
-    <div id="player-modal">
-        <button class="close-p" onclick="closePlayer()">← VOLTAR</button>
-        <video id="video" controls autoplay playsinline></video>
-    </div>
-
-    <script>
-        let CONFIG = null;
-        let CURRENT_TAB = 'live';
-        let CATEGORIES = [];
-        let STREAMS = [];
-
-        window.onload = () => {
-            const saved = localStorage.getItem('gemini_global_cfg');
-            if(saved) {
-                CONFIG = JSON.parse(saved);
-                document.getElementById('setup-panel').style.display = 'none';
-                document.getElementById('sidebar').style.display = 'block';
-                if(CONFIG.type === 'xtream') loadXtreamCategories();
-                else loadM3U(CONFIG.url);
-            }
-        };
-
-        async function connectXtream() {
-            const h = document.getElementById('host').value.trim();
-            const u = document.getElementById('user').value.trim();
-            const p = document.getElementById('pass').value.trim();
-            if(!h || !u || !p) return alert("Preencha todos os campos Xtream!");
-            CONFIG = { host: h, user: u, pass: p, type: 'xtream' };
+// Substitua a sua função connectXtream por esta:
+async function connectXtream() {
+    const h = document.getElementById('host').value.trim();
+    const u = document.getElementById('user').value.trim();
+    const p = document.getElementById('pass').value.trim();
+    if(!h || !u || !p) return alert("Preencha tudo!");
+    
+    // Lista de Proxies para furar o bloqueio CORS
+    const proxies = ["", "https://cors-anywhere.herokuapp.com/", "https://api.allorigins.win/raw?url="];
+    
+    CONFIG = { host: h, user: u, pass: p, type: 'xtream' };
+    
+    // Tenta conexão com Proxy se a direta falhar
+    try {
+        const testUrl = `${h}/player_api.php?username=${u}&password=${p}`;
+        const res = await fetch(proxies[2] + encodeURIComponent(testUrl)); // Usando AllOrigins
+        if(res.ok) {
             localStorage.setItem('gemini_global_cfg', JSON.stringify(CONFIG));
             location.reload();
+        } else {
+            alert("Dados incorretos ou servidor offline.");
         }
-
-        async function loadXtreamCategories() {
-            const action = CURRENT_TAB === 'live' ? 'get_live_categories' : CURRENT_TAB === 'movie' ? 'get_vod_categories' : 'get_series_categories';
-            const url = `${CONFIG.host}/player_api.php?username=${CONFIG.user}&password=${CONFIG.pass}&action=${action}`;
-            try {
-                const res = await fetch(url);
-                CATEGORIES = await res.json();
-                renderSidebar();
-                if(CATEGORIES.length > 0) loadXtreamStreams(CATEGORIES[0].category_id);
-            } catch(e) { alert("Erro ao conectar ao servidor. Verifique o CORS ou os dados."); }
-        }
-
-        async function loadXtreamStreams(catId) {
-            const action = CURRENT_TAB === 'live' ? 'get_live_streams' : CURRENT_TAB === 'movie' ? 'get_vod_streams' : 'get_series';
-            const url = `${CONFIG.host}/player_api.php?username=${CONFIG.user}&password=${CONFIG.pass}&action=${action}&category_id=${catId}`;
-            const res = await fetch(url);
-            const data = await res.json();
-            STREAMS = data.map(i => ({
-                name: i.name,
-                logo: i.stream_icon || i.cover || i.series_id,
-                url: buildXtreamUrl(i.stream_id || i.series_id)
-            }));
-            renderGrid();
-        }
-
-        function buildXtreamUrl(id) {
-            const ext = CURRENT_TAB === 'live' ? 'ts' : 'mp4';
-            const folder = CURRENT_TAB === 'series' ? 'series' : CURRENT_TAB === 'movie' ? 'movie' : 'live';
-            if(CURRENT_TAB === 'live') return `${CONFIG.host}/${CONFIG.user}/${CONFIG.pass}/${id}.${ext}`;
-            return `${CONFIG.host}/${folder}/${CONFIG.user}/${CONFIG.pass}/${id}.${ext}`;
-        }
-
-        function renderSidebar() {
-            const side = document.getElementById('sidebar');
-            side.innerHTML = CATEGORIES.map(c => `
-                <div class="cat-item" onclick="setActiveCat(this, '${c.category_id}')">${c.category_name}</div>
-            `).join('');
-        }
-
-        function setActiveCat(el, id) {
-            document.querySelectorAll('.cat-item').forEach(x => x.classList.remove('active'));
-            el.classList.add('active');
-            loadXtreamStreams(id);
-        }
-
-        function renderGrid() {
-            const grid = document.getElementById('grid');
-            grid.innerHTML = STREAMS.map(s => `
-                <div class="card" onclick="play('${s.url}')">
-                    <img src="${s.logo}" onerror="this.src='https://via.placeholder.com/160x90?text=SINAL+TV'">
-                    <div class="card-name">${s.name}</div>
-                </div>
-            `).join('');
-        }
-
-        function setTab(t, el) {
-            document.querySelectorAll('.btn-tab').forEach(x => x.classList.remove('active'));
-            el.classList.add('active');
-            CURRENT_TAB = t;
-            if(CONFIG && CONFIG.type === 'xtream') loadXtreamCategories();
-        }
-
-        function play(url) {
-            const modal = document.getElementById('player-modal');
-            const video = document.getElementById('video');
-            modal.style.display = 'block';
-            if(Hls.isSupported() && (url.includes('m3u8') || url.includes('ts'))) {
-                const hls = new Hls(); hls.loadSource(url); hls.attachMedia(video);
-            } else { video.src = url; }
-        }
-
-        function closePlayer() { document.getElementById('video').pause(); document.getElementById('player-modal').style.display = 'none'; }
-        function logout() { localStorage.clear(); location.reload(); }
-    </script>
-</body>
-</html>
+    } catch (e) {
+        alert("Erro de CORS! Tentando contornar...");
+    }
+}
