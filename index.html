@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GEMINI TV | V29 EDITOR DNA</title>
+    <title>GEMINI TV | V30 EDITOR DNA</title>
     <style>
         :root { --primary: #00ff88; --bg: #0b0b0b; --surface: #151515; --neon: 0 0 15px rgba(0, 255, 136, 0.3); }
         body { margin: 0; background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; height: 100vh; overflow: hidden; }
@@ -31,12 +31,13 @@
 
         /* Modal e Inputs */
         .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 2000; }
-        .modal { background: #111; padding: 30px; border-radius: 20px; width: 90%; max-width: 450px; border: 1px solid #333; }
+        .modal { background: #111; padding: 30px; border-radius: 20px; width: 95%; max-width: 500px; border: 1px solid #333; }
         .btn { padding: 12px 25px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .btn-primary { background: var(--primary); color: #000; }
         .btn-outline { background: transparent; border: 1px solid #444; color: #fff; margin-top: 10px; width: 100%; }
         
-        #loading { position: fixed; top: 20px; right: 20px; background: var(--primary); color: #000; padding: 10px 20px; border-radius: 5px; display: none; font-weight: bold; }
+        textarea { width: 100%; height: 150px; background: #000; color: var(--primary); border: 1px solid #333; border-radius: 8px; padding: 10px; font-family: monospace; font-size: 11px; margin-top: 10px; box-sizing: border-box; resize: none; }
+        #loading { position: fixed; top: 20px; right: 20px; background: var(--primary); color: #000; padding: 10px 20px; border-radius: 5px; display: none; font-weight: bold; z-index: 3000; }
     </style>
 </head>
 <body>
@@ -45,14 +46,14 @@
 
     <nav class="sidebar">
         <div class="nav-item active">🏠<span>DASHBOARD</span></div>
-        <div class="nav-item" onclick="openModal('import-modal')">📥<span>IMPORTAR</span></div>
+        <div class="nav-item" onclick="openModal('import-modal')">📥<span>EXTRAIR CANAIS</span></div>
         <div class="nav-item" onclick="openModal('config-modal')">⚙️<span>CONFIG</span></div>
         <div class="nav-item" onclick="exportToGithub()" style="margin-top: auto; color: #00ff88;">🚀<span>ENVIAR GITHUB</span></div>
     </nav>
 
     <main class="main">
         <div class="header-actions">
-            <h1>GEMINI <span style="color:var(--primary)">EDITOR DNA</span></h1>
+            <h1>GEMINI <span style="color:var(--primary)">V30 DNA</span></h1>
             <div id="counter">Canais: 0</div>
         </div>
         <div id="grid-area" class="grid"></div>
@@ -60,9 +61,12 @@
 
     <div class="overlay" id="import-modal">
         <div class="modal">
-            <h2>IMPORTAR LISTA</h2>
-            <input type="text" id="m3u-url" placeholder="URL da Lista M3U" style="width:100%; padding:12px; background:#000; color:#fff; border:1px solid #333; border-radius:8px; box-sizing:border-box;">
-            <button class="btn btn-primary" style="width:100%; margin-top:15px;" onclick="importM3U()">INICIAR HIGIENIZAÇÃO</button>
+            <h2>EXTRAIR CANAIS</h2>
+            <p style="font-size: 12px; color: #888;">Cole o link ou o conteúdo da lista M3U abaixo:</p>
+            <input type="text" id="m3u-url" placeholder="URL da Lista (se houver)" style="width:100%; padding:12px; background:#000; color:#fff; border:1px solid #333; border-radius:8px; box-sizing:border-box;">
+            <textarea id="m3u-content" placeholder="Ou cole o texto da lista aqui (Resolve erros de bloqueio)"></textarea>
+            
+            <button class="btn btn-primary" style="width:100%; margin-top:15px;" onclick="handleImport()">INICIAR DNA</button>
             <button class="btn btn-outline" onclick="closeModal('import-modal')">CANCELAR</button>
         </div>
     </div>
@@ -79,28 +83,24 @@
 
     <script>
         let CHANNELS = JSON.parse(localStorage.getItem('gemini_db')) || [];
-        let CONFIG = JSON.parse(localStorage.getItem('gemini_config')) || { token: '', repo: '', user: '' };
+        let CONFIG = JSON.parse(localStorage.getItem('gemini_config')) || { token: '', repo: '' };
 
         window.onload = () => { 
             render();
-            document.getElementById('gh-token').value = CONFIG.token;
-            document.getElementById('gh-repo').value = CONFIG.repo;
+            document.getElementById('gh-token').value = CONFIG.token || "";
+            document.getElementById('gh-repo').value = CONFIG.repo || "";
         };
 
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-        // --- MOTOR DNA: HIGIENIZADOR ULTRA ---
         function higienizarDNA(texto) {
             if (!texto) return "";
             let n = texto.toString().toUpperCase();
             n = n.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/Ç/g, "C");
-            
-            // Extermínio de Prefixos e Tags Técnicas
             n = n.replace(/^[A-Z]{2,3}\s*[:|/-]\s*/i, "");
             const lixo = [/\b(1080P|720P|4K|FHD|HD|SD|RAW|60FPS|H265|HEVC|BR:|PT:|US:)\b/g, /[^A-Z0-9\s]/g];
             lixo.forEach(reg => n = n.replace(reg, " "));
-            
             return n.replace(/\s+/g, " ").trim();
         }
 
@@ -108,43 +108,51 @@
             return nome.replace(/[^A-Z0-9]/g, "") + ".BRASIL";
         }
 
-        async function importM3U() {
+        async function handleImport() {
             const url = document.getElementById('m3u-url').value;
+            const content = document.getElementById('m3u-content').value;
             const loader = document.getElementById('loading');
             loader.style.display = 'block';
-            
-            try {
-                const proxy = "https://api.allorigins.win/raw?url=";
-                const res = await fetch(proxy + encodeURIComponent(url));
-                const text = await res.text();
-                const lines = text.split('\n');
-                
-                let temp = [];
-                for(let i=0; i<lines.length; i++) {
-                    if(lines[i].includes("#EXTINF:")) {
-                        let nameRaw = lines[i].split(',').pop();
-                        let nomeLimpo = higienizarDNA(nameRaw);
-                        let logo = lines[i].match(/tvg-logo="(.*?)"/)?.[1] || "";
-                        let group = lines[i].match(/group-title="(.*?)"/)?.[1] || "GERAL";
-                        let stream = lines[i+1]?.trim();
 
-                        if(stream && !stream.startsWith("#")) {
-                            temp.push({
-                                nome: nomeLimpo,
-                                id: generateID(nomeLimpo),
-                                logo: logo,
-                                grupo: higienizarDNA(group),
-                                url: stream
-                            });
-                        }
+            if (content.trim() !== "") {
+                processM3U(content);
+            } else if (url.trim() !== "") {
+                try {
+                    const proxy = "https://api.allorigins.win/raw?url=";
+                    const res = await fetch(proxy + encodeURIComponent(url));
+                    const text = await res.text();
+                    processM3U(text);
+                } catch(e) { alert("Erro de bloqueio no link. Tente colar o texto da lista no campo abaixo."); }
+            }
+            loader.style.display = 'none';
+        }
+
+        function processM3U(text) {
+            const lines = text.split('\n');
+            let temp = [];
+            for(let i=0; i<lines.length; i++) {
+                if(lines[i].includes("#EXTINF:")) {
+                    let nameRaw = lines[i].split(',').pop();
+                    let nomeLimpo = higienizarDNA(nameRaw);
+                    let logo = lines[i].match(/tvg-logo="(.*?)"/)?.[1] || "";
+                    let group = lines[i].match(/group-title="(.*?)"/)?.[1] || "GERAL";
+                    let stream = lines[i+1]?.trim();
+
+                    if(stream && !stream.startsWith("#")) {
+                        temp.push({
+                            nome: nomeLimpo,
+                            id: generateID(nomeLimpo),
+                            logo: logo,
+                            grupo: higienizarDNA(group),
+                            url: stream
+                        });
                     }
                 }
-                CHANNELS = temp;
-                saveData();
-                render();
-                closeModal('import-modal');
-            } catch(e) { alert("Erro ao carregar lista."); }
-            loader.style.display = 'none';
+            }
+            CHANNELS = temp;
+            saveData();
+            render();
+            closeModal('import-modal');
         }
 
         function render() {
@@ -170,6 +178,7 @@
         }
 
         function saveData() { localStorage.setItem('gemini_db', JSON.stringify(CHANNELS)); }
+        
         function saveConfig() {
             CONFIG.token = document.getElementById('gh-token').value;
             CONFIG.repo = document.getElementById('gh-repo').value;
@@ -199,14 +208,14 @@
                     method: 'PUT',
                     headers: { Authorization: `token ${CONFIG.token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        message: "Update DNA Web V29",
+                        message: "Update DNA Web V30",
                         content: btoa(unescape(encodeURIComponent(m3u))),
                         sha: sha
                     })
                 });
 
                 if(res.ok) alert("🚀 SUCESSO! Arquivo salvo no GitHub.");
-                else alert("Erro ao salvar.");
+                else alert("Erro ao salvar. Verifique o Token/Repositório.");
             } catch(e) { alert("Falha na conexão GitHub."); }
             loader.style.display = 'none';
         }
