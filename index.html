@@ -2,162 +2,213 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GEMINI GLOBAL HUB | V28 FINAL PLAYER</title>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GEMINI TV | V29 EDITOR DNA</title>
     <style>
-        :root {
-            --primary: #00ff88;
-            --bg: #000000;
-            --surface: #0a0a0a;
-            --card: #111111;
-            --neon: 0 0 15px rgba(0, 255, 136, 0.4);
-        }
-
-        body { 
-            margin: 0; background: var(--bg); color: #fff; 
-            font-family: 'Segoe UI', sans-serif; display: flex; 
-            height: 100vh; overflow: hidden; 
-        }
-
-        /* Sidebar Fire TV Style */
-        .sidebar {
-            width: 70px; background: #050505; border-right: 1px solid #1a1a1a;
-            display: flex; flex-direction: column; align-items: center;
-            padding: 30px 0; transition: 0.3s; z-index: 1000;
-        }
-        .sidebar:hover { width: 220px; }
-        .nav-item {
-            width: 100%; height: 60px; display: flex; align-items: center;
-            padding: 0 25px; cursor: pointer; color: #555; transition: 0.3s;
-            white-space: nowrap; overflow: hidden;
-        }
+        :root { --primary: #00ff88; --bg: #0b0b0b; --surface: #151515; --neon: 0 0 15px rgba(0, 255, 136, 0.3); }
+        body { margin: 0; background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Sidebar Estilo Fire TV */
+        .sidebar { width: 70px; background: #000; border-right: 1px solid #222; display: flex; flex-direction: column; align-items: center; padding: 20px 0; transition: 0.3s; z-index: 1000; }
+        .sidebar:hover { width: 200px; }
+        .nav-item { width: 100%; height: 50px; display: flex; align-items: center; padding: 0 25px; cursor: pointer; color: #666; transition: 0.2s; white-space: nowrap; overflow: hidden; }
         .nav-item:hover, .nav-item.active { color: var(--primary); background: rgba(0,255,136,0.05); border-left: 4px solid var(--primary); }
-        .nav-item span { margin-left: 20px; opacity: 0; font-weight: 700; }
+        .nav-item span { margin-left: 20px; opacity: 0; font-weight: bold; }
         .sidebar:hover .nav-item span { opacity: 1; }
 
-        /* Main Content */
-        .main { flex: 1; overflow-y: auto; padding: 40px; background: radial-gradient(circle at top right, #0d1a14, #000); }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 25px; }
+        /* Area Principal */
+        .main { flex: 1; overflow-y: auto; padding: 30px; position: relative; }
+        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+
+        /* Card de Edição DNA */
+        .card { background: var(--surface); border-radius: 12px; padding: 15px; border: 1px solid #222; transition: 0.3s; position: relative; }
+        .card:hover { border-color: var(--primary); box-shadow: var(--neon); }
+        .card img { width: 60px; height: 40px; object-fit: contain; background: #000; border-radius: 5px; margin-bottom: 10px; }
+        .card input { width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 8px; margin: 5px 0; border-radius: 5px; font-size: 12px; box-sizing: border-box; }
+        .card label { font-size: 10px; color: #888; text-transform: uppercase; font-weight: bold; }
+        .id-badge { color: var(--primary); font-size: 10px; font-weight: bold; margin-top: 5px; display: block; }
+
+        /* Modal e Inputs */
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 2000; }
+        .modal { background: #111; padding: 30px; border-radius: 20px; width: 90%; max-width: 450px; border: 1px solid #333; }
+        .btn { padding: 12px 25px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-primary { background: var(--primary); color: #000; }
+        .btn-outline { background: transparent; border: 1px solid #444; color: #fff; margin-top: 10px; width: 100%; }
         
-        .card {
-            background: var(--card); border-radius: 15px; overflow: hidden;
-            border: 2px solid transparent; transition: 0.4s;
-            position: relative; aspect-ratio: 16/9; cursor: pointer;
-        }
-        .card:hover { transform: scale(1.1); border-color: var(--primary); box-shadow: var(--neon); z-index: 10; }
-        .card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
-        .card:hover img { opacity: 1; }
-        .card-title { position: absolute; bottom: 0; width: 100%; padding: 10px; background: linear-gradient(transparent, #000); text-align: center; font-size: 12px; font-weight: bold; }
-
-        /* Modal Setup */
-        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 5000; backdrop-filter: blur(10px); }
-        .modal { background: #080808; padding: 40px; border-radius: 25px; width: 90%; max-width: 400px; border: 1px solid #222; }
-        input { width: 100%; padding: 15px; margin: 10px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 10px; box-sizing: border-box; }
-        .btn-main { width: 100%; padding: 15px; background: var(--primary); border: none; border-radius: 10px; font-weight: 900; cursor: pointer; margin-top: 10px; }
-
-        /* Player View */
-        #player-ui { position: fixed; inset: 0; background: #000; z-index: 9000; display: none; }
-        .close-p { position: absolute; top: 30px; left: 30px; z-index: 9001; background: var(--primary); color: #000; padding: 10px 20px; border-radius: 30px; font-weight: bold; cursor: pointer; }
-        video { width: 100%; height: 100%; }
+        #loading { position: fixed; top: 20px; right: 20px; background: var(--primary); color: #000; padding: 10px 20px; border-radius: 5px; display: none; font-weight: bold; }
     </style>
 </head>
 <body>
 
+    <div id="loading">PROCESSANDO DNA...</div>
+
     <nav class="sidebar">
-        <div class="nav-item active"><i>🏠</i><span>INÍCIO</span></div>
-        <div class="nav-item" onclick="openModal('setup-modal')"><i>⚙️</i><span>CONECTAR</span></div>
+        <div class="nav-item active">🏠<span>DASHBOARD</span></div>
+        <div class="nav-item" onclick="openModal('import-modal')">📥<span>IMPORTAR</span></div>
+        <div class="nav-item" onclick="openModal('config-modal')">⚙️<span>CONFIG</span></div>
+        <div class="nav-item" onclick="exportToGithub()" style="margin-top: auto; color: #00ff88;">🚀<span>ENVIAR GITHUB</span></div>
     </nav>
 
-    <div class="main">
-        <h1 style="color: var(--primary); letter-spacing: -2px;">GEMINI <span style="color:#fff">GLOBAL</span></h1>
+    <main class="main">
+        <div class="header-actions">
+            <h1>GEMINI <span style="color:var(--primary)">EDITOR DNA</span></h1>
+            <div id="counter">Canais: 0</div>
+        </div>
         <div id="grid-area" class="grid"></div>
-    </div>
+    </main>
 
-    <div class="overlay" id="setup-modal">
+    <div class="overlay" id="import-modal">
         <div class="modal">
-            <h2 style="color:var(--primary); margin:0;">CONFIGURAR</h2>
-            <input type="text" id="h" placeholder="Host (http://url.com:8080)">
-            <input type="text" id="u" placeholder="Usuário">
-            <input type="password" id="s" placeholder="Senha">
-            <p style="text-align:center; margin:10px; opacity:0.3;">OU</p>
-            <input type="text" id="m" placeholder="Link M3U">
-            <button class="btn-main" onclick="sync()">ATIVAR HUB</button>
-            <button class="btn-main" style="background:#111; color:#fff" onclick="closeModal('setup-modal')">VOLTAR</button>
+            <h2>IMPORTAR LISTA</h2>
+            <input type="text" id="m3u-url" placeholder="URL da Lista M3U" style="width:100%; padding:12px; background:#000; color:#fff; border:1px solid #333; border-radius:8px; box-sizing:border-box;">
+            <button class="btn btn-primary" style="width:100%; margin-top:15px;" onclick="importM3U()">INICIAR HIGIENIZAÇÃO</button>
+            <button class="btn btn-outline" onclick="closeModal('import-modal')">CANCELAR</button>
         </div>
     </div>
 
-    <div id="player-ui">
-        <div class="close-p" onclick="closePlayer()">VOLTAR</div>
-        <video id="video" controls autoplay></video>
+    <div class="overlay" id="config-modal">
+        <div class="modal">
+            <h2>SETUP GITHUB</h2>
+            <input type="text" id="gh-token" placeholder="Token GitHub" class="btn-outline" style="text-align:left; padding:12px;">
+            <input type="text" id="gh-repo" placeholder="Repositório (usuario/repo)" class="btn-outline" style="text-align:left; padding:12px;">
+            <button class="btn btn-primary" style="width:100%; margin-top:15px;" onclick="saveConfig()">SALVAR AJUSTES</button>
+            <button class="btn btn-outline" onclick="closeModal('config-modal')">FECHAR</button>
+        </div>
     </div>
 
     <script>
-        let DATA = JSON.parse(localStorage.getItem('gemini_final_db')) || [];
+        let CHANNELS = JSON.parse(localStorage.getItem('gemini_db')) || [];
+        let CONFIG = JSON.parse(localStorage.getItem('gemini_config')) || { token: '', repo: '', user: '' };
 
-        window.onload = () => { if(DATA.length > 0) render(); else openModal('setup-modal'); };
+        window.onload = () => { 
+            render();
+            document.getElementById('gh-token').value = CONFIG.token;
+            document.getElementById('gh-repo').value = CONFIG.repo;
+        };
 
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-        async function sync() {
-            const h = document.getElementById('h').value.trim();
-            const u = document.getElementById('u').value.trim();
-            const s = document.getElementById('s').value.trim();
-            const m = document.getElementById('m').value.trim();
-            const proxy = "https://api.allorigins.win/raw?url=";
+        // --- MOTOR DNA: HIGIENIZADOR ULTRA ---
+        function higienizarDNA(texto) {
+            if (!texto) return "";
+            let n = texto.toString().toUpperCase();
+            n = n.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/Ç/g, "C");
+            
+            // Extermínio de Prefixos e Tags Técnicas
+            n = n.replace(/^[A-Z]{2,3}\s*[:|/-]\s*/i, "");
+            const lixo = [/\b(1080P|720P|4K|FHD|HD|SD|RAW|60FPS|H265|HEVC|BR:|PT:|US:)\b/g, /[^A-Z0-9\s]/g];
+            lixo.forEach(reg => n = n.replace(reg, " "));
+            
+            return n.replace(/\s+/g, " ").trim();
+        }
 
+        function generateID(nome) {
+            return nome.replace(/[^A-Z0-9]/g, "") + ".BRASIL";
+        }
+
+        async function importM3U() {
+            const url = document.getElementById('m3u-url').value;
+            const loader = document.getElementById('loading');
+            loader.style.display = 'block';
+            
             try {
+                const proxy = "https://api.allorigins.win/raw?url=";
+                const res = await fetch(proxy + encodeURIComponent(url));
+                const text = await res.text();
+                const lines = text.split('\n');
+                
                 let temp = [];
-                if(h && u && s) {
-                    const api = `${h}/player_api.php?username=${u}&password=${s}&action=get_live_streams`;
-                    const res = await fetch(proxy + encodeURIComponent(api));
-                    const json = await res.json();
-                    temp = json.map(i => ({ n: i.name, l: i.stream_icon, u: `${h}/${u}/${s}/${i.stream_id}.ts` }));
-                } else if(m) {
-                    const res = await fetch(proxy + encodeURIComponent(m));
-                    const text = await res.text();
-                    const lines = text.split('\n');
-                    for(let i=0; i<lines.length; i++) {
-                        if(lines[i].includes("#EXTINF")) {
-                            const name = lines[i].split(',')[1] || "Canal";
-                            const logo = lines[i].match(/tvg-logo="([^"]+)"/)?.[1] || "";
-                            const url = lines[i+1]?.trim();
-                            if(url) temp.push({ n: name.trim(), l: logo, u: url });
+                for(let i=0; i<lines.length; i++) {
+                    if(lines[i].includes("#EXTINF:")) {
+                        let nameRaw = lines[i].split(',').pop();
+                        let nomeLimpo = higienizarDNA(nameRaw);
+                        let logo = lines[i].match(/tvg-logo="(.*?)"/)?.[1] || "";
+                        let group = lines[i].match(/group-title="(.*?)"/)?.[1] || "GERAL";
+                        let stream = lines[i+1]?.trim();
+
+                        if(stream && !stream.startsWith("#")) {
+                            temp.push({
+                                nome: nomeLimpo,
+                                id: generateID(nomeLimpo),
+                                logo: logo,
+                                grupo: higienizarDNA(group),
+                                url: stream
+                            });
                         }
                     }
                 }
-                DATA = temp.slice(0, 1500); // Limite de estabilidade
-                localStorage.setItem('gemini_final_db', JSON.stringify(DATA));
+                CHANNELS = temp;
+                saveData();
                 render();
-                closeModal('setup-modal');
-            } catch(e) { alert("Erro ao conectar."); }
+                closeModal('import-modal');
+            } catch(e) { alert("Erro ao carregar lista."); }
+            loader.style.display = 'none';
         }
 
         function render() {
             const area = document.getElementById('grid-area');
-            area.innerHTML = DATA.map(i => `
-                <div class="card" onclick="play('${i.u}')">
-                    <img src="${i.l}" loading="lazy" onerror="this.src='https://via.placeholder.com/200x110/111/00ff88?text=TV'">
-                    <div class="card-title">${i.n}</div>
+            document.getElementById('counter').innerText = `Canais: ${CHANNELS.length}`;
+            area.innerHTML = CHANNELS.map((c, index) => `
+                <div class="card">
+                    <img src="${c.logo}" onerror="this.src='https://via.placeholder.com/60x40/000/00ff88?text=TV'">
+                    <label>Nome do Canal</label>
+                    <input type="text" value="${c.nome}" onchange="updateChannel(${index}, 'nome', this.value)">
+                    <label>Grupo</label>
+                    <input type="text" value="${c.grupo}" onchange="updateChannel(${index}, 'grupo', this.value)">
+                    <span class="id-badge">ID: ${c.id}</span>
                 </div>
             `).join('');
         }
 
-        function play(url) {
-            const ui = document.getElementById('player-ui');
-            const v = document.getElementById('video');
-            ui.style.display = 'block';
-            if(Hls.isSupported()) {
-                const hls = new Hls(); hls.loadSource(url); hls.attachMedia(v);
-                hls.on(Hls.Events.MANIFEST_PARSED, () => v.play());
-            } else { v.src = url; v.play(); }
+        function updateChannel(index, field, value) {
+            CHANNELS[index][field] = field === 'nome' ? higienizarDNA(value) : value;
+            if(field === 'nome') CHANNELS[index].id = generateID(CHANNELS[index].nome);
+            saveData();
+            render();
         }
 
-        function closePlayer() {
-            const v = document.getElementById('video');
-            v.pause(); v.src = "";
-            document.getElementById('player-ui').style.display = 'none';
+        function saveData() { localStorage.setItem('gemini_db', JSON.stringify(CHANNELS)); }
+        function saveConfig() {
+            CONFIG.token = document.getElementById('gh-token').value;
+            CONFIG.repo = document.getElementById('gh-repo').value;
+            localStorage.setItem('gemini_config', JSON.stringify(CONFIG));
+            closeModal('config-modal');
+        }
+
+        async function exportToGithub() {
+            if(!CONFIG.token || !CONFIG.repo) return alert("Configure o Token e Repo primeiro!");
+            const loader = document.getElementById('loading');
+            loader.innerText = "ENVIANDO PARA GITHUB...";
+            loader.style.display = 'block';
+
+            let m3u = "#EXTM3U\n";
+            CHANNELS.forEach(c => {
+                m3u += `#EXTINF:-1 tvg-id="${c.id}" tvg-logo="${c.logo}" group-title="${c.grupo}", ${c.nome}\n${c.url}\n`;
+            });
+
+            const url = `https://api.github.com/repos/${CONFIG.repo}/contents/GEMINI_24HS.m3u`;
+            
+            try {
+                const getFile = await fetch(url, { headers: { Authorization: `token ${CONFIG.token}` }});
+                const fileData = await getFile.json();
+                const sha = fileData.sha || null;
+
+                const res = await fetch(url, {
+                    method: 'PUT',
+                    headers: { Authorization: `token ${CONFIG.token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: "Update DNA Web V29",
+                        content: btoa(unescape(encodeURIComponent(m3u))),
+                        sha: sha
+                    })
+                });
+
+                if(res.ok) alert("🚀 SUCESSO! Arquivo salvo no GitHub.");
+                else alert("Erro ao salvar.");
+            } catch(e) { alert("Falha na conexão GitHub."); }
+            loader.style.display = 'none';
         }
     </script>
 </body>
