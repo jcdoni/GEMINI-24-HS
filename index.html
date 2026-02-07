@@ -2,342 +2,161 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GEMINI GLOBAL HUB | V16 ENTERPRISE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GEMINI GLOBAL HUB | V18 ENTERPRISE</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    
     <style>
+        /* =========================================
+           BLOCO 1: ESTÉTICA E DESIGN (CSS)
+           Aqui mora o DNA Visual da sua marca.
+           ========================================= */
         :root {
             --primary: #00ff88;
             --bg: #000000;
             --surface: #0a0a0a;
-            --card-bg: #111111;
+            --card: #111111;
             --text: #ffffff;
-            --text-dim: #888888;
+            --neon: 0 0 15px rgba(0, 255, 136, 0.4);
             --transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; display: flex; height: 100vh; width: 100vw; overflow: hidden; }
+        body { 
+            margin: 0; background: var(--bg); color: var(--text); 
+            font-family: 'Segoe UI', sans-serif; display: flex; 
+            height: 100vh; overflow: hidden; 
+        }
 
-        /* SIDEBAR DNA - FIRE TV STYLE */
+        /* Sidebar Fire TV Style */
         .sidebar {
             width: 70px; background: #050505; border-right: 1px solid #1a1a1a;
             display: flex; flex-direction: column; align-items: center;
-            padding: 30px 0; transition: var(--transition); z-index: 1000; flex-shrink: 0;
+            padding: 30px 0; transition: var(--transition); z-index: 1000;
         }
         .sidebar:hover { width: 220px; }
         .nav-item {
             width: 100%; height: 60px; display: flex; align-items: center;
-            padding: 0 25px; margin: 5px 0; cursor: pointer; color: var(--text-dim);
-            transition: var(--transition); white-space: nowrap; overflow: hidden;
-            position: relative;
+            padding: 0 25px; cursor: pointer; color: #555; transition: 0.3s;
+            white-space: nowrap; overflow: hidden;
         }
-        .nav-item i { min-width: 25px; font-style: normal; font-size: 24px; text-align: center; }
-        .nav-item span { margin-left: 20px; opacity: 0; font-weight: 700; font-size: 14px; letter-spacing: 1px; transition: 0.3s; }
+        .nav-item:hover, .nav-item.active { color: var(--primary); background: rgba(0,255,136,0.05); border-left: 4px solid var(--primary); }
+        .nav-item span { margin-left: 20px; opacity: 0; font-weight: 700; }
         .sidebar:hover .nav-item span { opacity: 1; }
-        .nav-item:hover, .nav-item.active { color: var(--primary); background: rgba(0, 255, 136, 0.05); border-left: 4px solid var(--primary); }
 
-        /* MAIN CONTENT AREA */
-        .main { flex: 1; overflow-y: auto; background: radial-gradient(circle at 80% 0%, #0d1a14 0%, #000 60%); position: relative; scroll-behavior: smooth; }
-        
-        .top-bar {
-            position: sticky; top: 0; padding: 25px 50px; display: flex;
-            justify-content: space-between; align-items: center;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); z-index: 500;
-        }
-
-        .search-container { position: relative; }
-        .search-input {
-            background: rgba(255,255,255,0.03); border: 1px solid #222;
-            padding: 14px 25px; border-radius: 40px; color: #fff; width: 300px;
-            transition: var(--transition); font-size: 14px;
-        }
-        .search-input:focus { border-color: var(--primary); width: 450px; background: rgba(255,255,255,0.07); box-shadow: 0 0 20px rgba(0,255,136,0.1); }
-
-        .btn-config {
-            background: var(--primary); color: #000; border: none;
-            padding: 12px 25px; border-radius: 30px; cursor: pointer;
-            font-size: 12px; font-weight: 900; letter-spacing: 1px; transition: var(--transition);
-        }
-        .btn-config:hover { transform: scale(1.05); filter: brightness(1.1); box-shadow: 0 5px 15px rgba(0,255,136,0.4); }
-
-        /* HERO SECTION */
-        .hero { padding: 60px 50px 20px; }
-        .hero h1 { font-size: 4rem; margin: 0; color: var(--primary); letter-spacing: -4px; font-weight: 900; }
-        .hero p { color: var(--text-dim); margin: 10px 0; font-size: 1.2rem; max-width: 600px; line-height: 1.5; }
-
-        /* GRID & CARDS PREMIUM */
-        .category-row { margin-bottom: 40px; }
-        .category-title { padding: 0 50px; font-size: 1.1rem; color: #fff; text-transform: uppercase; letter-spacing: 4px; font-weight: 800; display: flex; align-items: center; gap: 15px; }
-        .category-title::before { content: ''; width: 4px; height: 20px; background: var(--primary); border-radius: 2px; }
-        
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 30px; padding: 30px 50px; }
+        /* Grid de Canais Premium */
+        .main { flex: 1; overflow-y: auto; padding: 40px; background: radial-gradient(circle at top right, #0d1a14, #000); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 25px; }
         
         .card {
-            background: var(--card-bg); border-radius: 18px; overflow: hidden;
-            cursor: pointer; transition: var(--transition); border: 2px solid transparent;
-            position: relative; aspect-ratio: 16/9;
+            background: var(--card); border-radius: 15px; overflow: hidden;
+            border: 2px solid transparent; transition: var(--transition);
+            position: relative; aspect-ratio: 16/9; cursor: pointer;
         }
-        .card:hover { transform: scale(1.1) translateY(-10px); border-color: var(--primary); box-shadow: 0 20px 40px rgba(0,255,136,0.25); z-index: 10; }
-        .card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; transition: 0.5s; }
+        .card:hover { transform: scale(1.1); border-color: var(--primary); box-shadow: var(--neon); z-index: 10; }
+        .card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
         .card:hover img { opacity: 1; }
 
-        .badge { position: absolute; top: 12px; left: 12px; background: var(--primary); color: #000; padding: 3px 10px; border-radius: 6px; font-size: 10px; font-weight: 900; z-index: 5; text-transform: uppercase; }
-        .edit-tool { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.8); color: #fff; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; opacity: 0; transition: 0.3s; z-index: 6; border: 1px solid #333; }
+        .badge { position: absolute; top: 10px; left: 10px; background: var(--primary); color: #000; padding: 2px 8px; border-radius: 5px; font-size: 10px; font-weight: 900; }
+        .edit-tool { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: #fff; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; }
         .card:hover .edit-tool { opacity: 1; }
-        .edit-tool:hover { background: var(--primary); color: #000; border-color: var(--primary); }
 
-        .card-meta { padding: 20px; background: linear-gradient(transparent, rgba(0,0,0,0.95)); position: absolute; bottom: 0; width: 100%; }
-        .card-name { font-size: 13px; font-weight: 800; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-        /* MODAIS */
-        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(15px); padding: 20px; }
-        .modal { background: #080808; padding: 45px; border-radius: 35px; width: 100%; max-width: 480px; border: 1px solid #222; position: relative; }
-        
-        .tabs { display: flex; gap: 25px; margin-bottom: 35px; border-bottom: 1px solid #1a1a1a; }
-        .tab { padding: 15px 5px; cursor: pointer; color: #444; font-weight: 800; font-size: 13px; transition: 0.3s; border-bottom: 3px solid transparent; }
-        .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
-
-        input { width: 100%; padding: 18px; margin: 12px 0; background: #000; border: 1px solid #222; color: #fff; border-radius: 15px; font-size: 14px; }
-        input:focus { border-color: var(--primary); box-shadow: 0 0 20px rgba(0,255,136,0.05); }
-        
-        .btn-submit { width: 100%; padding: 20px; background: var(--primary); color: #000; border: none; border-radius: 15px; font-weight: 900; cursor: pointer; text-transform: uppercase; margin-top: 20px; transition: 0.3s; }
-        .btn-submit:hover { transform: scale(1.02); filter: brightness(1.1); }
-
-        /* PLAYER VIEW */
-        #player-view { position: fixed; inset: 0; background: #000; z-index: 9999; display: none; }
-        .btn-back { position: absolute; top: 40px; left: 40px; z-index: 10000; background: var(--primary); color: #000; border: none; padding: 15px 35px; border-radius: 50px; font-weight: 900; cursor: pointer; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
-
-        @media (max-width: 768px) {
-            .sidebar { width: 0; display: none; }
-            .hero h1 { font-size: 2.5rem; }
-            .top-bar { padding: 20px; }
-            .search-input { display: none; }
-            .grid { padding: 20px; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
-        }
+        /* Modais */
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 5000; backdrop-filter: blur(10px); }
+        .modal { background: #080808; padding: 40px; border-radius: 30px; width: 90%; max-width: 450px; border: 1px solid #222; }
+        input { width: 100%; padding: 15px; margin: 10px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 10px; }
+        .btn-main { width: 100%; padding: 15px; background: var(--primary); border: none; border-radius: 10px; font-weight: 900; cursor: pointer; margin-top: 10px; }
     </style>
 </head>
 <body>
 
     <nav class="sidebar">
         <div class="nav-item active"><i>🏠</i><span>INÍCIO</span></div>
-        <div class="nav-item"><i>📺</i><span>AO VIVO</span></div>
-        <div class="nav-item"><i>🎬</i><span>CINEMA</span></div>
-        <div class="nav-item"><i>⭐</i><span>FAVORITOS</span></div>
-        <div class="nav-item" onclick="openModal('modal-setup')"><i>⚙️</i><span>SETUP</span></div>
+        <div class="nav-item" onclick="openModal('setup-modal')"><i>⚙️</i><span>CONECTAR</span></div>
     </nav>
 
-    <div class="main" id="hub-scroll">
-        <div class="top-bar">
-            <div style="font-weight: 900; color: var(--primary); font-size: 1.8rem; letter-spacing: -2px;">GEMINI <span style="color:#fff">GLOBAL</span></div>
-            <div class="search-container">
-                <input type="text" class="search-input" id="main-search" placeholder="O que vamos assistir hoje?" onkeyup="globalSearch()">
-            </div>
-            <button class="btn-config" onclick="openModal('modal-setup')">CONECTAR</button>
-        </div>
-
-        <div class="hero">
-            <h1 id="hero-title">BEM-VINDO</h1>
-            <p id="hero-status">Aguardando sua conexão interna. Insira sua fonte M3U ou Xtream Codes para ativar o Hub Mundial.</p>
-        </div>
-
-        <div id="content-render">
+    <div class="main">
+        <h1 style="color: var(--primary); font-size: 2.5rem; letter-spacing: -2px;">GEMINI <span style="color:#fff">GLOBAL</span></h1>
+        <div id="render-area" class="grid">
             </div>
     </div>
 
-    <div class="overlay" id="modal-setup">
+    <div class="overlay" id="setup-modal">
         <div class="modal">
-            <h2 style="margin:0 0 10px 0; color:var(--primary)">CONFIGURAÇÃO</h2>
-            <p style="color:#666; font-size: 12px; margin-bottom: 25px;">Insira suas credenciais para ativar o motor de mídia.</p>
-            
-            <div class="tabs">
-                <div class="tab active" id="tab-xt" onclick="setMode('xt')">XTREAM CODES</div>
-                <div class="tab" id="tab-m3u" onclick="setMode('m3u')">LINK M3U</div>
-            </div>
-
-            <div id="form-xt">
-                <input type="text" id="host" placeholder="Servidor (Host:Porta)">
-                <input type="text" id="user" placeholder="Usuário">
-                <input type="password" id="pass" placeholder="Senha">
-            </div>
-
-            <div id="form-m3u" style="display: none;">
-                <input type="text" id="m3u" placeholder="Cole seu link M3U (Aceita encurtadores)">
-            </div>
-
-            <button class="btn-submit" onclick="startSync()">ATIVAR HUB</button>
-            <button class="btn-submit" style="background:#1a1a1a; color:#fff" onclick="closeModal('modal-setup')">CANCELAR</button>
+            <h2>ATIVAR HUB</h2>
+            <input type="text" id="host" placeholder="Host (Ex: http://servidor.com:8080)">
+            <input type="text" id="user" placeholder="Usuário">
+            <input type="password" id="pass" placeholder="Senha">
+            <hr style="border: 0; border-top: 1px solid #222; margin: 20px 0;">
+            <input type="text" id="m3u" placeholder="Ou cole um Link M3U">
+            <button class="btn-main" onclick="sync()">SINCRONIZAR</button>
+            <button class="btn-main" style="background:#111; color:#fff" onclick="closeModal('setup-modal')">FECHAR</button>
         </div>
-    </div>
-
-    <div class="overlay" id="modal-edit">
-        <div class="modal">
-            <h2 style="margin:0 0 10px 0; color:var(--primary)">EDITOR M3U4U</h2>
-            <p style="color:#666; font-size: 12px; margin-bottom: 25px;">Personalize este canal para sua biblioteca global.</p>
-            
-            <input type="text" id="e-name" placeholder="Nome do Canal">
-            <input type="text" id="e-logo" placeholder="URL da Logo">
-            <input type="text" id="e-group" placeholder="Categoria">
-            
-            <button class="btn-submit" onclick="saveChannelEdit()">SALVAR ALTERAÇÕES</button>
-            <button class="btn-submit" style="background:#1a1a1a; color:#fff" onclick="closeModal('modal-edit')">DESCARTAR</button>
-        </div>
-    </div>
-
-    <div id="player-view">
-        <button class="btn-back" onclick="stopPlayer()">← FECHAR PLAYER</button>
-        <video id="video-engine" controls autoplay style="width: 100%; height: 100%;"></video>
     </div>
 
     <script>
-        const PROXIES = ["https://api.allorigins.win/raw?url=", "https://corsproxy.io/?"];
-        let MASTER_DATA = [];
-        let currentMode = 'xt';
-        let editingIndex = null;
+        let DATABASE = JSON.parse(localStorage.getItem('gemini_db')) || [];
 
-        window.onload = () => {
-            const saved = localStorage.getItem('gemini_v16_db');
-            if(saved) {
-                MASTER_DATA = JSON.parse(saved);
-                renderHub();
-            }
-        };
+        window.onload = () => { if(DATABASE.length > 0) render(); else openModal('setup-modal'); };
 
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-        function setMode(m) {
-            currentMode = m;
-            document.getElementById('tab-xt').classList.toggle('active', m === 'xt');
-            document.getElementById('tab-m3u').classList.toggle('active', m === 'm3u');
-            document.getElementById('form-xt').style.display = m === 'xt' ? 'block' : 'none';
-            document.getElementById('form-m3u').style.display = m === 'm3u' ? 'block' : 'none';
-        }
+        async function sync() {
+            const h = document.getElementById('host').value;
+            const u = document.getElementById('user').value;
+            const p = document.getElementById('pass').value;
+            const m = document.getElementById('m3u').value;
 
-        async function startSync() {
-            setHero("SINCRONIZANDO...", "O motor Gemini está processando sua lista global.");
             try {
-                if(currentMode === 'xt') {
-                    const h = document.getElementById('host').value;
-                    const u = document.getElementById('user').value;
-                    const p = document.getElementById('pass').value;
-                    const url = `${h}/player_api.php?username=${u}&password=${p}&action=get_live_streams`;
-                    const res = await fetch(PROXIES[0] + encodeURIComponent(url));
+                if(h && u && p) {
+                    const api = `${h}/player_api.php?username=${u}&password=${p}&action=get_live_streams`;
+                    const res = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(api));
                     const data = await res.json();
-                    MASTER_DATA = data.map(i => ({
+                    DATABASE = data.map(i => ({
                         n: i.name, 
                         l: i.stream_icon, 
-                        u: `${h}/${u}/${p}/${i.stream_id}.ts`, 
-                        g: i.category_name || "Geral",
-                        b: i.name.includes("4K") ? "4K" : (i.name.includes("HD") ? "HD" : "")
+                        u: `${h}/${u}/${p}/${i.stream_id}.ts`,
+                        g: i.category_name || "Geral"
                     }));
-                } else {
-                    const url = document.getElementById('m3u').value;
-                    const res = await fetch(PROXIES[0] + encodeURIComponent(url));
+                } else if(m) {
+                    const res = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(m));
                     const text = await res.text();
                     parseM3U(text);
                 }
-                saveAndRefresh();
-                closeModal('modal-setup');
-            } catch(e) {
-                alert("Erro ao sincronizar. Verifique seus dados.");
-                setHero("FALHA NA CONEXÃO", "Não foi possível validar sua fonte de dados.");
-            }
+                localStorage.setItem('gemini_db', JSON.stringify(DATABASE));
+                render();
+                closeModal('setup-modal');
+            } catch (e) { alert("Erro ao carregar lista."); }
         }
 
         function parseM3U(data) {
             const lines = data.split('\n');
-            MASTER_DATA = [];
+            DATABASE = [];
             for(let i=0; i<lines.length; i++) {
                 if(lines[i].includes("#EXTINF")) {
-                    let name = lines[i].split(',')[1] || "Canal";
-                    let badge = "";
-                    if(name.includes("BR:")) { badge = "BR"; name = name.replace("BR:", ""); }
-                    if(name.includes("4K")) { badge = "4K"; name = name.replace("4K", ""); }
-                    if(name.includes("FHD")) { badge = "FHD"; name = name.replace("FHD", ""); }
-
+                    const name = lines[i].split(',')[1] || "Canal";
                     const logo = lines[i].match(/tvg-logo="([^"]+)"/)?.[1] || "";
-                    const group = lines[i].match(/group-title="([^"]+)"/)?.[1] || "Geral";
-                    const stream = lines[i+1]?.trim();
-                    if(stream) MASTER_DATA.push({ n: name.trim(), l: logo, u: stream, g: group, b: badge });
+                    const url = lines[i+1]?.trim();
+                    if(url) DATABASE.push({ n: name, l: logo, u: url, g: "Lista M3U" });
                 }
             }
         }
 
-        function saveAndRefresh() {
-            localStorage.setItem('gemini_v16_db', JSON.stringify(MASTER_DATA));
-            renderHub();
-        }
-
-        function renderHub(filteredData = MASTER_DATA) {
-            const container = document.getElementById('content-render');
-            container.innerHTML = "";
-            const groups = [...new Set(filteredData.map(i => i.g))];
-
-            groups.slice(0, 30).forEach(group => {
-                const items = filteredData.filter(i => i.g === group).slice(0, 50);
-                if(items.length === 0) return;
-
-                const row = document.createElement('div');
-                row.className = 'category-row';
-                row.innerHTML = `
-                    <div class="category-title">${group}</div>
-                    <div class="grid">
-                        ${items.map((item) => `
-                            <div class="card" onclick="playStream('${item.u}')">
-                                ${item.b ? `<div class="badge">${item.b}</div>` : ''}
-                                <div class="edit-tool" onclick="event.stopPropagation(); openEdit('${MASTER_DATA.indexOf(item)}')">✎</div>
-                                <img src="${item.l}" onerror="this.src='https://via.placeholder.com/400x225/111/00ff88?text=GEMINI+HUB'">
-                                <div class="card-meta"><div class="card-name">${item.n}</div></div>
-                            </div>
-                        `).join('')}
+        function render() {
+            const area = document.getElementById('render-area');
+            area.innerHTML = DATABASE.map((item, idx) => `
+                <div class="card" onclick="play('${item.u}')">
+                    <div class="edit-tool">✎</div>
+                    <img src="${item.l}" onerror="this.src='https://via.placeholder.com/400x225/111/00ff88?text=GEMINI'">
+                    <div style="padding:10px; background:linear-gradient(transparent, #000); position:absolute; bottom:0; width:100%; text-align:center; font-size:12px; font-weight:bold;">
+                        ${item.n}
                     </div>
-                `;
-                container.appendChild(row);
-            });
-            setHero("HUB ATIVO", `Universalidade garantida com ${MASTER_DATA.length} canais sincronizados.`);
+                </div>
+            `).join('');
         }
 
-        function openEdit(idx) {
-            editingIndex = idx;
-            const item = MASTER_DATA[idx];
-            document.getElementById('e-name').value = item.n;
-            document.getElementById('e-logo').value = item.l;
-            document.getElementById('e-group').value = item.g;
-            openModal('modal-edit');
-        }
-
-        function saveChannelEdit() {
-            MASTER_DATA[editingIndex].n = document.getElementById('e-name').value;
-            MASTER_DATA[editingIndex].l = document.getElementById('e-logo').value;
-            MASTER_DATA[editingIndex].g = document.getElementById('e-group').value;
-            saveAndRefresh();
-            closeModal('modal-edit');
-        }
-
-        function globalSearch() {
-            const term = document.getElementById('main-search').value.toLowerCase();
-            const filtered = MASTER_DATA.filter(i => i.n.toLowerCase().includes(term) || i.g.toLowerCase().includes(term));
-            renderHub(filtered);
-        }
-
-        function playStream(url) {
-            const video = document.getElementById('video-engine');
-            document.getElementById('player-view').style.display = 'block';
-            if(Hls.isSupported()) {
-                const hls = new Hls(); hls.loadSource(url); hls.attachMedia(video);
-            } else { video.src = url; }
-        }
-
-        function stopPlayer() {
-            const video = document.getElementById('video-engine');
-            video.pause();
-            document.getElementById('player-view').style.display = 'none';
-        }
-
-        function setHero(h, p) {
-            document.getElementById('hero-title').innerText = h;
-            document.getElementById('hero-status').innerText = p;
+        function play(url) {
+            alert("Iniciando: " + url); // Aqui entra o player HLS
         }
     </script>
 </body>
