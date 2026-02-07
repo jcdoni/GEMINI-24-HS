@@ -3,254 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GEMINI GLOBAL HUB | V10 PREMIUM</title>
+    <title>GEMINI GLOBAL HUB | V11 ENGINE</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        /* DIRETRIZES VISUAIS GEMINI GLOBAL */
-        :root {
-            --primary: #00ff88;
-            --bg-dark: #000000;
-            --surface: #121212;
-            --surface-light: #1e1e1e;
-            --text-main: #ffffff;
-            --text-dim: #888888;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+        :root { --primary: #00ff88; --bg: #000; --surface: #121212; --text: #fff; --transition: all 0.3s ease; }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; display: flex; height: 100vh; overflow: hidden; }
 
-        body {
-            margin: 0;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* MENU LATERAL - ESTILO FIRE TV */
-        .sidebar {
-            width: 70px;
-            background: linear-gradient(180deg, #0a0a0a 0%, #000 100%);
-            border-right: 1px solid #1a1a1a;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px 0;
-            transition: var(--transition);
-            z-index: 100;
-        }
-
+        /* SIDEBAR PREMIUM */
+        .sidebar { width: 70px; background: #080808; border-right: 1px solid #1a1a1a; display: flex; flex-direction: column; align-items: center; padding: 20px 0; transition: var(--transition); z-index: 100; }
         .sidebar:hover { width: 220px; }
-
-        .nav-item {
-            width: 100%;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            padding: 0 25px;
-            margin: 10px 0;
-            cursor: pointer;
-            color: var(--text-dim);
-            transition: var(--transition);
-            white-space: nowrap;
-            overflow: hidden;
-        }
-
-        .nav-item i { min-width: 25px; font-size: 20px; text-align: center; }
-        .nav-item span { margin-left: 20px; opacity: 0; transition: 0.2s; font-weight: 600; }
+        .nav-item { width: 100%; height: 50px; display: flex; align-items: center; padding: 0 25px; margin: 5px 0; cursor: pointer; color: #666; transition: var(--transition); white-space: nowrap; overflow: hidden; }
+        .nav-item i { min-width: 25px; font-style: normal; font-size: 20px; }
+        .nav-item span { margin-left: 20px; opacity: 0; font-weight: 600; }
         .sidebar:hover .nav-item span { opacity: 1; }
-        .nav-item:hover, .nav-item.active { color: var(--primary); background: rgba(0, 255, 136, 0.05); border-left: 4px solid var(--primary); }
+        .nav-item:hover, .nav-item.active { color: var(--primary); background: rgba(0,255,136,0.05); border-left: 4px solid var(--primary); }
 
-        /* PAINEL PRINCIPAL */
-        .main-content {
-            flex: 1;
-            overflow-y: auto;
-            background: radial-gradient(circle at top right, #0a150f 0%, #000 50%);
-            position: relative;
-        }
+        /* CONTEÚDO */
+        .main { flex: 1; overflow-y: auto; position: relative; background: radial-gradient(circle at top right, #0a150f 0%, #000 60%); }
+        .header-actions { position: absolute; top: 20px; right: 40px; display: flex; gap: 15px; z-index: 50; }
+        .btn-config { background: var(--surface); border: 1px solid #333; color: #fff; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .btn-config:hover { border-color: var(--primary); color: var(--primary); }
 
-        /* DASHBOARD HERO */
-        .hero-banner {
-            height: 45vh;
-            padding: 60px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            background: linear-gradient(to right, #000 20%, transparent 100%);
-            position: relative;
-        }
+        .hero { padding: 80px 60px 40px; }
+        .hero h1 { font-size: 3.5rem; margin: 0; color: var(--primary); letter-spacing: -2px; }
+        .hero p { color: #888; max-width: 600px; margin: 10px 0 25px; }
 
-        .hero-banner h1 { font-size: 4rem; margin: 0; letter-spacing: -2px; color: var(--primary); }
-        .hero-banner p { max-width: 500px; color: var(--text-dim); line-height: 1.6; }
-
-        /* GRADES E CARDS DINÂMICOS */
-        .section-title { padding: 0 60px; margin-top: 30px; font-size: 1.2rem; font-weight: bold; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px; }
-
-        .scroll-row {
-            display: flex;
-            gap: 20px;
-            padding: 20px 60px;
-            overflow-x: auto;
-            scrollbar-width: none;
-        }
-
-        .card {
-            min-width: 220px;
-            aspect-ratio: 16/9;
-            background: var(--surface);
-            border-radius: 12px;
-            overflow: hidden;
-            position: relative;
-            cursor: pointer;
-            transition: var(--transition);
-            border: 2px solid transparent;
-        }
-
-        .card:hover {
-            transform: scale(1.1);
-            z-index: 10;
-            border-color: var(--primary);
-            box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
-        }
-
-        .card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; transition: var(--transition); }
+        /* GRID DE CARDS DINÂMICOS */
+        .section-title { padding: 0 60px; margin-top: 20px; font-size: 1rem; color: #555; text-transform: uppercase; letter-spacing: 2px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; padding: 20px 60px; }
+        
+        .card { background: var(--surface); border-radius: 12px; overflow: hidden; cursor: pointer; transition: var(--transition); border: 2px solid transparent; position: relative; }
+        .card:hover { transform: scale(1.08); border-color: var(--primary); box-shadow: 0 0 20px rgba(0,255,136,0.2); z-index: 5; }
+        .card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; opacity: 0.7; transition: 0.3s; }
         .card:hover img { opacity: 1; }
+        .card-name { padding: 12px; font-size: 11px; font-weight: bold; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        .card-info {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(transparent, rgba(0,0,0,0.9));
-            font-weight: bold;
-            font-size: 0.8rem;
-        }
+        /* MODAL DE CONFIGURAÇÃO */
+        #setup-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; display: none; align-items: center; justify-content: center; }
+        .setup-box { background: #111; padding: 30px; border-radius: 20px; width: 350px; border: 1px solid var(--primary); }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 8px; box-sizing: border-box; }
+        .btn-launch { width: 100%; padding: 15px; background: var(--primary); color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
 
-        /* HEADER SUPERIOR - CONFIGURAÇÕES */
-        .top-bar {
-            position: absolute;
-            top: 20px;
-            right: 60px;
-            display: flex;
-            gap: 20px;
-            z-index: 50;
-        }
-
-        .icon-btn {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: #fff;
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .icon-btn:hover { background: var(--primary); color: #000; border-color: var(--primary); transform: rotate(45deg); }
-
-        /* PLAYER MODAL */
-        #player-overlay {
-            position: fixed;
-            inset: 0;
-            background: #000;
-            z-index: 1000;
-            display: none;
-        }
-
-        .close-player {
-            position: absolute;
-            top: 30px;
-            left: 30px;
-            z-index: 1001;
-            padding: 12px 25px;
-            background: var(--primary);
-            color: #000;
-            border: none;
-            border-radius: 30px;
-            font-weight: bold;
-            cursor: pointer;
-        }
+        /* PLAYER */
+        #player-view { position: fixed; inset: 0; background: #000; z-index: 3000; display: none; }
+        .close-player { position: absolute; top: 20px; left: 20px; z-index: 3001; background: var(--primary); border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <nav class="sidebar">
         <div class="nav-item active"><i>🏠</i><span>INÍCIO</span></div>
-        <div class="nav-item"><i>📺</i><span>TV AO VIVO</span></div>
+        <div class="nav-item"><i>📺</i><span>CANAIS</span></div>
         <div class="nav-item"><i>🎬</i><span>FILMES</span></div>
-        <div class="nav-item"><i>📂</i><span>SÉRIES</span></div>
         <div class="nav-item"><i>⚙️</i><span>AJUSTES</span></div>
     </nav>
 
-    <div class="main-content">
-        <div class="top-bar">
-            <div class="icon-btn" title="Busca">🔍</div>
-            <div class="icon-btn" title="Configurações" onclick="alert('Painel de Configurações Global em breve!')">⚙️</div>
-            <div class="icon-btn" title="Perfil">👤</div>
+    <div class="main">
+        <div class="header-actions">
+            <button class="btn-config" onclick="openSetup()">+ CONECTAR LISTA</button>
+            <button class="btn-config" style="background:var(--primary); color:#000" onclick="loadDemo()">CARREGAR PLUTO TV (TESTE)</button>
         </div>
 
-        <section class="hero-banner">
-            <h1>GEMINI <span style="color:#fff">PRO</span></h1>
-            <p>Sua central definitiva de entretenimento global. Conecte suas listas Xtream ou M3U e gerencie tudo em uma interface de elite.</p>
-            <div style="display: flex; gap: 15px; margin-top: 20px;">
-                <button style="padding: 15px 40px; border-radius: 30px; border:none; background: var(--primary); font-weight: bold; cursor:pointer;">ASSISTIR AGORA</button>
-                <button style="padding: 15px 40px; border-radius: 30px; border:1px solid #fff; background: transparent; color:#fff; font-weight: bold; cursor:pointer;">MINHA LISTA</button>
-            </div>
+        <section class="hero">
+            <h1 id="welcome-title">GEMINI HUB</h1>
+            <p id="welcome-desc">Nenhuma lista ativa. Conecte seu servidor Xtream ou carregue a demo para testar o sistema premium.</p>
         </section>
 
-        <div class="section-title">Canais Recomendados</div>
-        <div class="scroll-row" id="row-channels">
-            <div class="card" onclick="openPlayer()">
-                <img src="https://images.unsplash.com/photo-1594909122845-11baa439b7bf?auto=format&fit=crop&w=500&q=60" alt="">
-                <div class="card-info">CANAIS DE ESPORTES 4K</div>
+        <div class="section-title" id="cat-name">Conteúdo Disponível</div>
+        <div class="grid" id="main-grid">
             </div>
-            <div class="card" onclick="openPlayer()">
-                <img src="https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=500&q=60" alt="">
-                <div class="card-info">LANÇAMENTOS CINEMA</div>
-            </div>
-            <div class="card" onclick="openPlayer()">
-                <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=500&q=60" alt="">
-                <div class="card-info">SÉRIES PREMIUM</div>
-            </div>
-            <div class="card" onclick="openPlayer()">
-                <img src="https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&w=500&q=60" alt="">
-                <div class="card-info">CANAIS ABERTOS</div>
-            </div>
-        </div>
+    </div>
 
-        <div class="section-title">Adicionados Recentemente</div>
-        <div class="scroll-row">
-            <div class="card"><img src="https://via.placeholder.com/300x168/111/00ff88?text=TV+1" alt=""><div class="card-info">CANAL 01</div></div>
-            <div class="card"><img src="https://via.placeholder.com/300x168/111/00ff88?text=TV+2" alt=""><div class="card-info">CANAL 02</div></div>
-            <div class="card"><img src="https://via.placeholder.com/300x168/111/00ff88?text=TV+3" alt=""><div class="card-info">CANAL 03</div></div>
-            <div class="card"><img src="https://via.placeholder.com/300x168/111/00ff88?text=TV+4" alt=""><div class="card-info">CANAL 04</div></div>
+    <div id="setup-modal">
+        <div class="setup-box">
+            <h2 style="color:var(--primary); margin-top:0">Configurar Fonte</h2>
+            <input type="text" id="xt-host" placeholder="Servidor (Ex: http://url.com:8080)">
+            <input type="text" id="xt-user" placeholder="Usuário">
+            <input type="password" id="xt-pass" placeholder="Senha">
+            <button class="btn-launch" onclick="saveXtream()">SALVAR E CONECTAR</button>
+            <button class="btn-launch" style="background:#222; color:#fff" onclick="closeSetup()">CANCELAR</button>
         </div>
     </div>
 
-    <div id="player-overlay">
-        <button class="close-player" onclick="closePlayer()">FECHAR PLAYER</button>
-        <video id="video-main" style="width: 100%; height: 100%;" controls autoplay></video>
+    <div id="player-view">
+        <button class="close-player" onclick="closePlayer()">← VOLTAR</button>
+        <video id="video" controls autoplay style="width: 100%; height: 100%;"></video>
     </div>
 
     <script>
-        function openPlayer() {
-            document.getElementById('player-overlay').style.display = 'block';
+        let PROXY = "https://api.allorigins.win/raw?url=";
+        let STREAMS = [];
+
+        window.onload = () => {
+            const saved = localStorage.getItem('gemini_cfg');
+            if(saved) {
+                const cfg = JSON.parse(saved);
+                fetchXtream(cfg.h, cfg.u, cfg.p);
+            }
+        };
+
+        function openSetup() { document.getElementById('setup-modal').style.display = 'flex'; }
+        function closeSetup() { document.getElementById('setup-modal').style.display = 'none'; }
+
+        function saveXtream() {
+            const h = document.getElementById('xt-host').value;
+            const u = document.getElementById('xt-user').value;
+            const p = document.getElementById('xt-pass').value;
+            localStorage.setItem('gemini_cfg', JSON.stringify({h,u,p}));
+            fetchXtream(h, u, p);
+            closeSetup();
+        }
+
+        async function fetchXtream(h, u, p) {
+            const url = `${h}/player_api.php?username=${u}&password=${p}&action=get_live_streams`;
+            document.getElementById('welcome-title').innerText = "SINCRONIZANDO...";
+            try {
+                const res = await fetch(PROXY + encodeURIComponent(url));
+                const data = await res.json();
+                STREAMS = data.map(i => ({
+                    name: i.name,
+                    logo: i.stream_icon,
+                    url: `${h}/${u}/${p}/${i.stream_id}.ts`
+                }));
+                renderGrid();
+                document.getElementById('welcome-title').innerText = "GEMINI GLOBAL";
+                document.getElementById('welcome-desc').innerText = "Lista carregada com sucesso do seu servidor.";
+            } catch(e) { alert("Erro ao carregar lista. Verifique os dados ou o Proxy."); }
+        }
+
+        function loadDemo() {
+            // Link Público da Pluto TV para teste imediato do Diretor
+            const m3u = "https://raw.githubusercontent.com/Tiivii/TV/master/PlutoTV.m3u";
+            fetchM3U(m3u);
+        }
+
+        async function fetchM3U(url) {
+            try {
+                const res = await fetch(PROXY + encodeURIComponent(url));
+                const text = await res.text();
+                const lines = text.split('\n');
+                STREAMS = [];
+                for(let i=0; i<lines.length; i++) {
+                    if(lines[i].includes("#EXTINF")) {
+                        const name = lines[i].split(',')[1];
+                        const logo = lines[i].match(/tvg-logo="([^"]+)"/)?.[1] || "";
+                        const streamUrl = lines[i+1]?.trim();
+                        if(streamUrl) STREAMS.push({ name, logo, url: streamUrl });
+                    }
+                }
+                renderGrid();
+                document.getElementById('welcome-title').innerText = "MODO DEMO";
+            } catch(e) { alert("Erro na Demo."); }
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('main-grid');
+            grid.innerHTML = STREAMS.slice(0, 100).map(s => `
+                <div class="card" onclick="play('${s.url}')">
+                    <img src="${s.logo}" onerror="this.src='https://via.placeholder.com/300x168/111/00ff88?text=SINAL+TV'">
+                    <div class="card-name">${s.name}</div>
+                </div>
+            `).join('');
+        }
+
+        function play(url) {
+            const view = document.getElementById('player-view');
+            const video = document.getElementById('video');
+            view.style.display = 'block';
+            if(Hls.isSupported()) {
+                const hls = new Hls(); hls.loadSource(url); hls.attachMedia(video);
+            } else { video.src = url; }
         }
 
         function closePlayer() {
-            const v = document.getElementById('video-main');
-            v.pause();
-            document.getElementById('player-overlay').style.display = 'none';
+            document.getElementById('video').pause();
+            document.getElementById('player-view').style.display = 'none';
         }
-
-        // Simulação de foco para TV Box (Setas do Teclado)
-        document.addEventListener('keydown', (e) => {
-            console.log('Tecla pressionada para navegação D-Pad:', e.key);
-        });
     </script>
 </body>
 </html>
