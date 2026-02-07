@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini TV | Professional IPTV Management</title>
+    <title>Gemini TV v6.2 | Professional Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -41,94 +41,75 @@
             border-bottom: 1px solid var(--border);
         }
 
-        /* Layout M3U4U - Editor de 2 Colunas */
-        .editor-container {
+        /* Layout Dual Pane */
+        .editor-wrapper {
             display: grid;
-            grid-template-columns: 300px 1fr;
+            grid-template-columns: 320px 1fr;
             height: calc(100vh - 80px);
+        }
+
+        .column-groups {
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-col: column;
+        }
+
+        .column-channels {
+            overflow-y: auto;
             background: var(--fire-dark);
         }
 
-        .sidebar-groups {
-            background: var(--bg-sidebar);
-            border-right: 1px solid var(--border);
-            overflow-y: auto;
-        }
-
-        .main-content-channels {
-            overflow-y: auto;
-            padding: 20px;
-        }
-
-        .group-item {
-            padding: 12px 20px;
+        /* Toolbars Expostas */
+        .toolbar-exposed {
+            display: flex;
+            gap: 8px;
+            padding: 10px;
+            background: rgba(0,0,0,0.2);
             border-bottom: 1px solid var(--border);
-            cursor: pointer;
-            display: flex;
-            justify-content: space-x-3;
-            align-items: center;
-            transition: all 0.2s;
+            overflow-x: auto;
         }
 
-        .group-item:hover, .group-item.active {
-            background: var(--fire-blue);
-            color: white;
-        }
-
-        .channel-row {
-            display: flex;
-            align-items: center;
-            padding: 10px 15px;
+        .tool-btn {
             background: var(--fire-card);
-            border-radius: 6px;
-            margin-bottom: 4px;
             border: 1px solid var(--border);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: 0.2s;
         }
 
-        .channel-row:hover { border-color: var(--fire-blue); }
-        .channel-row.hidden-item { opacity: 0.4; }
-
-        /* Tabela Playlists */
-        .playlist-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-        .playlist-table th {
-            text-align: left;
-            padding: 12px;
-            border-bottom: 2px solid var(--border);
+        .tool-btn:hover {
+            border-color: var(--fire-blue);
             color: var(--fire-blue);
-            text-transform: uppercase;
-        }
-        .playlist-table td {
-            padding: 12px;
-            border-bottom: 1px solid var(--border);
         }
 
-        .btn-action {
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: bold;
-            text-transform: uppercase;
-            transition: opacity 0.2s;
-        }
-
-        #modal-config {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.85);
-            z-index: 2000;
+        /* Linhas Estilo m3u4u */
+        .list-row {
+            display: flex;
             align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-bottom: 1px solid var(--border);
+            transition: 0.2s;
         }
 
-        input { background: transparent; border: none; color: inherit; outline: none; width: 100%; }
-        
+        .list-row:hover { background: rgba(0, 168, 225, 0.05); }
+        .list-row.active { background: var(--fire-blue); color: white; }
+        .list-row.hidden-item { opacity: 0.4; }
+
+        .playlist-table { width: 100%; border-collapse: collapse; }
+        .playlist-table th { text-align: left; padding: 15px; border-bottom: 2px solid var(--border); color: var(--fire-blue); font-size: 11px; text-transform: uppercase; }
+        .playlist-table td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 13px; }
+
+        #modal-config { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+
         .active-tab { color: var(--fire-blue); border-bottom: 3px solid var(--fire-blue); }
+        
+        input { background: transparent; border: none; color: inherit; outline: none; }
     </style>
 </head>
 <body class="flex flex-col">
@@ -145,44 +126,43 @@
             </div>
         </div>
         <div class="flex items-center space-x-6">
-            <button onclick="openTheater()" class="bg-cyan-600 text-white px-5 py-2 rounded-full font-bold text-xs hover:bg-cyan-500 transition-all">THEATER MODE</button>
-            <button onclick="importPlaylist()" class="bg-white text-black px-5 py-2 rounded-full font-bold text-xs hover:bg-cyan-500 hover:text-white transition-all">+ IMPORTAR</button>
+            <button onclick="toggleTheater()" class="bg-cyan-600 text-white px-5 py-2 rounded-full font-bold text-xs uppercase hover:bg-cyan-500 transition-all">Theater Mode</button>
+            <button onclick="importNew()" class="bg-white text-black px-5 py-2 rounded-full font-bold text-xs uppercase hover:bg-cyan-500 hover:text-white transition-all">+ Importar</button>
             <i class="fa-solid fa-gear text-gray-400 cursor-pointer hover:text-white text-xl" onclick="openConfig()"></i>
         </div>
     </nav>
 
     <div id="app-container" class="flex-1 overflow-hidden">
         
-        <section id="page-home" class="p-12">
-            <div class="grid grid-cols-2 gap-10">
+        <section id="page-home" class="p-12 overflow-y-auto h-full">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 <div>
-                    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6">Listas Recentes</h3>
-                    <div id="recent-grid" class="flex space-x-6 overflow-x-auto"></div>
+                    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6">Playlists Ativas</h3>
+                    <div id="recent-grid" class="flex space-x-6 overflow-x-auto pb-4"></div>
                 </div>
                 <div>
                     <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6">Acervo VOD</h3>
-                    <div id="vod-grid" class="flex space-x-6 overflow-x-auto"></div>
+                    <div id="vod-grid" class="flex space-x-6 overflow-x-auto pb-4"></div>
                 </div>
             </div>
         </section>
 
         <section id="page-playlists" class="hidden p-12 overflow-y-auto h-full">
             <div class="flex justify-between items-center mb-10">
-                <h2 class="text-3xl font-bold">Gestão de Playlists</h2>
+                <h2 class="text-3xl font-bold">Base de Dados</h2>
                 <div class="flex space-x-3">
-                    <button class="bg-cyan-600 text-white px-4 py-2 rounded font-bold text-xs uppercase">Push All</button>
-                    <button class="bg-gray-700 text-white px-4 py-2 rounded font-bold text-xs uppercase">Backup</button>
+                    <button class="bg-cyan-600 text-white px-4 py-2 rounded font-bold text-[10px] uppercase">Push to Cloud</button>
                 </div>
             </div>
             <table class="playlist-table">
                 <thead>
                     <tr>
                         <th>Name</th>
-                        <th>Source</th>
+                        <th>Source URL</th>
                         <th>Groups</th>
                         <th>Channels</th>
                         <th>Last Sync</th>
-                        <th>Expiration</th>
+                        <th>Exp. Date</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -190,24 +170,29 @@
             </table>
         </section>
 
-        <section id="page-editor" class="hidden">
-            <div class="editor-container">
-                <div class="sidebar-groups" id="editor-groups">
+        <section id="page-editor" class="hidden h-full">
+            <div class="editor-wrapper">
+                <div class="column-groups">
+                    <div class="toolbar-exposed">
+                        <button class="tool-btn" onclick="bulkGroup('add')"><i class="fa-solid fa-plus"></i></button>
+                        <button class="tool-btn" onclick="bulkGroup('az')">A-Z</button>
+                        <button class="tool-btn" onclick="bulkGroup('clean')"><i class="fa-solid fa-broom"></i></button>
                     </div>
-                <div class="main-content-channels flex flex-col">
-                    <div class="flex justify-between items-center mb-6 bg-black/10 p-4 rounded-xl border border-white/5">
-                        <div class="flex items-center space-x-4">
-                            <span class="text-xs font-bold uppercase text-cyan-500" id="active-group-name">Selecione um grupo</span>
-                        </div>
-                        <div class="flex space-x-2">
-                            <button onclick="bulkTool('prefix')" class="text-[10px] font-bold uppercase hover:text-cyan-400"><i class="fa-solid fa-plus mr-1"></i> Prefix</button>
-                            <button onclick="bulkTool('replace')" class="text-[10px] font-bold uppercase hover:text-cyan-400"><i class="fa-solid fa-search mr-1"></i> Find/Replace</button>
-                            <button onclick="bulkTool('sort')" class="text-[10px] font-bold uppercase hover:text-cyan-400"><i class="fa-solid fa-sort mr-1"></i> A-Z</button>
-                            <button onclick="exportM3U()" class="bg-gray-800 px-3 py-1 rounded text-[10px] font-bold">EXPORT</button>
-                        </div>
+                    <div id="group-list" class="flex-1 overflow-y-auto"></div>
+                </div>
+
+                <div class="column-channels flex flex-col">
+                    <div class="toolbar-exposed">
+                        <button class="tool-btn" onclick="bulkChannel('az')">A-Z</button>
+                        <button class="tool-btn" onclick="bulkChannel('prefix')">Prefix/Suffix</button>
+                        <button class="tool-btn" onclick="bulkChannel('replace')">Find/Replace</button>
+                        <button class="tool-btn" onclick="bulkChannel('move')">Move Group</button>
+                        <button class="tool-btn" onclick="bulkChannel('hide')">Bulk Hide</button>
+                        <button class="tool-btn" onclick="bulkChannel('reset')">Reset</button>
+                        <div class="flex-1"></div>
+                        <button onclick="exportResult()" class="bg-cyan-600 px-4 py-1 rounded text-[10px] font-bold uppercase">Export M3U</button>
                     </div>
-                    <div id="editor-channels-list" class="flex-1">
-                        </div>
+                    <div id="channel-list" class="flex-1 p-4"></div>
                 </div>
             </div>
         </section>
@@ -215,22 +200,20 @@
 
     <div id="modal-config">
         <div class="bg-[var(--fire-card)] p-8 rounded-3xl w-[400px] border border-[var(--border)] relative">
-            <i class="fa-solid fa-xmark absolute top-6 right-6 cursor-pointer text-gray-500 hover:text-white text-xl" onclick="closeConfig()"></i>
-            <h3 class="font-bold text-xl mb-8">Configurações</h3>
-            <div class="space-y-4">
-                <button onclick="toggleTheme()" class="w-full bg-cyan-600 py-3 rounded-xl font-bold text-xs uppercase tracking-widest">Alternar Tema (Claro/Escuro)</button>
-                <div class="p-4 bg-black/20 rounded-xl">
-                    <p class="text-[10px] font-bold text-gray-500 mb-2 uppercase">Informações do Sistema</p>
-                    <p class="text-xs text-cyan-500">Versão Gemini TV 6.1 PRO</p>
-                </div>
+            <i class="fa-solid fa-xmark absolute top-6 right-6 cursor-pointer text-gray-400 hover:text-white text-xl" onclick="closeConfig()"></i>
+            <h3 class="font-bold text-xl mb-8">Preferências</h3>
+            <button onclick="toggleTheme()" class="w-full bg-cyan-600 py-3 rounded-xl font-bold text-xs uppercase tracking-widest mb-4">Alternar Modo Claro/Escuro</button>
+            <div class="p-4 bg-black/20 rounded-xl text-center">
+                <p class="text-[10px] font-bold text-gray-500 uppercase">Motor Gemini TV</p>
+                <p class="text-xs text-cyan-500 mt-1">Status: Operacional</p>
             </div>
         </div>
     </div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('gemini_v61_db')) || [];
+        let db = JSON.parse(localStorage.getItem('gemini_v62_db')) || [];
         let activeList = null;
-        let activeGroup = null;
+        let selectedGroup = null;
 
         function navigateTo(id) {
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
@@ -241,51 +224,52 @@
             if(id === 'playlists') renderPlaylists();
         }
 
-        async function importPlaylist() {
-            const url = prompt("URL da Lista (M3U ou Xtream):");
+        async function importNew() {
+            const url = prompt("URL M3U ou Xtream:");
             if(!url) return;
-            const res = await fetch(`https://geminitv-proxy.jcdoni.workers.dev/?url=${encodeURIComponent(url)}`);
-            const text = await res.text();
-            
+            try {
+                const res = await fetch(`https://geminitv-proxy.jcdoni.workers.dev/?url=${encodeURIComponent(url)}`);
+                const text = await res.text();
+                processData(text, url);
+            } catch(e) { alert("Falha na importação."); }
+        }
+
+        function processData(text, url) {
             const lines = text.split('\n');
             let channels = [];
             let vods = [];
-            let groupsSet = new Set();
+            let groups = new Set();
 
             lines.forEach(l => {
                 if(l.startsWith('#EXTINF:')) {
                     const name = l.split(',')[1]?.trim() || "Sem Nome";
-                    const isVod = /S\d+E\d+|Filme|Serie|Temporada/gi.test(name);
-                    const group = (l.match(/group-title="([^"]+)"/) || ["","GERAL"])[1].toUpperCase();
+                    const g = (l.match(/group-title="([^"]+)"/) || ["","GERAL"])[1].toUpperCase();
                     const epg = (l.match(/tvg-id="([^"]+)"/) || ["",""])[1];
-                    groupsSet.add(group);
-
+                    groups.add(g);
+                    
                     const obj = {
                         id: Math.random().toString(36).substr(2,9),
                         nome: name.replace(/[^a-zA-Z0-9 ]/g, "").trim(),
-                        grupo: group,
+                        grupo: g,
                         logo: (l.match(/tvg-logo="([^"]+)"/) || ["",""])[1],
                         epg: epg.endsWith('.BRASIL.') ? epg : (epg || name.replace(/\s+/g,'')) + '.BRASIL.',
                         oculto: false
                     };
-                    if(isVod) vods.push(obj); else channels.push(obj);
+                    if(/S\d+E\d+|Filme|Serie|Temporada/gi.test(name)) vods.push(obj); else channels.push(obj);
                 }
             });
 
-            const newPlaylist = {
+            db.unshift({
                 id: Date.now(),
-                name: "Nova Lista " + new Date().toLocaleDateString(),
+                name: "Lista " + new Date().toLocaleDateString(),
                 source: url,
-                channels: channels,
-                vods: vods,
-                groups: Array.from(groupsSet),
+                channels,
+                vods,
+                groups: Array.from(groups),
                 lastSync: new Date().toLocaleString(),
                 exp: "31/12/2026"
-            };
-
-            db.unshift(newPlaylist);
-            save();
-            renderHome();
+            });
+            save(); navigateTo('playlists');
         }
 
         function renderPlaylists() {
@@ -293,91 +277,83 @@
             container.innerHTML = db.map(p => `
                 <tr>
                     <td class="font-bold">${p.name}</td>
-                    <td class="text-xs text-gray-500 truncate max-w-[200px]">${p.source}</td>
+                    <td class="text-xs opacity-50 truncate max-w-[150px]">${p.source}</td>
                     <td class="text-cyan-500 font-bold">${p.groups.length}</td>
                     <td>${p.channels.length}</td>
                     <td class="text-[10px]">${p.lastSync}</td>
                     <td class="text-green-500 font-bold">${p.exp}</td>
-                    <td class="flex space-x-2">
-                        <i class="fa-solid fa-pen-to-square cursor-pointer hover:text-cyan-500" onclick="openEditor(${p.id})"></i>
-                        <i class="fa-solid fa-sync cursor-pointer hover:text-green-500"></i>
+                    <td class="space-x-4">
+                        <i class="fa-solid fa-pen-to-square cursor-pointer hover:text-cyan-500" onclick="editList(${p.id})"></i>
                         <i class="fa-solid fa-trash cursor-pointer hover:text-red-500" onclick="deleteList(${p.id})"></i>
                     </td>
                 </tr>
             `).join('');
         }
 
-        function openEditor(id) {
+        function editList(id) {
             activeList = db.find(p => p.id === id);
             navigateTo('editor');
-            renderEditorGroups();
+            renderGroups();
         }
 
-        function renderEditorGroups() {
-            const container = document.getElementById('editor-groups');
-            container.innerHTML = activeList.groups.map(g => {
-                const count = activeList.channels.filter(c => c.grupo === g).length;
-                return `
-                    <div class="group-item ${activeGroup === g ? 'active' : ''}" onclick="selectGroup('${g}')">
-                        <i class="fa-solid fa-folder-open text-xs"></i>
-                        <div class="flex-1 text-xs font-bold truncate">${g}</div>
-                        <span class="text-[9px] bg-black/30 px-2 py-1 rounded-full">${count}</span>
-                    </div>
-                `;
-            }).join('');
+        function renderGroups() {
+            const container = document.getElementById('group-list');
+            container.innerHTML = activeList.groups.map(g => `
+                <div class="list-row cursor-pointer ${selectedGroup === g ? 'active' : ''}" onclick="selectGroup('${g}')">
+                    <i class="fa-solid fa-grip-vertical mr-3 opacity-30"></i>
+                    <span class="text-xs font-bold flex-1 truncate">${g}</span>
+                    <span class="text-[9px] opacity-50">${activeList.channels.filter(c => c.grupo === g).length}</span>
+                </div>
+            `).join('');
         }
 
         function selectGroup(g) {
-            activeGroup = g;
-            document.getElementById('active-group-name').innerText = g;
-            renderEditorGroups();
+            selectedGroup = g;
+            renderGroups();
             renderChannels();
         }
 
         function renderChannels() {
-            const container = document.getElementById('editor-channels-list');
-            const filtered = activeList.channels.filter(c => c.grupo === activeGroup);
+            const container = document.getElementById('channel-list');
+            const filtered = activeList.channels.filter(c => c.grupo === selectedGroup);
             container.innerHTML = filtered.map((c, i) => `
-                <div class="channel-row ${c.oculto ? 'hidden-item' : ''}">
-                    <i class="fa-solid fa-grip-vertical text-gray-600 mr-4 cursor-move"></i>
+                <div class="list-row ${c.oculto ? 'hidden-item' : ''}">
                     <img src="${c.logo}" class="w-8 h-8 object-contain mr-4 bg-black/20 rounded">
-                    <input type="text" value="${c.nome}" class="flex-1 font-semibold" onblur="updateChannelName('${c.id}', this.value)">
+                    <input type="text" value="${c.nome}" class="flex-1 font-semibold text-sm" onblur="updateChan('${c.id}', this.value)">
                     <div class="flex items-center space-x-4 ml-4">
-                        <span class="text-[9px] font-mono opacity-50">${c.epg}</span>
-                        <i class="fa-solid ${c.oculto ? 'fa-eye-slash text-red-500' : 'fa-eye text-cyan-500'} cursor-pointer" onclick="toggleHide('${c.id}')"></i>
-                        <i class="fa-solid fa-trash text-gray-600 hover:text-red-500 cursor-pointer" onclick="deleteChannel('${c.id}')"></i>
+                        <span class="text-[9px] font-mono opacity-30">${c.epg}</span>
+                        <i class="fa-solid ${c.oculto ? 'fa-eye-slash text-red-500' : 'fa-eye text-cyan-500'} cursor-pointer" onclick="toggleChan('${c.id}')"></i>
                     </div>
                 </div>
             `).join('');
         }
 
-        function updateChannelName(id, val) {
-            const channel = activeList.channels.find(c => c.id === id);
-            if(channel) channel.nome = val;
-            save();
+        function updateChan(id, val) { 
+            const c = activeList.channels.find(x => x.id === id);
+            if(c) c.nome = val; save(); 
         }
 
-        function toggleHide(id) {
-            const channel = activeList.channels.find(c => c.id === id);
-            if(channel) channel.oculto = !channel.oculto;
-            renderChannels();
-            save();
+        function toggleChan(id) {
+            const c = activeList.channels.find(x => x.id === id);
+            if(c) c.oculto = !c.oculto;
+            renderChannels(); save();
         }
 
-        function deleteChannel(id) {
-            activeList.channels = activeList.channels.filter(c => c.id !== id);
-            renderChannels();
-            renderEditorGroups();
-            save();
+        function renderHome() {
+            const g = document.getElementById('recent-grid');
+            g.innerHTML = db.slice(0, 5).map(p => `
+                <div class="card-fire min-w-[200px] p-6 rounded-2xl cursor-pointer" onclick="editList(${p.id})">
+                    <h4 class="font-bold text-xs truncate mb-2">${p.name}</h4>
+                    <p class="text-[10px] opacity-40">${p.channels.length} Canais</p>
+                </div>
+            `).join('');
         }
 
-        function toggleTheme() {
+        function save() { localStorage.setItem('gemini_v62_db', JSON.stringify(db)); }
+        function toggleTheme() { 
             const isLight = document.body.classList.toggle('light-mode');
             localStorage.setItem('gemini_theme', isLight ? 'light' : 'dark');
         }
-
-        function save() { localStorage.setItem('gemini_v61_db', JSON.stringify(db)); }
-        
         function openConfig() { document.getElementById('modal-config').style.display = 'flex'; }
         function closeConfig() { document.getElementById('modal-config').style.display = 'none'; }
 
@@ -388,5 +364,3 @@
     </script>
 </body>
 </html>
-``` Você pode me pedir, a qualquer momento, para editar ou excluir a ação que você agendou. Quando a ação estiver pronta, vai aparecer um ponto ao lado desta conversa, na seção "Recentes".
-http://googleusercontent.com/task_confirmation_content/19
