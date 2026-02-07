@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GEMINI TV | OFICIAL</title>
+    <title>GEMINI TV | V6.5</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         :root { --primary: #00ff88; --bg: #0a0a0a; --card: #151515; --text: #ffffff; }
         body { margin: 0; background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
         
         #login-area { position: fixed; inset: 0; background: radial-gradient(circle, #1a1a1a 0%, #000 100%); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .brand-login { font-size: 3.5rem; font-weight: 900; margin-bottom: 2rem; color: var(--primary); text-shadow: 0 0 15px rgba(0,255,136,0.3); letter-spacing: -2px; }
+        .brand-login { font-size: 3.5rem; font-weight: 900; margin-bottom: 2rem; color: var(--primary); text-shadow: 0 0 15px rgba(0,255,136,0.3); }
         .input-group { display: flex; flex-direction: column; gap: 15px; width: 85%; max-width: 320px; }
         input { padding: 18px; border-radius: 12px; border: 1px solid #333; background: rgba(255,255,255,0.05); color: #fff; outline: none; font-size: 16px; }
         button.btn-main { padding: 18px; border-radius: 12px; border: none; background: var(--primary); color: #000; font-weight: 800; cursor: pointer; text-transform: uppercase; }
@@ -18,22 +18,25 @@
         #app-area { display: none; }
         .header { padding: 15px; background: rgba(0,0,0,0.9); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; position: sticky; top: 0; z-index: 100; }
         
-        .user-info-bar { background: #111; padding: 10px 20px; font-size: 11px; color: #888; border-bottom: 1px solid #222; display: flex; justify-content: space-between; }
-        .user-info-bar span { color: var(--primary); font-weight: bold; }
+        .search-bar { padding: 10px 15px; background: #111; }
+        .search-bar input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #000; color: #fff; box-sizing: border-box; }
 
-        .tabs { display: flex; gap: 10px; padding: 15px; overflow-x: auto; justify-content: center; scrollbar-width: none; }
-        .tab { padding: 10px 20px; background: #1a1a1a; border-radius: 20px; font-size: 12px; cursor: pointer; color: #666; font-weight: bold; border: 1px solid #333; white-space: nowrap; }
+        .user-info-bar { background: #000; padding: 8px 20px; font-size: 10px; color: #555; border-bottom: 1px solid #222; display: flex; justify-content: space-between; }
+        .user-info-bar span { color: var(--primary); }
+
+        .tabs { display: flex; gap: 10px; padding: 12px; overflow-x: auto; scrollbar-width: none; background: #0a0a0a; }
+        .tab { padding: 8px 18px; background: #1a1a1a; border-radius: 20px; font-size: 11px; cursor: pointer; color: #666; font-weight: bold; border: 1px solid #333; white-space: nowrap; }
         .tab.active { background: var(--primary); color: #000; border-color: var(--primary); }
 
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; padding: 15px; }
-        .card { background: var(--card); border-radius: 12px; overflow: hidden; position: relative; aspect-ratio: 16/9; cursor: pointer; border: 1px solid #222; }
-        .card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.5; }
-        .card-info { position: absolute; bottom: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.9) 60%); padding: 10px 5px; text-align: center; }
-        .card-name { font-size: 10px; font-weight: bold; text-transform: uppercase; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; padding: 12px; }
+        .card { background: var(--card); border-radius: 10px; overflow: hidden; position: relative; aspect-ratio: 16/9; cursor: pointer; border: 1px solid #222; }
+        .card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
+        .card-info { position: absolute; bottom: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.9)); padding: 8px 4px; text-align: center; }
+        .card-name { font-size: 9px; font-weight: bold; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
         #player-modal { position: fixed; inset: 0; background: #000; z-index: 10000; display: none; flex-direction: column; }
         video { width: 100%; height: 100%; }
-        .close-btn { position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid #444; padding: 10px 15px; border-radius: 8px; cursor: pointer; z-index: 10001; }
+        .close-btn { position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.6); color: #fff; border: 1px solid #444; padding: 10px 15px; border-radius: 8px; cursor: pointer; z-index: 10001; }
     </style>
 </head>
 <body>
@@ -43,20 +46,24 @@
         <div class="input-group">
             <input type="text" id="user" placeholder="Usuário">
             <input type="password" id="pass" placeholder="Senha">
-            <button class="btn-main" onclick="handleLogin()">ENTRAR</button>
-            <p id="msg" style="color:#ff4444; font-size:12px; margin-top:10px;"></p>
+            <button class="btn-main" onclick="handleLogin()">ACESSAR</button>
+            <p id="msg" style="color:#ff4444; font-size:11px;"></p>
         </div>
     </div>
 
     <div id="app-area">
         <div class="header">
-            <div style="color:var(--primary); font-weight:900; font-size: 1.3rem;">GEMINI <span style="color:#fff">TV</span></div>
-            <button onclick="logout()" style="background:none; border:1px solid #333; color:#555; border-radius:5px; padding:6px 12px; font-size: 10px;">SAIR</button>
+            <div style="color:var(--primary); font-weight:900; font-size: 1.2rem;">GEMINI <span style="color:#fff">TV</span></div>
+            <button onclick="logout()" style="background:none; border:1px solid #333; color:#555; border-radius:5px; padding:5px 10px; font-size: 9px;">SAIR</button>
         </div>
 
         <div class="user-info-bar">
-            <div>Olá, <span id="display-name">...</span></div>
-            <div>Vencimento: <span id="display-venc">...</span></div>
+            <div>CLIENTE: <span id="display-name">...</span></div>
+            <div>VALIDADE: <span id="display-venc">...</span></div>
+        </div>
+
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Pesquisar canal, filme ou série..." onkeyup="filterContent()">
         </div>
         
         <div class="tabs">
@@ -79,9 +86,8 @@
 
         window.onload = async () => {
             await loadUsers();
-            if(localStorage.getItem('sessao_gemini_v6') === 'ativa') {
-                const u = localStorage.getItem('user_logado');
-                mostrarApp(u);
+            if(localStorage.getItem('sessao_gemini_v65') === 'ativa') {
+                mostrarApp(localStorage.getItem('user_logado'));
             }
         };
 
@@ -95,58 +101,55 @@
         async function handleLogin() {
             const u = document.getElementById('user').value.trim();
             const p = document.getElementById('pass').value.trim();
-            
             if(USERS[u] && USERS[u].pass === p) {
-                localStorage.setItem('sessao_gemini_v6', 'ativa');
+                localStorage.setItem('sessao_gemini_v65', 'ativa');
                 localStorage.setItem('user_logado', u);
                 mostrarApp(u);
-            } else {
-                document.getElementById('msg').innerText = "Acesso Negado!";
-            }
+            } else { document.getElementById('msg').innerText = "Dados incorretos!"; }
         }
 
-        function mostrarApp(userKey) {
+        function mostrarApp(u) {
             document.getElementById('login-area').style.display = 'none';
             document.getElementById('app-area').style.display = 'block';
-            
-            // Preenche as informações de vencimento
-            if(USERS[userKey]) {
-                document.getElementById('display-name').innerText = USERS[userKey].nome;
-                document.getElementById('display-venc').innerText = USERS[userKey].venc;
+            if(USERS[u]) {
+                document.getElementById('display-name').innerText = USERS[u].nome;
+                document.getElementById('display-venc').innerText = USERS[u].venc;
             }
-
             loadData();
         }
 
         async function loadData() {
-            try {
-                const r = await fetch('database.json?t=' + Date.now());
-                DB = await r.json();
-                render();
-            } catch(e) { console.log("Erro database"); }
+            const r = await fetch('database.json?t=' + Date.now());
+            DB = await r.json();
+            render();
         }
 
-        function render() {
+        function render(filter = "") {
             const container = document.getElementById('content');
             container.innerHTML = "";
-            (DB[TAB] || []).forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `
-                    <img src="${item.logo || ''}" onerror="this.src='https://via.placeholder.com/160x90?text=SINAL+TV'">
-                    <div class="card-info">
-                        <div class="card-name">${item.name}</div>
-                    </div>
-                `;
-                card.onclick = () => play(item.url);
-                container.appendChild(card);
+            const items = DB[TAB] || [];
+            items.forEach(item => {
+                if(item.name.toLowerCase().includes(filter.toLowerCase())) {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `<img src="${item.logo}" onerror="this.src='https://via.placeholder.com/160x90?text=TV'"><div class="card-info"><div class="card-name">${item.name}</div></div>`;
+                    card.onclick = () => play(item.url);
+                    container.appendChild(card);
+                }
             });
+        }
+
+        function filterContent() {
+            const val = document.getElementById('searchInput').value;
+            render(val);
         }
 
         function setTab(t, el) {
             document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
             el.classList.add('active');
-            TAB = t; render();
+            TAB = t; 
+            document.getElementById('searchInput').value = "";
+            render();
         }
 
         function play(url) {
