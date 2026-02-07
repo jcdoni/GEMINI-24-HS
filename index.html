@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini TV | Professional IPTV Management</title>
+    <title>Gemini TV | IPTV Manager 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -14,12 +14,14 @@
             --fire-dark: #0f171e;
             --fire-card: #1a242f;
             --text-main: #ffffff;
+            --border: rgba(255, 255, 255, 0.05);
         }
 
         .light-mode {
-            --fire-dark: #f4f7f9;
+            --fire-dark: #f0f2f5;
             --fire-card: #ffffff;
             --text-main: #1a242f;
+            --border: rgba(0, 0, 0, 0.1);
         }
 
         body {
@@ -29,52 +31,65 @@
             margin: 0;
             overflow: hidden;
             height: 100vh;
-            transition: background 0.3s ease;
         }
 
         .glass-nav {
-            background: rgba(15, 23, 30, 0.8);
+            background: rgba(15, 23, 30, 0.9);
             backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid var(--border);
         }
 
         .card-fire {
             background: var(--fire-card);
+            border: 1px solid var(--border);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid rgba(255,255,255,0.05);
         }
 
         .card-fire:hover {
-            transform: scale(1.05);
+            transform: scale(1.02);
             border-color: var(--fire-blue);
-            box-shadow: 0 10px 30px rgba(0, 168, 225, 0.2);
         }
 
-        /* Linhas de Edição Perfeitas */
+        /* Linhas de Edição */
         .edit-row {
             display: flex;
             align-items: center;
-            padding: 12px 20px;
+            padding: 14px 24px;
             background: var(--fire-card);
-            border-radius: 8px;
-            margin-bottom: 8px;
-            border: 1px solid rgba(255,255,255,0.03);
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s;
         }
-        .edit-row.hidden-item { opacity: 0.3; }
-        .edit-row input { background: transparent; border: none; color: inherit; width: 100%; outline: none; }
-        .edit-row input:focus { color: var(--fire-blue); }
+        .edit-row:hover { background: rgba(0, 168, 225, 0.03); }
+        .edit-row.item-hidden { opacity: 0.3; }
+        .edit-row input { background: transparent; border: none; color: inherit; width: 100%; outline: none; font-size: 13px; }
 
         .active-tab { color: var(--fire-blue); border-bottom: 3px solid var(--fire-blue); }
-        .page-transition { transition: opacity 0.3s ease; }
         
-        /* Dropdown Estilizado */
-        .import-dropdown { display: none; position: absolute; top: 100%; right: 0; width: 220px; background: var(--fire-card); border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); z-index: 100; padding: 8px; border: 1px solid rgba(255,255,255,0.1); }
-        .import-group:hover .import-dropdown { display: block; }
-        .import-dropdown button { width: 100%; text-align: left; padding: 12px; border-radius: 8px; font-size: 11px; font-weight: bold; }
-        .import-dropdown button:hover { background: rgba(255,255,255,0.05); color: var(--fire-blue); }
+        /* Botão Importar Dropdown */
+        .import-group .dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 200px;
+            background: var(--fire-card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+        .import-group:hover .dropdown-content { display: block; }
 
-        /* Modal Configurações */
-        #modal-config { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+        #modal-config { 
+            display: none; 
+            position: fixed; 
+            inset: 0; 
+            background: rgba(0,0,0,0.8); 
+            z-index: 1000; 
+            align-items: center; 
+            justify-content: center; 
+            backdrop-filter: blur(10px); 
+        }
     </style>
 </head>
 <body class="flex flex-col">
@@ -86,164 +101,184 @@
             </div>
             <div class="flex space-x-8 text-sm font-semibold text-gray-400 uppercase tracking-widest">
                 <span id="nav-home" class="cursor-pointer hover:text-white transition-all active-tab py-7" onclick="navigateTo('home')">Início</span>
-                <span id="nav-database" class="cursor-pointer hover:text-white transition-all py-7" onclick="navigateTo('database')">Projetos</span>
+                <span id="nav-playlists" class="cursor-pointer hover:text-white transition-all py-7" onclick="navigateTo('playlists')">Playlists</span>
                 <span id="nav-editor" class="cursor-pointer hover:text-white transition-all py-7" onclick="navigateTo('editor')">Editor</span>
             </div>
         </div>
         <div class="flex items-center space-x-6">
-            <button onclick="toggleTheater()" class="bg-cyan-600 text-white px-5 py-2 rounded-full font-bold text-xs hover:bg-cyan-500 transition-all">THEATER MODE</button>
+            <button onclick="openTheater()" class="bg-cyan-600 text-white px-5 py-2 rounded-full font-bold text-xs hover:bg-cyan-500 transition-all uppercase">Theater Mode</button>
             <div class="relative import-group">
-                <button class="bg-white text-black px-5 py-2 rounded-full font-bold text-xs hover:bg-cyan-500 hover:text-white transition-all">+ IMPORTAR</button>
-                <div class="import-dropdown">
-                    <button onclick="importFlow('m3u')"><i class="fa-solid fa-file-lines mr-2"></i> SYNC M3U</button>
-                    <button onclick="importFlow('xtream')"><i class="fa-solid fa-link mr-2"></i> XTREAM CODES</button>
-                    <button onclick="importFlow('xml')"><i class="fa-solid fa-code mr-2"></i> XML / LINKS</button>
-                    <button onclick="importFlow('scanner')"><i class="fa-brands fa-github mr-2"></i> SCANNER USER</button>
+                <button class="bg-white text-black px-5 py-2 rounded-full font-bold text-xs hover:bg-cyan-500 hover:text-white transition-all">+ IMPORTAR LISTA</button>
+                <div class="dropdown-content p-2">
+                    <button onclick="importFlow('m3u')" class="w-full text-left p-3 hover:bg-cyan-500/10 rounded-lg text-[11px] font-bold"><i class="fa-solid fa-file-import mr-2"></i> SYNC M3U</button>
+                    <button onclick="importFlow('xtream')" class="w-full text-left p-3 hover:bg-cyan-500/10 rounded-lg text-[11px] font-bold"><i class="fa-solid fa-server mr-2"></i> XTREAM CODES</button>
+                    <button onclick="importFlow('scanner')" class="w-full text-left p-3 hover:bg-cyan-500/10 rounded-lg text-[11px] font-bold"><i class="fa-brands fa-github mr-2"></i> SCANNER USER</button>
                 </div>
             </div>
-            <i class="fa-solid fa-gear text-gray-400 cursor-pointer hover:text-white" onclick="openConfig()"></i>
+            <i class="fa-solid fa-gear text-gray-400 cursor-pointer hover:text-white text-lg" onclick="openConfig()"></i>
         </div>
     </nav>
 
     <div id="app-container" class="flex-1 overflow-y-auto p-12">
         
-        <section id="page-home" class="page-transition">
-            <div class="mb-10 grid grid-cols-2 gap-10">
+        <section id="page-home" class="flex flex-col">
+            <div class="grid grid-cols-2 gap-10">
                 <div>
                     <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6">Listas Recentes</h3>
-                    <div id="recent-lists-grid" class="flex space-x-6 overflow-x-auto pb-6"></div>
+                    <div id="recent-grid" class="flex space-x-6 overflow-x-auto pb-4"></div>
                 </div>
                 <div>
                     <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6">Acervo VOD</h3>
-                    <div id="vod-home-grid" class="flex space-x-6 overflow-x-auto pb-6 text-gray-500 italic">Nenhum VOD disponível.</div>
+                    <div id="vod-grid" class="flex space-x-6 overflow-x-auto pb-4"></div>
                 </div>
             </div>
         </section>
 
-        <section id="page-database" class="page-transition hidden">
-            <h2 class="text-3xl font-bold mb-8">Gerenciar Banco de Dados</h2>
-            <div id="full-projects-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+        <section id="page-playlists" class="hidden">
+            <h2 class="text-3xl font-bold mb-8">Gerenciar Playlists</h2>
+            <div id="playlists-grid" class="grid grid-cols-4 gap-6"></div>
         </section>
 
-        <section id="page-editor" class="page-transition hidden">
+        <section id="page-editor" class="hidden">
             <div class="flex justify-between items-center mb-8">
-                <div>
-                    <h2 class="text-3xl font-bold">Editor de Canais</h2>
-                    <p class="text-sm text-cyan-500 font-mono mt-1" id="project-stats">Selecione uma base</p>
-                </div>
-                <div class="flex space-x-3">
-                    <button onclick="aplicarDNA()" class="bg-cyan-600 text-white px-4 py-2 rounded-lg font-bold text-xs"><i class="fa-solid fa-dna mr-2"></i> DNA</button>
-                    <button onclick="exportarM3U()" class="bg-gray-800 text-white px-4 py-2 rounded-lg font-bold text-xs">EXPORTAR</button>
-                </div>
+                <h2 class="text-3xl font-bold">Editor Profissional</h2>
+                <button onclick="exportarM3U()" class="bg-gray-700 text-white px-6 py-2 rounded-lg font-bold text-xs uppercase tracking-widest">Exportar Lista</button>
             </div>
 
-            <div class="flex space-x-2 mb-8 bg-black/30 p-3 rounded-xl border border-white/5">
-                <button onclick="syncAll()" class="px-4 py-2 text-[10px] font-bold uppercase hover:text-cyan-400"><i class="fa-solid fa-sync mr-1"></i> Sync All</button>
-                <button onclick="renameGroup()" class="px-4 py-2 text-[10px] font-bold uppercase hover:text-cyan-400"><i class="fa-solid fa-pen mr-1"></i> Rename Group</button>
-                <button onclick="cleanMass()" class="px-4 py-2 text-[10px] font-bold uppercase hover:text-cyan-400"><i class="fa-solid fa-broom mr-1"></i> Clean</button>
-                <button onclick="tagKiller()" class="px-4 py-2 text-[10px] font-bold uppercase hover:text-cyan-400"><i class="fa-solid fa-skull mr-1"></i> Tag Killer</button>
-                <button onclick="sendToGithub()" class="px-4 py-2 text-[10px] font-bold uppercase text-green-500"><i class="fa-solid fa-upload mr-1"></i> Send Github</button>
+            <div class="flex space-x-4 mb-8 bg-black/20 p-4 rounded-2xl border border-white/5 overflow-x-auto">
+                <button onclick="syncAll()" class="shrink-0 text-[10px] font-bold uppercase hover:text-cyan-400"><i class="fa-solid fa-sync mr-2"></i> Sync All</button>
+                <button onclick="renameGroup()" class="shrink-0 text-[10px] font-bold uppercase hover:text-cyan-400"><i class="fa-solid fa-pen mr-2"></i> Rename Group</button>
+                <button onclick="cleanMass()" class="shrink-0 text-[10px] font-bold uppercase hover:text-cyan-400"><i class="fa-solid fa-broom mr-2"></i> Clean</button>
+                <button onclick="runTagKiller()" class="shrink-0 text-[10px] font-bold uppercase hover:text-cyan-400"><i class="fa-solid fa-skull mr-2"></i> Tag Killer</button>
+                <button onclick="sendGithub()" class="shrink-0 text-[10px] font-bold uppercase text-green-500"><i class="fa-solid fa-upload mr-2"></i> Send Github</button>
             </div>
 
-            <div id="editor-rows-container"></div>
+            <div id="editor-container" class="rounded-xl overflow-hidden bg-black/10"></div>
         </section>
     </div>
 
     <div id="modal-config">
-        <div class="bg-[#1a242f] p-8 rounded-3xl w-[450px] border border-white/10">
-            <div class="flex justify-between items-center mb-6">
+        <div class="bg-[var(--fire-card)] p-8 rounded-3xl w-[400px] border border-[var(--border)]">
+            <div class="flex justify-between items-center mb-8">
                 <h3 class="font-bold text-xl">Configurações</h3>
-                <i class="fa-solid fa-xmark cursor-pointer" onclick="closeConfig()"></i>
+                <i class="fa-solid fa-xmark cursor-pointer text-gray-500 hover:text-white" onclick="closeConfig()"></i>
             </div>
-            <div class="space-y-6">
-                <div class="flex justify-between items-center bg-black/20 p-4 rounded-xl">
-                    <span class="text-sm font-bold">Modo de Exibição</span>
-                    <button onclick="toggleTheme()" class="bg-white text-black px-4 py-1 rounded-full text-[10px] font-bold">CLARO / ESCURO</button>
-                </div>
-                <div class="bg-black/20 p-4 rounded-xl">
-                    <span class="text-[10px] font-bold text-gray-500 uppercase">Seu Link M3U Personalizado</span>
-                    <div class="flex mt-2">
-                        <input type="text" readonly value="https://gemini.tv/user/123/list.m3u" class="bg-black/40 border-none text-xs p-2 flex-1 rounded-l-lg text-cyan-500">
-                        <button class="bg-cyan-600 px-3 rounded-r-lg text-xs font-bold">COPIAR</button>
-                    </div>
-                </div>
-            </div>
+            <button onclick="toggleTheme()" class="w-full bg-cyan-600 py-3 rounded-xl font-bold text-xs uppercase tracking-widest">Trocar Tema (Claro/Escuro)</button>
         </div>
     </div>
 
     <script>
         let db = JSON.parse(localStorage.getItem('gemini_v6_db')) || [];
-        let projetoAtivo = null;
+        let activeProject = null;
 
-        function navigateTo(pageId) {
-            document.querySelectorAll('section').forEach(s => s.classList.add('hidden', 'opacity-0'));
-            document.querySelectorAll('.glass-nav span').forEach(n => n.classList.remove('active-tab'));
-            const target = document.getElementById('page-' + pageId);
-            target.classList.remove('hidden');
-            setTimeout(() => target.classList.remove('opacity-0'), 50);
-            document.getElementById('nav-' + pageId).classList.add('active-tab');
-            if (pageId === 'home') renderHome();
-            if (pageId === 'database') renderDatabase();
+        function navigateTo(id) {
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            document.querySelectorAll('.glass-nav span').forEach(s => s.classList.remove('active-tab'));
+            document.getElementById('page-' + id).classList.remove('hidden');
+            document.getElementById('nav-' + id).classList.add('active-tab');
+            if(id === 'home') renderHome();
+            if(id === 'playlists') renderPlaylists();
         }
 
-        // REGRAS INVISÍVEIS (WHITELIST RADICAL)
-        function whitelistAuto(text) {
-            return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s+/g, ' ').trim();
+        async function importFlow(type) {
+            const url = prompt(`URL para ${type.toUpperCase()}:`);
+            if(!url) return;
+            try {
+                const res = await fetch(`https://geminitv-proxy.jcdoni.workers.dev/?url=${encodeURIComponent(url)}`);
+                const text = await res.text();
+                processM3U(text, url);
+            } catch(e) { alert("Erro ao extrair."); }
         }
 
-        function renderEditorRows() {
-            const container = document.getElementById('editor-rows-container');
-            container.innerHTML = projetoAtivo.canais.map((c, i) => `
-                <div class="edit-row ${c.oculto ? 'hidden-item' : ''}">
-                    <img src="${c.logo || 'https://via.placeholder.com/30'}" class="w-8 h-8 object-contain mr-6">
-                    <div class="flex-1 grid grid-cols-2 gap-4">
-                        <input type="text" value="${c.nome}" onblur="projetoAtivo.canais[${i}].nome = whitelistAuto(this.value)">
-                        <input type="text" value="${c.grupo}" class="text-gray-500 font-bold text-[11px]" onblur="projetoAtivo.canais[${i}].grupo = this.value.toUpperCase()">
+        function processM3U(text, url) {
+            const lines = text.split('\n');
+            let canais = [];
+            let vods = [];
+            lines.forEach(l => {
+                if(l.startsWith('#EXTINF:')) {
+                    const name = l.split(',')[1] || "Sem Nome";
+                    const isVod = /S\d+E\d+|Filme|Serie|Temporada/gi.test(name);
+                    const epg = (l.match(/tvg-id="([^"]+)"/) || ["",""])[1];
+                    const obj = {
+                        id: Math.random().toString(36).substr(2,9),
+                        nome: name.replace(/[^a-zA-Z0-9 ]/g, "").trim(), // Whitelist auto
+                        grupo: (l.match(/group-title="([^"]+)"/) || ["","GERAL"])[1].toUpperCase(),
+                        logo: (l.match(/tvg-logo="([^"]+)"/) || ["",""])[1],
+                        epg: epg.endsWith('.BRASIL.') ? epg : (epg || name.replace(/\s+/g,'')) + '.BRASIL.',
+                        oculto: false
+                    };
+                    if(isVod) vods.push(obj); else canais.push(obj);
+                }
+            });
+            const newProj = { id: Date.now(), name: "Lista "+new Date().toLocaleDateString(), canais, vods, url };
+            db.unshift(newProj);
+            save();
+            renderHome();
+        }
+
+        function renderEditor() {
+            const container = document.getElementById('editor-container');
+            container.innerHTML = activeProject.canais.map((c, i) => `
+                <div class="edit-row ${c.oculto ? 'item-hidden' : ''}">
+                    <img src="${c.logo}" class="w-10 h-10 object-contain mr-6 bg-black/20 rounded">
+                    <div class="flex-1 grid grid-cols-2 gap-8">
+                        <input type="text" value="${c.nome}" onblur="activeProject.canais[${i}].nome=this.value">
+                        <input type="text" value="${c.grupo}" class="text-cyan-500 font-bold" onblur="activeProject.canais[${i}].grupo=this.value.toUpperCase()">
                     </div>
-                    <div class="ml-6 flex items-center space-x-4">
-                        <span class="text-[10px] font-mono text-cyan-600">${c.epg || '---'}</span>
-                        <i class="fa-solid ${c.oculto ? 'fa-eye-slash text-red-500' : 'fa-eye text-cyan-500'} cursor-pointer" onclick="toggleOculto(${i})"></i>
+                    <div class="ml-6 flex items-center space-x-6">
+                        <span class="text-[10px] font-mono opacity-50">${c.epg}</span>
+                        <i class="fa-solid ${c.oculto ? 'fa-eye-slash text-red-500' : 'fa-eye text-cyan-500'} cursor-pointer" onclick="toggleEye(${i})"></i>
                     </div>
                 </div>
             `).join('');
         }
 
-        function toggleOculto(index) {
-            projetoAtivo.canais[index].oculto = !projetoAtivo.canais[index].oculto;
-            renderEditorRows();
+        function toggleEye(i) {
+            activeProject.canais[i].oculto = !activeProject.canais[i].oculto;
+            renderEditor();
+            save();
         }
 
+        function renderHome() {
+            const grid = document.getElementById('recent-grid');
+            grid.innerHTML = db.slice(0, 5).map(p => `
+                <div class="card-fire min-w-[250px] p-6 rounded-2xl cursor-pointer" onclick="openProject(${p.id})">
+                    <div class="h-20 bg-cyan-900/20 rounded-xl mb-4 flex items-center justify-center"><i class="fa-solid fa-list text-cyan-500 text-2xl"></i></div>
+                    <h4 class="font-bold text-sm truncate">${p.name}</h4>
+                    <p class="text-[10px] opacity-50 mt-1">${p.canais.length} Canais</p>
+                </div>
+            `).join('');
+            
+            const vodGrid = document.getElementById('vod-grid');
+            const allVods = db.flatMap(p => p.vods).slice(0, 10);
+            vodGrid.innerHTML = allVods.length ? allVods.map(v => `
+                <div class="card-fire min-w-[150px] p-4 rounded-xl text-center">
+                    <div class="h-24 bg-zinc-800 rounded mb-2 flex items-center justify-center"><i class="fa-solid fa-film text-xl"></i></div>
+                    <p class="text-[10px] font-bold truncate">${v.nome}</p>
+                </div>
+            `).join('') : '<p class="text-gray-600 italic">Nenhum VOD.</p>';
+        }
+
+        function openProject(id) {
+            activeProject = db.find(p => p.id === id);
+            navigateTo('editor');
+            renderEditor();
+        }
+
+        function save() { localStorage.setItem('gemini_v6_db', JSON.stringify(db)); }
+        
         function toggleTheme() {
-            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.toggle('light-mode');
+            localStorage.setItem('gemini_theme', isLight ? 'light' : 'dark');
         }
 
         function openConfig() { document.getElementById('modal-config').style.display = 'flex'; }
         function closeConfig() { document.getElementById('modal-config').style.display = 'none'; }
 
-        // MANTENDO SUAS FUNÇÕES ORIGINAIS DE SALVAMENTO E PARSE
-        function saveToDB() { localStorage.setItem('gemini_v6_db', JSON.stringify(db)); }
-        
-        function renderHome() {
-            const grid = document.getElementById('recent-lists-grid');
-            grid.innerHTML = db.slice(0, 5).map(p => `
-                <div class="card-fire min-w-[280px] p-6 rounded-2xl cursor-pointer" onclick="abrirProjeto(${p.id})">
-                    <div class="h-24 bg-gradient-to-br from-cyan-900 to-black rounded-xl mb-4 flex items-center justify-center">
-                        <i class="fa-solid fa-clapperboard text-3xl text-cyan-500"></i>
-                    </div>
-                    <h4 class="font-bold text-sm truncate">${p.name}</h4>
-                    <p class="text-[10px] text-gray-500 mt-1">${p.canais.length} Canais</p>
-                </div>
-            `).join('');
-        }
-
-        function abrirProjeto(id) {
-            projetoAtivo = db.find(p => p.id === id);
-            navigateTo('editor');
-            document.getElementById('project-stats').innerText = `${projetoAtivo.name} | ${projetoAtivo.canais.length} Canais`;
-            renderEditorRows();
-        }
-
-        window.onload = () => { navigateTo('home'); };
+        window.onload = () => {
+            if(localStorage.getItem('gemini_theme') === 'light') document.body.classList.add('light-mode');
+            navigateTo('home');
+        };
     </script>
 </body>
 </html>
