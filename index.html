@@ -3,76 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA TV | PLAYER V5</title>
+    <title>TV PLAYER | DNA SYSTEM</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         :root { --primary: #00ff88; --bg: #0a0a0a; --card: #151515; --text: #ffffff; }
-        body { margin: 0; background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; overflow-x: hidden; }
+        body { margin: 0; background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; }
         
-        /* TELA DE LOGIN ESTILIZADA */
-        #login-area { position: fixed; inset: 0; background: radial-gradient(circle, #1a1a1a 0%, #000 100%); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .brand { font-size: 3.5rem; font-weight: 900; margin-bottom: 2rem; color: var(--primary); text-shadow: 0 0 15px rgba(0,255,136,0.3); letter-spacing: -2px; }
+        #login-area { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .input-group { display: flex; flex-direction: column; gap: 15px; width: 85%; max-width: 320px; }
-        input { padding: 18px; border-radius: 12px; border: 1px solid #333; background: rgba(255,255,255,0.05); color: #fff; outline: none; font-size: 16px; transition: 0.3s; }
-        input:focus { border-color: var(--primary); background: rgba(255,255,255,0.1); }
-        button.btn-main { padding: 18px; border-radius: 12px; border: none; background: var(--primary); color: #000; font-weight: 800; cursor: pointer; font-size: 16px; text-transform: uppercase; }
+        input { padding: 18px; border-radius: 12px; border: 1px solid #333; background: #1a1a1a; color: #fff; outline: none; font-size: 16px; }
+        button.btn-main { padding: 18px; border-radius: 12px; border: none; background: var(--primary); color: #000; font-weight: 800; cursor: pointer; text-transform: uppercase; }
 
-        /* ÁREA DO APLICATIVO */
-        #app-area { display: none; padding-bottom: 50px; }
-        .header { padding: 20px; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        #app-area { display: none; }
+        .header { padding: 15px; background: rgba(0,0,0,0.9); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
         
-        .search-container { padding: 10px 20px; }
-        .search { width: 100%; padding: 14px; background: #1a1a1a; border: 1px solid #333; border-radius: 10px; color: #fff; font-size: 14px; box-sizing: border-box; }
-        
-        .tabs { display: flex; gap: 12px; padding: 10px 20px; overflow-x: auto; scrollbar-width: none; }
-        .tab { padding: 12px 25px; background: #1a1a1a; border-radius: 25px; font-size: 13px; cursor: pointer; white-space: nowrap; color: #666; font-weight: 600; border: 1px solid #222; }
+        .tabs { display: flex; gap: 10px; padding: 15px; overflow-x: auto; justify-content: center; }
+        .tab { padding: 10px 20px; background: #1a1a1a; border-radius: 20px; font-size: 12px; cursor: pointer; color: #666; font-weight: bold; border: 1px solid #333; }
         .tab.active { background: var(--primary); color: #000; border-color: var(--primary); }
 
-        /* GRADE DE CANAIS/FILMES */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; padding: 20px; }
-        .card { background: var(--card); border-radius: 12px; overflow: hidden; position: relative; aspect-ratio: 16/9; cursor: pointer; border: 1px solid #222; transition: 0.3s; }
-        .card:hover { transform: translateY(-5px); border-color: var(--primary); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; padding: 15px; }
+        .card { background: var(--card); border-radius: 12px; overflow: hidden; position: relative; aspect-ratio: 16/9; cursor: pointer; border: 1px solid #222; }
         .card img { width: 100%; height: 100%; object-fit: cover; }
-        .card-name { position: absolute; bottom: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.9)); padding: 10px 5px; font-size: 11px; text-align: center; font-weight: 500; }
+        .card-name { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.8); padding: 5px; font-size: 10px; text-align: center; }
 
-        /* PLAYER MODAL */
         #player-modal { position: fixed; inset: 0; background: #000; z-index: 10000; display: none; flex-direction: column; }
         video { width: 100%; height: 100%; }
-        .close-btn { position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid #444; padding: 10px 15px; border-radius: 8px; cursor: pointer; z-index: 10001; font-weight: bold; }
+        .close-btn { position: absolute; top: 20px; left: 20px; background: rgba(255,255,255,0.2); color: #fff; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; z-index: 10001; }
     </style>
 </head>
 <body>
 
     <div id="login-area">
-        <div class="brand">GEMINI TV</div>
+        <h1 style="color:var(--primary)">SISTEMA DNA</h1>
         <div class="input-group">
-            <input type="text" id="user" placeholder="Seu Usuário">
-            <input type="password" id="pass" placeholder="Sua Senha">
-            <button class="btn-main" id="login-btn" onclick="handleLogin()">Acessar Agora</button>
-            <div id="msg" style="color:red; font-size: 12px; margin-top: 10px;"></div>
+            <input type="text" id="user" placeholder="Login">
+            <input type="password" id="pass" placeholder="Senha">
+            <button class="btn-main" onclick="handleLogin()">Entrar</button>
+            <p id="msg" style="color:red; font-size:12px;"></p>
         </div>
     </div>
 
     <div id="app-area">
         <div class="header">
-            <div style="color:var(--primary); font-weight:900; font-size: 1.4rem;">GEMINI <span style="color:#fff">TV</span></div>
-            <button onclick="logout()" style="background:none; border:1px solid #333; color:#555; font-size:11px; border-radius:8px; padding:8px 15px;">SAIR</button>
-        </div>
-        
-        <div class="search-container">
-            <input type="text" class="search" placeholder="🔍 Buscar canais, filmes ou séries..." onkeyup="filter(this.value)">
+            <div style="color:var(--primary); font-weight:900;">TV PREMIUM</div>
+            <button onclick="logout()" style="background:none; border:1px solid #333; color:#555; border-radius:5px; padding:5px;">SAIR</button>
         </div>
         
         <div class="tabs">
-            <div class="tab active" onclick="setTab('live', this)">CANAIS AO VIVO</div>
-            <div class="tab" onclick="setTab('movies', this)">CINEMA / FILMES</div>
-            <div class="tab" onclick="setTab('series', this)">SÉRIES PREMIUM</div>
+            <div class="tab active" onclick="setTab('live', this)">TV AO VIVO</div>
+            <div class="tab" onclick="setTab('movies', this)">FILMES</div>
+            <div class="tab" onclick="setTab('series', this)">SÉRIES</div>
         </div>
         <div class="grid" id="content"></div>
     </div>
 
     <div id="player-modal">
-        <button class="close-btn" onclick="closePlayer()">← VOLTAR</button>
+        <button class="close-btn" onclick="closePlayer()">VOLTAR</button>
         <video id="video" controls autoplay playsinline></video>
     </div>
 
@@ -83,28 +69,22 @@
 
         window.onload = async () => {
             await loadUsers();
-            if(localStorage.getItem('gemini_sessao') === 'ativa') mostrarApp();
+            if(localStorage.getItem('sessao_dna') === 'ativa') mostrarApp();
         };
 
         async function loadUsers() {
-            try {
-                const r = await fetch('users.json?t=' + Date.now());
-                USERS = await r.json();
-            } catch(e) { console.log("Erro ao buscar usuários."); }
+            const r = await fetch('users.json?t=' + Date.now());
+            USERS = await r.json();
         }
 
         async function handleLogin() {
             const u = document.getElementById('user').value.trim();
             const p = document.getElementById('pass').value.trim();
-            const btn = document.getElementById('login-btn');
-            btn.innerText = "Carregando...";
-            await loadUsers();
             if(USERS[u] && USERS[u] === p) {
-                localStorage.setItem('gemini_sessao', 'ativa');
+                localStorage.setItem('sessao_dna', 'ativa');
                 mostrarApp();
             } else {
-                document.getElementById('msg').innerText = "Dados incorretos!";
-                btn.innerText = "Acessar Agora";
+                document.getElementById('msg').innerText = "Acesso Negado!";
             }
         }
 
@@ -115,24 +95,20 @@
         }
 
         async function loadData() {
-            try {
-                const r = await fetch('database.json?t=' + Date.now());
-                DB = await r.json();
-                render();
-            } catch(e) { console.log("Erro ao carregar banco de dados."); }
+            const r = await fetch('database.json?t=' + Date.now());
+            DB = await r.json();
+            render();
         }
 
-        function render(s = "") {
+        function render() {
             const container = document.getElementById('content');
             container.innerHTML = "";
             (DB[TAB] || []).forEach(item => {
-                if(item.name.toLowerCase().includes(s.toLowerCase())) {
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    card.innerHTML = `<img src="${item.logo || ''}" onerror="this.src='https://via.placeholder.com/160x90?text=SINAL+TV'"><div class="card-name">${item.name}</div>`;
-                    card.onclick = () => play(item.url);
-                    container.appendChild(card);
-                }
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `<img src="${item.logo}"><div class="card-name">${item.name}</div>`;
+                card.onclick = () => play(item.url);
+                container.appendChild(card);
             });
         }
 
@@ -141,8 +117,6 @@
             el.classList.add('active');
             TAB = t; render();
         }
-
-        function filter(v) { render(v); }
 
         function play(url) {
             const modal = document.getElementById('player-modal');
@@ -154,8 +128,7 @@
         }
 
         function closePlayer() {
-            const v = document.getElementById('video');
-            v.pause(); v.src = "";
+            document.getElementById('video').pause();
             document.getElementById('player-modal').style.display = 'none';
         }
 
