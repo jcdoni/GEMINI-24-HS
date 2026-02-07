@@ -2,184 +2,191 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GEMINI TV | PREMIUM V7</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GEMINI TV | ADMIN & PLAYER</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        :root { --primary: #00ff88; --bg: #0a0a0a; --card: #151515; --text: #ffffff; }
-        body { margin: 0; background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
+        :root { --primary: #00ff88; --bg: #050505; --card: #111; --text: #eee; }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; }
         
-        #login-area { position: fixed; inset: 0; background: radial-gradient(circle, #1a1a1a 0%, #000 100%); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .brand-login { font-size: 3.5rem; font-weight: 900; margin-bottom: 2rem; color: var(--primary); text-shadow: 0 0 15px rgba(0,255,136,0.3); }
-        .input-group { display: flex; flex-direction: column; gap: 15px; width: 85%; max-width: 320px; }
-        input { padding: 18px; border-radius: 12px; border: 1px solid #333; background: rgba(255,255,255,0.05); color: #fff; outline: none; font-size: 16px; }
-        button.btn-main { padding: 18px; border-radius: 12px; border: none; background: var(--primary); color: #000; font-weight: 800; cursor: pointer; text-transform: uppercase; }
+        /* HEADER & TABS */
+        .header { padding: 15px; background: #000; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary); sticky: top; z-index: 100; }
+        .tabs { display: flex; overflow-x: auto; background: #000; padding: 10px; gap: 10px; }
+        .tab { padding: 10px 20px; background: #222; border-radius: 5px; cursor: pointer; white-space: nowrap; }
+        .tab.active { background: var(--primary); color: #000; font-weight: bold; }
 
-        #app-area { display: none; }
-        .header { padding: 15px; background: rgba(0,0,0,0.9); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px); }
+        /* GRID & CARDS */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; padding: 15px; }
+        .card { background: var(--card); border-radius: 8px; position: relative; border: 1px solid #222; transition: 0.3s; }
+        .card:hover { border-color: var(--primary); }
+        .card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 8px 8px 0 0; opacity: 0.7; }
         
-        .search-bar { padding: 10px 15px; background: #111; }
-        .search-bar input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #000; color: #fff; box-sizing: border-box; }
+        /* EDITOR TOOLS (SÓ APARECE PARA ADMIN) */
+        .edit-tools { position: absolute; top: 5px; right: 5px; display: none; gap: 5px; }
+        .is-admin .edit-tools { display: flex; }
+        .btn-edit { background: rgba(0,0,0,0.8); color: var(--primary); border: 1px solid var(--primary); padding: 5px; border-radius: 4px; cursor: pointer; font-size: 10px; }
+        
+        .card-name { padding: 10px; font-size: 11px; text-align: center; font-weight: bold; text-transform: uppercase; }
 
-        .user-info-bar { background: #000; padding: 8px 20px; font-size: 10px; color: #555; border-bottom: 1px solid #222; display: flex; justify-content: space-between; }
-        .user-info-bar span { color: var(--primary); }
+        /* MODAL DE EDIÇÃO */
+        #edit-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 20000; display: none; align-items: center; justify-content: center; }
+        .modal-content { background: #1a1a1a; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 10px; }
+        .modal-content input { padding: 12px; background: #000; border: 1px solid #333; color: #fff; border-radius: 5px; }
+        
+        /* LOGIN */
+        #login-area { position: fixed; inset: 0; background: #000; z-index: 30000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .login-box { width: 300px; display: flex; flex-direction: column; gap: 15px; }
+        input.login-input { padding: 15px; border-radius: 8px; border: 1px solid #333; background: #111; color: #fff; }
+        .btn-login { padding: 15px; background: var(--primary); border: none; font-weight: bold; border-radius: 8px; cursor: pointer; }
 
-        .tabs { display: flex; gap: 10px; padding: 12px; overflow-x: auto; scrollbar-width: none; background: #0a0a0a; }
-        .tab { padding: 8px 18px; background: #1a1a1a; border-radius: 20px; font-size: 11px; cursor: pointer; color: #666; font-weight: bold; border: 1px solid #333; white-space: nowrap; }
-        .tab.active { background: var(--primary); color: #000; border-color: var(--primary); }
-
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; padding: 12px; }
-        .card { background: var(--card); border-radius: 10px; overflow: hidden; position: relative; aspect-ratio: 16/9; cursor: pointer; border: 1px solid #222; transition: 0.2s; }
-        .card:active { transform: scale(0.98); }
-        .card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.5; }
-        .card-info { position: absolute; bottom: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.95)); padding: 8px 4px; text-align: center; }
-        .card-name { font-size: 9px; font-weight: bold; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-        #player-modal { position: fixed; inset: 0; background: #000; z-index: 10000; display: none; flex-direction: column; }
+        #player-modal { position: fixed; inset: 0; background: #000; z-index: 15000; display: none; }
         video { width: 100%; height: 100%; }
-        .close-btn { position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.7); color: #fff; border: 1px solid #444; padding: 12px 18px; border-radius: 8px; cursor: pointer; z-index: 10001; font-weight: bold; }
+        .close-player { position: absolute; top: 20px; left: 20px; z-index: 16000; background: var(--primary); color: #000; padding: 10px; border-radius: 5px; border: none; font-weight: bold; }
     </style>
 </head>
-<body>
+<body class="">
 
     <div id="login-area">
-        <div class="brand-login">GEMINI TV</div>
-        <div class="input-group">
-            <input type="text" id="user" placeholder="Usuário">
-            <input type="password" id="pass" placeholder="Senha">
-            <button class="btn-main" onclick="handleLogin()">ACESSAR AGORA</button>
-            <p id="msg" style="color:#ff4444; font-size:11px;"></p>
+        <div class="login-box">
+            <h2 style="color: var(--primary); text-align: center;">GEMINI EDITOR V1</h2>
+            <input type="text" id="user" class="login-input" placeholder="Usuário">
+            <input type="password" id="pass" class="login-input" placeholder="Senha">
+            <button class="btn-login" onclick="login()">ENTRAR NO SISTEMA</button>
         </div>
     </div>
 
     <div id="app-area">
         <div class="header">
-            <div style="color:var(--primary); font-weight:900; font-size: 1.2rem;">GEMINI <span style="color:#fff">TV</span></div>
-            <button onclick="logout()" style="background:none; border:1px solid #333; color:#555; border-radius:5px; padding:5px 10px; font-size: 9px;">SAIR</button>
+            <div style="font-weight: 900; color: var(--primary);">GEMINI TV <span id="admin-badge" style="display:none; font-size: 10px; color: #fff; border: 1px solid #fff; padding: 2px 5px; margin-left: 10px;">EDITOR ATIVO</span></div>
+            <button onclick="logout()" style="background:none; color: #666; border: none;">SAIR</button>
         </div>
 
-        <div class="user-info-bar">
-            <div>CLIENTE: <span id="display-name">...</span></div>
-            <div>VALIDADE: <span id="display-venc">...</span></div>
-        </div>
-
-        <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="O que você quer assistir hoje?" onkeyup="handleSearch()">
-        </div>
-        
-        <div class="tabs">
-            <div class="tab active" onclick="setTab('live', this)">TV AO VIVO</div>
+        <div class="tabs" id="tabs-container">
+            <div class="tab active" onclick="setTab('live', this)">CANAIS</div>
             <div class="tab" onclick="setTab('movies', this)">FILMES</div>
             <div class="tab" onclick="setTab('series', this)">SÉRIES</div>
         </div>
-        <div class="grid" id="content"></div>
+
+        <div class="grid" id="main-grid"></div>
+    </div>
+
+    <div id="edit-modal">
+        <div class="modal-content">
+            <h3>Editar Item</h3>
+            <input type="text" id="edit-name" placeholder="Nome do Canal">
+            <input type="text" id="edit-logo" placeholder="URL da Logo">
+            <input type="text" id="edit-url" placeholder="URL do Stream">
+            <button class="btn-login" onclick="saveEdit()">SALVAR ALTERAÇÕES</button>
+            <button style="background: #333; color: #fff; border: none; padding: 10px; border-radius: 5px;" onclick="closeModal()">CANCELAR</button>
+        </div>
     </div>
 
     <div id="player-modal">
-        <button class="close-btn" onclick="closePlayer()">FECHAR</button>
-        <video id="video" controls autoplay playsinline></video>
+        <button class="close-player" onclick="closePlayer()">VOLTAR</button>
+        <video id="video" controls autoplay></video>
     </div>
 
     <script>
         let DB = { live: [], movies: [], series: [] };
         let USERS = {};
-        let TAB = 'live';
-        let itemsToShow = 40;
+        let currentTab = 'live';
+        let currentEditIndex = null;
+        let isAdmin = false;
 
-        window.onload = async () => {
-            await loadUsers();
-            if(localStorage.getItem('sessao_v7') === 'ativa') {
-                mostrarApp(localStorage.getItem('user_logado'));
+        async function login() {
+            const u = document.getElementById('user').value;
+            const p = document.getElementById('pass').value;
+            
+            // Busca usuários da planilha
+            const res = await fetch('users.json?t=' + Date.now());
+            USERS = await res.json();
+
+            if (USERS[u] && (USERS[u].pass === p || USERS[u] === p)) {
+                isAdmin = (u.toLowerCase() === 'admin' || u.toLowerCase() === 'joao'); // Define quem é editor
+                if(isAdmin) document.body.classList.add('is-admin'), document.getElementById('admin-badge').style.display = 'inline';
+                
+                document.getElementById('login-area').style.display = 'none';
+                loadDB();
+            } else {
+                alert("Acesso negado");
             }
-        };
-
-        async function loadUsers() {
-            try {
-                const r = await fetch('users.json?t=' + Date.now());
-                USERS = await r.json();
-            } catch(e) { console.log("Erro usuários"); }
         }
 
-        async function handleLogin() {
-            const u = document.getElementById('user').value.trim();
-            const p = document.getElementById('pass').value.trim();
-            if(USERS[u] && USERS[u].pass === p) {
-                localStorage.setItem('sessao_v7', 'ativa');
-                localStorage.setItem('user_logado', u);
-                mostrarApp(u);
-            } else { document.getElementById('msg').innerText = "Dados inválidos!"; }
-        }
-
-        function mostrarApp(u) {
-            document.getElementById('login-area').style.display = 'none';
-            document.getElementById('app-area').style.display = 'block';
-            if(USERS[u]) {
-                document.getElementById('display-name').innerText = USERS[u].nome;
-                document.getElementById('display-venc').innerText = USERS[u].venc;
-            }
-            loadData();
-        }
-
-        async function loadData() {
-            const r = await fetch('database.json?t=' + Date.now());
-            DB = await r.json();
+        async function loadDB() {
+            const res = await fetch('database.json?t=' + Date.now());
+            DB = await res.json();
             render();
         }
 
-        function render(filter = "", append = false) {
-            const container = document.getElementById('content');
-            if(!append) {
-                container.innerHTML = "";
-                itemsToShow = 40;
-            }
+        function render() {
+            const container = document.getElementById('main-grid');
+            container.innerHTML = "";
             
-            const fullList = DB[TAB] || [];
-            const filtered = fullList.filter(i => i.name.toLowerCase().includes(filter.toLowerCase()));
-            const slice = filtered.slice(append ? itemsToShow - 40 : 0, itemsToShow);
-
-            slice.forEach(item => {
+            DB[currentTab].forEach((item, index) => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.innerHTML = `<img src="${item.logo}" onerror="this.src='https://via.placeholder.com/160x90?text=SINAL+TV'"><div class="card-info"><div class="card-name">${item.name}</div></div>`;
+                card.innerHTML = `
+                    <div class="edit-tools">
+                        <button class="btn-edit" onclick="event.stopPropagation(); openEdit(${index})">EDITAR</button>
+                        <button class="btn-edit" style="color: #ff4444;" onclick="event.stopPropagation(); deleteItem(${index})">X</button>
+                    </div>
+                    <img src="${item.logo}" onerror="this.src='https://via.placeholder.com/160x90?text=SINAL+TV'">
+                    <div class="card-name">${item.name}</div>
+                `;
                 card.onclick = () => play(item.url);
                 container.appendChild(card);
             });
         }
 
-        // Scroll Infinito
-        window.onscroll = () => {
-            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500) {
-                itemsToShow += 40;
-                render(document.getElementById('searchInput').value, true);
-            }
-        };
+        function openEdit(index) {
+            currentEditIndex = index;
+            const item = DB[currentTab][index];
+            document.getElementById('edit-name').value = item.name;
+            document.getElementById('edit-logo').value = item.logo;
+            document.getElementById('edit-url').value = item.url;
+            document.getElementById('edit-modal').style.display = 'flex';
+        }
 
-        function handleSearch() { render(document.getElementById('searchInput').value); }
+        function saveEdit() {
+            DB[currentTab][currentEditIndex].name = document.getElementById('edit-name').value;
+            DB[currentTab][currentEditIndex].logo = document.getElementById('edit-logo').value;
+            DB[currentTab][currentEditIndex].url = document.getElementById('edit-url').value;
+            closeModal();
+            render();
+            alert("Alterado localmente! No próximo passo vamos conectar o salvamento automático no GitHub.");
+        }
+
+        function deleteItem(index) {
+            if(confirm("Deseja excluir este canal?")) {
+                DB[currentTab].splice(index, 1);
+                render();
+            }
+        }
+
+        function closeModal() { document.getElementById('edit-modal').style.display = 'none'; }
 
         function setTab(t, el) {
             document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
             el.classList.add('active');
-            TAB = t;
-            document.getElementById('searchInput').value = "";
+            currentTab = t;
             render();
         }
 
         function play(url) {
             const modal = document.getElementById('player-modal');
             const video = document.getElementById('video');
-            modal.style.display = 'flex';
-            if(Hls.isSupported() && url.includes('.m3u8')) {
+            modal.style.display = 'block';
+            if (Hls.isSupported() && url.includes('m3u8')) {
                 const hls = new Hls(); hls.loadSource(url); hls.attachMedia(video);
             } else { video.src = url; }
         }
 
         function closePlayer() {
-            const v = document.getElementById('video');
-            v.pause(); v.src = "";
+            document.getElementById('video').pause();
             document.getElementById('player-modal').style.display = 'none';
         }
 
-        function logout() { localStorage.clear(); location.reload(); }
+        function logout() { location.reload(); }
     </script>
 </body>
 </html>
