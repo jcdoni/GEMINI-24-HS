@@ -2,191 +2,178 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GEMINI TV | ADMIN & PLAYER</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GEMINI GLOBAL | IPTV SYSTEM</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        :root { --primary: #00ff88; --bg: #050505; --card: #111; --text: #eee; }
-        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; }
+        :root { --primary: #00ff88; --bg: #080808; --side: #111; --card: #1a1a1a; --text: #fff; }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        /* HEADER & TABS */
-        .header { padding: 15px; background: #000; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary); sticky: top; z-index: 100; }
-        .tabs { display: flex; overflow-x: auto; background: #000; padding: 10px; gap: 10px; }
-        .tab { padding: 10px 20px; background: #222; border-radius: 5px; cursor: pointer; white-space: nowrap; }
-        .tab.active { background: var(--primary); color: #000; font-weight: bold; }
+        #setup-panel { position: fixed; inset: 0; background: #000; z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+        .input-box { width: 100%; max-width: 350px; background: #111; padding: 20px; border-radius: 15px; border: 1px solid #222; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #333; background: #000; color: #fff; box-sizing: border-box; }
+        .btn-main { width: 100%; padding: 15px; background: var(--primary); color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; text-transform: uppercase; }
 
-        /* GRID & CARDS */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; padding: 15px; }
-        .card { background: var(--card); border-radius: 8px; position: relative; border: 1px solid #222; transition: 0.3s; }
-        .card:hover { border-color: var(--primary); }
-        .card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 8px 8px 0 0; opacity: 0.7; }
+        .main-container { display: flex; flex: 1; overflow: hidden; }
+        .sidebar { width: 260px; background: var(--side); border-right: 1px solid #222; overflow-y: auto; display: none; }
+        .content { flex: 1; overflow-y: auto; padding: 15px; position: relative; }
         
-        /* EDITOR TOOLS (SÓ APARECE PARA ADMIN) */
-        .edit-tools { position: absolute; top: 5px; right: 5px; display: none; gap: 5px; }
-        .is-admin .edit-tools { display: flex; }
-        .btn-edit { background: rgba(0,0,0,0.8); color: var(--primary); border: 1px solid var(--primary); padding: 5px; border-radius: 4px; cursor: pointer; font-size: 10px; }
-        
-        .card-name { padding: 10px; font-size: 11px; text-align: center; font-weight: bold; text-transform: uppercase; }
+        .header { background: #000; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--primary); }
+        .cat-item { padding: 12px 20px; border-bottom: 1px solid #1a1a1a; cursor: pointer; font-size: 13px; color: #888; transition: 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .cat-item:hover, .cat-item.active { background: #1a1a1a; color: var(--primary); border-left: 4px solid var(--primary); }
 
-        /* MODAL DE EDIÇÃO */
-        #edit-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 20000; display: none; align-items: center; justify-content: center; }
-        .modal-content { background: #1a1a1a; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 10px; }
-        .modal-content input { padding: 12px; background: #000; border: 1px solid #333; color: #fff; border-radius: 5px; }
-        
-        /* LOGIN */
-        #login-area { position: fixed; inset: 0; background: #000; z-index: 30000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .login-box { width: 300px; display: flex; flex-direction: column; gap: 15px; }
-        input.login-input { padding: 15px; border-radius: 8px; border: 1px solid #333; background: #111; color: #fff; }
-        .btn-login { padding: 15px; background: var(--primary); border: none; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
+        .card { background: var(--card); border-radius: 10px; overflow: hidden; border: 1px solid #222; cursor: pointer; transition: 0.3s; position: relative; }
+        .card:hover { border-color: var(--primary); transform: translateY(-3px); }
+        .card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; background: #000; }
+        .card-name { padding: 10px; font-size: 10px; font-weight: bold; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        #player-modal { position: fixed; inset: 0; background: #000; z-index: 15000; display: none; }
+        #player-modal { position: fixed; inset: 0; background: #000; z-index: 10000; display: none; }
         video { width: 100%; height: 100%; }
-        .close-player { position: absolute; top: 20px; left: 20px; z-index: 16000; background: var(--primary); color: #000; padding: 10px; border-radius: 5px; border: none; font-weight: bold; }
+        .close-p { position: absolute; top: 20px; left: 20px; z-index: 10001; background: var(--primary); color: #000; padding: 10px 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
+
+        .btn-tab { background: none; border: 1px solid #333; color: #fff; padding: 8px 15px; border-radius: 20px; font-size: 10px; cursor: pointer; }
+        .btn-tab.active { background: var(--primary); color: #000; border-color: var(--primary); font-weight: bold; }
     </style>
 </head>
-<body class="">
+<body>
 
-    <div id="login-area">
-        <div class="login-box">
-            <h2 style="color: var(--primary); text-align: center;">GEMINI EDITOR V1</h2>
-            <input type="text" id="user" class="login-input" placeholder="Usuário">
-            <input type="password" id="pass" class="login-input" placeholder="Senha">
-            <button class="btn-login" onclick="login()">ENTRAR NO SISTEMA</button>
+    <div id="setup-panel">
+        <h1 style="color:var(--primary); font-size: 2.5rem; margin-bottom: 0;">GEMINI GLOBAL</h1>
+        <p style="color: #444; margin-top: 0;">DNA SYSTEM V8.0</p>
+        <div class="input-box">
+            <h4 style="margin:0 0 10px 0; color: #fff;">LOGIN XTREAM CODES</h4>
+            <input type="text" id="host" placeholder="http://url-do-servidor.com:8080">
+            <input type="text" id="user" placeholder="Usuário">
+            <input type="password" id="pass" placeholder="Senha">
+            <button class="btn-main" onclick="connectXtream()">Entrar no Painel</button>
+            <div style="margin: 15px 0; color:#333; font-weight: bold;">OU</div>
+            <input type="text" id="m3u" placeholder="Link da lista .m3u">
+            <button class="btn-main" style="background:#222; color:#fff" onclick="connectM3U()">Carregar M3U</button>
         </div>
     </div>
 
-    <div id="app-area">
-        <div class="header">
-            <div style="font-weight: 900; color: var(--primary);">GEMINI TV <span id="admin-badge" style="display:none; font-size: 10px; color: #fff; border: 1px solid #fff; padding: 2px 5px; margin-left: 10px;">EDITOR ATIVO</span></div>
-            <button onclick="logout()" style="background:none; color: #666; border: none;">SAIR</button>
+    <div class="header">
+        <div style="font-weight: 900; color: var(--primary); font-size: 1.2rem;">GEMINI <span style="color:#fff">GLOBAL</span></div>
+        <div style="display:flex; gap:8px;">
+            <button onclick="setTab('live', this)" class="btn-tab active">CANAIS</button>
+            <button onclick="setTab('movie', this)" class="btn-tab">FILMES</button>
+            <button onclick="setTab('series', this)" class="btn-tab">SÉRIES</button>
+            <button onclick="logout()" style="background:none; border:none; color:#555; cursor:pointer; font-size: 12px; margin-left: 10px;">SAIR</button>
         </div>
-
-        <div class="tabs" id="tabs-container">
-            <div class="tab active" onclick="setTab('live', this)">CANAIS</div>
-            <div class="tab" onclick="setTab('movies', this)">FILMES</div>
-            <div class="tab" onclick="setTab('series', this)">SÉRIES</div>
-        </div>
-
-        <div class="grid" id="main-grid"></div>
     </div>
 
-    <div id="edit-modal">
-        <div class="modal-content">
-            <h3>Editar Item</h3>
-            <input type="text" id="edit-name" placeholder="Nome do Canal">
-            <input type="text" id="edit-logo" placeholder="URL da Logo">
-            <input type="text" id="edit-url" placeholder="URL do Stream">
-            <button class="btn-login" onclick="saveEdit()">SALVAR ALTERAÇÕES</button>
-            <button style="background: #333; color: #fff; border: none; padding: 10px; border-radius: 5px;" onclick="closeModal()">CANCELAR</button>
+    <div class="main-container">
+        <div class="sidebar" id="sidebar"></div>
+        <div class="content">
+            <div class="grid" id="grid"></div>
         </div>
     </div>
 
     <div id="player-modal">
-        <button class="close-player" onclick="closePlayer()">VOLTAR</button>
-        <video id="video" controls autoplay></video>
+        <button class="close-p" onclick="closePlayer()">← VOLTAR</button>
+        <video id="video" controls autoplay playsinline></video>
     </div>
 
     <script>
-        let DB = { live: [], movies: [], series: [] };
-        let USERS = {};
-        let currentTab = 'live';
-        let currentEditIndex = null;
-        let isAdmin = false;
+        let CONFIG = null;
+        let CURRENT_TAB = 'live';
+        let CATEGORIES = [];
+        let STREAMS = [];
 
-        async function login() {
-            const u = document.getElementById('user').value;
-            const p = document.getElementById('pass').value;
-            
-            // Busca usuários da planilha
-            const res = await fetch('users.json?t=' + Date.now());
-            USERS = await res.json();
-
-            if (USERS[u] && (USERS[u].pass === p || USERS[u] === p)) {
-                isAdmin = (u.toLowerCase() === 'admin' || u.toLowerCase() === 'joao'); // Define quem é editor
-                if(isAdmin) document.body.classList.add('is-admin'), document.getElementById('admin-badge').style.display = 'inline';
-                
-                document.getElementById('login-area').style.display = 'none';
-                loadDB();
-            } else {
-                alert("Acesso negado");
+        window.onload = () => {
+            const saved = localStorage.getItem('gemini_global_cfg');
+            if(saved) {
+                CONFIG = JSON.parse(saved);
+                document.getElementById('setup-panel').style.display = 'none';
+                document.getElementById('sidebar').style.display = 'block';
+                if(CONFIG.type === 'xtream') loadXtreamCategories();
+                else loadM3U(CONFIG.url);
             }
+        };
+
+        async function connectXtream() {
+            const h = document.getElementById('host').value.trim();
+            const u = document.getElementById('user').value.trim();
+            const p = document.getElementById('pass').value.trim();
+            if(!h || !u || !p) return alert("Preencha todos os campos Xtream!");
+            CONFIG = { host: h, user: u, pass: p, type: 'xtream' };
+            localStorage.setItem('gemini_global_cfg', JSON.stringify(CONFIG));
+            location.reload();
         }
 
-        async function loadDB() {
-            const res = await fetch('database.json?t=' + Date.now());
-            DB = await res.json();
-            render();
+        async function loadXtreamCategories() {
+            const action = CURRENT_TAB === 'live' ? 'get_live_categories' : CURRENT_TAB === 'movie' ? 'get_vod_categories' : 'get_series_categories';
+            const url = `${CONFIG.host}/player_api.php?username=${CONFIG.user}&password=${CONFIG.pass}&action=${action}`;
+            try {
+                const res = await fetch(url);
+                CATEGORIES = await res.json();
+                renderSidebar();
+                if(CATEGORIES.length > 0) loadXtreamStreams(CATEGORIES[0].category_id);
+            } catch(e) { alert("Erro ao conectar ao servidor. Verifique o CORS ou os dados."); }
         }
 
-        function render() {
-            const container = document.getElementById('main-grid');
-            container.innerHTML = "";
-            
-            DB[currentTab].forEach((item, index) => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `
-                    <div class="edit-tools">
-                        <button class="btn-edit" onclick="event.stopPropagation(); openEdit(${index})">EDITAR</button>
-                        <button class="btn-edit" style="color: #ff4444;" onclick="event.stopPropagation(); deleteItem(${index})">X</button>
-                    </div>
-                    <img src="${item.logo}" onerror="this.src='https://via.placeholder.com/160x90?text=SINAL+TV'">
-                    <div class="card-name">${item.name}</div>
-                `;
-                card.onclick = () => play(item.url);
-                container.appendChild(card);
-            });
+        async function loadXtreamStreams(catId) {
+            const action = CURRENT_TAB === 'live' ? 'get_live_streams' : CURRENT_TAB === 'movie' ? 'get_vod_streams' : 'get_series';
+            const url = `${CONFIG.host}/player_api.php?username=${CONFIG.user}&password=${CONFIG.pass}&action=${action}&category_id=${catId}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            STREAMS = data.map(i => ({
+                name: i.name,
+                logo: i.stream_icon || i.cover || i.series_id,
+                url: buildXtreamUrl(i.stream_id || i.series_id)
+            }));
+            renderGrid();
         }
 
-        function openEdit(index) {
-            currentEditIndex = index;
-            const item = DB[currentTab][index];
-            document.getElementById('edit-name').value = item.name;
-            document.getElementById('edit-logo').value = item.logo;
-            document.getElementById('edit-url').value = item.url;
-            document.getElementById('edit-modal').style.display = 'flex';
+        function buildXtreamUrl(id) {
+            const ext = CURRENT_TAB === 'live' ? 'ts' : 'mp4';
+            const folder = CURRENT_TAB === 'series' ? 'series' : CURRENT_TAB === 'movie' ? 'movie' : 'live';
+            if(CURRENT_TAB === 'live') return `${CONFIG.host}/${CONFIG.user}/${CONFIG.pass}/${id}.${ext}`;
+            return `${CONFIG.host}/${folder}/${CONFIG.user}/${CONFIG.pass}/${id}.${ext}`;
         }
 
-        function saveEdit() {
-            DB[currentTab][currentEditIndex].name = document.getElementById('edit-name').value;
-            DB[currentTab][currentEditIndex].logo = document.getElementById('edit-logo').value;
-            DB[currentTab][currentEditIndex].url = document.getElementById('edit-url').value;
-            closeModal();
-            render();
-            alert("Alterado localmente! No próximo passo vamos conectar o salvamento automático no GitHub.");
+        function renderSidebar() {
+            const side = document.getElementById('sidebar');
+            side.innerHTML = CATEGORIES.map(c => `
+                <div class="cat-item" onclick="setActiveCat(this, '${c.category_id}')">${c.category_name}</div>
+            `).join('');
         }
 
-        function deleteItem(index) {
-            if(confirm("Deseja excluir este canal?")) {
-                DB[currentTab].splice(index, 1);
-                render();
-            }
+        function setActiveCat(el, id) {
+            document.querySelectorAll('.cat-item').forEach(x => x.classList.remove('active'));
+            el.classList.add('active');
+            loadXtreamStreams(id);
         }
 
-        function closeModal() { document.getElementById('edit-modal').style.display = 'none'; }
+        function renderGrid() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = STREAMS.map(s => `
+                <div class="card" onclick="play('${s.url}')">
+                    <img src="${s.logo}" onerror="this.src='https://via.placeholder.com/160x90?text=SINAL+TV'">
+                    <div class="card-name">${s.name}</div>
+                </div>
+            `).join('');
+        }
 
         function setTab(t, el) {
-            document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+            document.querySelectorAll('.btn-tab').forEach(x => x.classList.remove('active'));
             el.classList.add('active');
-            currentTab = t;
-            render();
+            CURRENT_TAB = t;
+            if(CONFIG && CONFIG.type === 'xtream') loadXtreamCategories();
         }
 
         function play(url) {
             const modal = document.getElementById('player-modal');
             const video = document.getElementById('video');
             modal.style.display = 'block';
-            if (Hls.isSupported() && url.includes('m3u8')) {
+            if(Hls.isSupported() && (url.includes('m3u8') || url.includes('ts'))) {
                 const hls = new Hls(); hls.loadSource(url); hls.attachMedia(video);
             } else { video.src = url; }
         }
 
-        function closePlayer() {
-            document.getElementById('video').pause();
-            document.getElementById('player-modal').style.display = 'none';
-        }
-
-        function logout() { location.reload(); }
+        function closePlayer() { document.getElementById('video').pause(); document.getElementById('player-modal').style.display = 'none'; }
+        function logout() { localStorage.clear(); location.reload(); }
     </script>
 </body>
 </html>
