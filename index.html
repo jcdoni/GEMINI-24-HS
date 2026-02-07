@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GEMINI TV | PLAYER</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        :root { --primary: #00ff88; --bg: #0f0f0f; --card: #1a1a1a; --text: #ffffff; }
+        body { margin: 0; background-color: var(--bg); color: var(--text); font-family: sans-serif; overflow-x: hidden; }
+        
+        /* LOGIN */
+        #login-area { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .brand { font-size: 3rem; font-weight: 900; margin-bottom: 2rem; color: var(--primary); text-shadow: 0 0 10px rgba(0,255,136,0.5); }
+        .input-group { display: flex; flex-direction: column; gap: 10px; width: 80%; max-width: 300px; }
+        input { padding: 15px; border-radius: 8px; border: 1px solid #333; background: #222; color: #fff; outline: none; }
+        button.btn-main { padding: 15px; border-radius: 8px; border: none; background: var(--primary); color: #000; font-weight: bold; cursor: pointer; }
+
+        /* APP */
+        #app-area { display: none; }
+        .header { padding: 20px; background: #000; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .search { width: 90%; padding: 10px; margin: 10px auto; display: block; background: #222; border: none; border-radius: 5px; color: #fff; }
+        
+        .tabs { display: flex; gap: 10px; padding: 10px; overflow-x: auto; justify-content: center; }
+        .tab { padding: 10px 20px; background: #222; border-radius: 20px; font-size: 12px; cursor: pointer; white-space: nowrap; }
+        .tab.active { background: var(--primary); color: #000; font-weight: bold; }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; padding: 15px; }
+        .card { background: var(--card); border-radius: 10px; overflow: hidden; position: relative; aspect-ratio: 16/9; cursor: pointer; border: 1px solid #333; }
+        .card img { width: 100%; height: 100%; object-fit: cover; }
+        .card-name { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.8); padding: 5px; font-size: 10px; text-align: center; }
+
+        /* PLAYER */
+        #player-modal { position: fixed; inset: 0; background: #000; z-index: 10000; display: none; flex-direction: column; }
+        video { width: 100%; height: 100%; }
+        .close-btn { position: absolute; top: 20px; right: 20px; background: red; color: #fff; border: none; padding: 10px; border-radius: 5px; cursor: pointer; z-index: 10001; }
+    </style>
+</head>
+<body>
+
+    <div id="login-area">
+        <div class="brand">GEMINI TV</div>
+        <div class="input-group">
+            <input type="text" id="user" placeholder="Usuário">
+            <input type="password" id="pass" placeholder="Senha">
+            <button class="btn-main" onclick="auth()">ENTRAR</button>
+            <div id="msg" style="color:red; margin-top:10px;"></div>
+        </div>
+    </div>
+
+    <div id="app-area">
+        <div class="header"><div style="color:var(--primary); font-weight:bold;">GEMINI TV</div></div>
+        <input type="text" class="search" placeholder="🔍 Buscar..." onkeyup="filter(this.value)">
+        
+        <div class="tabs">
+            <div class="tab active" onclick="setTab('live', this)">TV AO VIVO</div>
+            <div class="tab" onclick="setTab('movies', this)">FILMES</div>
+            <div class="tab" onclick="setTab('series', this)">SÉRIES</div>
+        </div>
+        <div class="grid" id="content"></div>
+    </div>
+
+    <div id="player-modal">
+        <button class="close-btn" onclick="closePlayer()">FECHAR X</button>
+        <video id="video" controls autoplay playsinline></video>
+    </div>
+
+    <script>
+        const USER = "admin"; 
+        const PASS = "1234"; 
+        let DB = { live: [], movies: [], series: [] };
+        let TAB = 'live';
+
+        function auth() {
+            if(document.getElementById('user').value === USER && document.getElementById('pass').value === PASS) {
+                document.getElementById('login-area').style.display = 'none';
+                document.getElementById('app-area').style.display = 'block';
+                load();
+            } else { document.getElementById('msg').innerText = "Erro de login!"; }
+        }
+
+        async function load() {
+            try {
+                const r = await fetch('database.json?t=' + Date.now());
+                DB = await r.json();
+                render();
+            } catch(e) { alert("Base de dados não encontrada. Vá na planilha e clique em ATUALIZAR SITE."); }
+        }
+
+        function render(s = "") {
+            const el = document.getElementById('content');
+            el.innerHTML = "";
+            (DB[TAB] || []).forEach(item => {
+                if(item.name.toLowerCase().includes(s.toLowerCase())) {
+                    const d = document.createElement('div');
+                    d.className = 'card';
+                    d.innerHTML = `<img src="${item.logo || ''}"><div class="card-name">${item.name}</div>`;
+                    d.onclick = () => play(item.url);
+                    el.appendChild(d);
+                }
+            });
+        }
+
+        function setTab(t, el) {
+            document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+            el.classList.add('active');
+            TAB = t; render();
+        }
+
+        function filter(v) { render(v); }
+
+        function play(url) {
+            const m = document.getElementById('player-modal');
+            const v = document.getElementById('video');
+            m.style.display = 'flex';
+            if(Hls.isSupported() && url.includes('.m3u8')) {
+                const hls = new Hls(); hls.loadSource(url); hls.attachMedia(v);
+            } else { v.src = url; }
+        }
+
+        function closePlayer() {
+            const v = document.getElementById('video');
+            v.pause(); v.src = "";
+            document.getElementById('player-modal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
