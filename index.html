@@ -6,17 +6,17 @@
     <title>Gemini TV - Professional Editor</title>
     <style>
         :root {
-            --primary: #00ff88;
-            --bg-dark: #0f0f0f;
-            --sidebar-bg: #1a1a1a;
-            --card-bg: #252525;
+            --bg-dark: #0f111a;
+            --sidebar-bg: #1a1d29;
+            --accent: #00f2ff;
             --text-main: #e0e0e0;
-            --border: #333;
+            --border: #2d3245;
+            --danger: #ff4d4d;
+            --success: #00ff88;
         }
 
         body {
             margin: 0;
-            padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-dark);
             color: var(--text-main);
@@ -26,257 +26,290 @@
         }
 
         /* Sidebar - Estilo M3U4U */
-        .sidebar {
-            width: 260px;
-            background-color: var(--sidebar-bg);
+        #sidebar {
+            width: 280px;
+            background: var(--sidebar-bg);
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             padding: 15px;
         }
 
-        .sidebar h2 { color: var(--primary); font-size: 1.2rem; margin-bottom: 20px; }
+        .logo-area {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 15px;
+        }
+
+        .logo-area h2 { color: var(--accent); margin: 0; font-size: 1.5rem; letter-spacing: 2px; }
 
         .group-list {
             flex-grow: 1;
             overflow-y: auto;
-            margin-top: 10px;
         }
 
         .group-item {
             padding: 10px;
             cursor: pointer;
-            border-radius: 4px;
+            border-radius: 5px;
             margin-bottom: 5px;
             transition: 0.2s;
+            display: flex;
+            justify-content: space-between;
         }
 
-        .group-item:hover { background: #333; }
-        .group-item.active { background: var(--primary); color: #000; font-weight: bold; }
+        .group-item:hover { background: rgba(0, 242, 255, 0.1); }
+        .group-item.active { background: var(--accent); color: #000; font-weight: bold; }
 
-        /* Área Principal */
-        .main-content {
+        /* Main Content */
+        #main-content {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            padding: 20px;
-            overflow-y: auto;
+            background: var(--bg-dark);
         }
 
-        .top-bar {
-            background: var(--card-bg);
+        /* Toolbar - Os 15 Botões do Memorial */
+        .toolbar {
             padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            background: var(--sidebar-bg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .toolbar button {
+            padding: 8px 12px;
+            background: #252a3d;
+            color: white;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: 0.2s;
+        }
+
+        .toolbar button:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-primary { background: var(--accent) !important; color: #000 !important; font-weight: bold; }
+
+        /* Search Area */
+        .search-container {
+            padding: 10px 20px;
             display: flex;
             gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
         }
 
         input[type="text"] {
-            background: #121212;
+            background: #252a3d;
             border: 1px solid var(--border);
             color: white;
             padding: 10px;
-            border-radius: 4px;
+            border-radius: 5px;
             flex-grow: 1;
         }
 
-        button {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.3s;
-        }
-
-        .btn-primary { background: var(--primary); color: #000; }
-        .btn-action { background: #444; color: white; }
-        button:hover { opacity: 0.8; transform: translateY(-2px); }
-
-        /* Tabela Estilo IPTV Editor */
+        /* Tabela Estilizada */
         .table-container {
-            background: var(--card-bg);
-            border-radius: 8px;
-            overflow: hidden;
+            flex-grow: 1;
+            overflow: auto;
+            padding: 0 20px;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th { position: sticky; top: 0; background: var(--sidebar-bg); padding: 15px; text-align: left; border-bottom: 2px solid var(--border); }
+        td { padding: 12px; border-bottom: 1px solid var(--border); }
+        
+        tr:hover { background: rgba(255, 255, 255, 0.03); }
+
+        .status-bar {
+            padding: 5px 20px;
+            background: var(--accent);
+            color: #000;
+            font-size: 12px;
+            font-weight: bold;
         }
-
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-
-        th { background: #1a1a1a; color: var(--primary); position: sticky; top: 0; }
-
-        .status-msg { margin-top: 10px; color: var(--primary); font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <h2>🧬 Gemini TV DNA</h2>
-        <div class="group-list" id="listaGrupos">
-            <div class="group-item active" onclick="filtrarGrupo('Todos')">Todos os Canais</div>
-        </div>
-        <button class="btn-action" style="margin-top:10px" onclick="aplicarDNA()">APLICAR DNA (.BRASIL.)</button>
+<div id="sidebar">
+    <div class="logo-area">
+        <h2>GEMINI TV 🧬</h2>
+        <small>DNA PROTOCOL ACTIVE</small>
+    </div>
+    <div class="group-list" id="listaGrupos">
+        <div class="group-item active">Todos os Canais</div>
+    </div>
+</div>
+
+<div id="main-content">
+    <div class="toolbar">
+        <button class="btn-primary" onclick="promptUrl()">IMPORTAR M3U</button>
+        <button onclick="aplicarDNA()">APLICAR DNA (.BRASIL.)</button>
+        <button onclick="limparNomes()">LIMPAR NOMES</button>
+        <button onclick="removerDuplicados()">REMOVER DUPLICADOS</button>
+        <button onclick="bulkEditGroup()">MOVER SELECIONADOS</button>
+        <button onclick="addPrefix()">ADD PREFIXO</button>
+        <button onclick="addSuffix()">ADD SUFIXO</button>
+        <button onclick="deleteEmptyGroups()">DEL GRUPOS VAZIOS</button>
+        <button onclick="fixEpgLinks()">CORRIGIR EPG</button>
+        <button onclick="sortAlpha()">ORDEM ALFABÉTICA</button>
+        <button onclick="clearAll()" style="color: var(--danger)">LIMPAR TUDO</button>
+        <button class="btn-primary" onclick="exportarM3U()" style="margin-left: auto;">EXPORTAR M3U</button>
     </div>
 
-    <div class="main-content">
-        <div class="top-bar">
-            <input type="text" id="m3uUrl" placeholder="URL da Lista M3U...">
-            <button class="btn-primary" onclick="carregarLista()">IMPORTAR</button>
-            <input type="text" id="buscaCanal" placeholder="Buscar canal..." oninput="buscarNaTabela()">
-            <button class="btn-action" onclick="exportarM3U()">EXPORTAR LISTA</button>
-        </div>
-        
-        <div id="statusMsg" class="status-msg">Aguardando comando...</div>
-
-        <div class="table-container">
-            <table id="tabelaCanais">
-                <thead>
-                    <tr>
-                        <th width="30"><input type="checkbox" onclick="selecionarTodos(this)"></th>
-                        <th>Nome do Canal</th>
-                        <th>Grupo</th>
-                        <th>EPG ID</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="corpoTabela">
-                    </tbody>
-            </table>
-        </div>
+    <div class="search-container">
+        <input type="text" id="filtroNome" placeholder="Pesquisar canal ou grupo..." onkeyup="filtrarCanais()">
+        <input type="text" id="m3uInput" placeholder="URL da Lista M3U" style="display: none;">
     </div>
+
+    <div class="table-container">
+        <table id="tabelaCanais">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" onclick="toggleSelectAll(this)"></th>
+                    <th>NOME DO CANAL</th>
+                    <th>GRUPO / CATEGORIA</th>
+                    <th>EPG ID</th>
+                    <th>URL DO STREAM</th>
+                </tr>
+            </thead>
+            <tbody id="corpoTabela"></tbody>
+        </table>
+    </div>
+
+    <div class="status-bar" id="statusBar">SISTEMA ONLINE | AGUARDANDO LISTA</div>
+</div>
 
 <script>
-    let canaisData = [];
-    let grupoAtual = 'Todos';
+    let canaisGlobal = [];
     const PROXY_URL = "https://geminitv-proxy.jcdoni.workers.dev/?url=";
 
-    async function carregarLista() {
-        const url = document.getElementById('m3uUrl').value;
-        if(!url) return alert("Insira o link!");
+    async function promptUrl() {
+        const url = prompt("Cole a URL da lista M3U:");
+        if (url) carregarLista(url);
+    }
 
-        const msg = document.getElementById('statusMsg');
-        msg.innerText = "Conectando ao motor Cloudflare...";
-
+    async function carregarLista(url) {
+        updateStatus("Conectando ao Motor Cloudflare...");
         try {
             const response = await fetch(PROXY_URL + encodeURIComponent(url));
             const data = await response.text();
             processarM3U(data);
-            msg.innerText = "Sucesso! " + canaisData.length + " canais carregados.";
+            updateStatus("Lista carregada: " + canaisGlobal.length + " canais.");
         } catch (e) {
-            msg.innerText = "Erro no motor. Verifique o Worker.";
+            alert("Erro ao carregar via Worker!");
+            updateStatus("Erro de conexão.");
         }
     }
 
     function processarM3U(texto) {
         const linhas = texto.split('\n');
-        canaisData = [];
-        let tempCanal = {};
-        const grupos = new Set();
+        canaisGlobal = [];
+        let item = {};
 
         linhas.forEach(linha => {
-            if(linha.startsWith('#EXTINF:')) {
+            if (linha.startsWith('#EXTINF:')) {
                 const nome = linha.split(',')[1] || "Sem Nome";
-                const grupo = (linha.match(/group-title="([^"]+)"/) || [null, "Geral"])[1];
-                const epg = (linha.match(/tvg-id="([^"]+)"/) || [null, ""])[1];
-                tempCanal = { nome: nome.trim(), grupo, epg };
-                grupos.add(grupo);
-            } else if(linha.startsWith('http')) {
-                tempCanal.url = linha.trim();
-                canaisData.push(tempCanal);
+                const grupo = linha.match(/group-title="([^"]+)"/);
+                const epg = linha.match(/tvg-id="([^"]+)"/);
+                item = {
+                    nome: nome.trim(),
+                    grupo: grupo ? grupo[1] : "GERAL",
+                    epg: epg ? epg[1] : "",
+                    selecionado: false
+                };
+            } else if (linha.startsWith('http')) {
+                item.url = linha.trim();
+                canaisGlobal.push(item);
+                item = {};
             }
         });
-
-        atualizarSidebar(Array.from(grupos));
-        renderizarTabela();
+        atualizarInterface();
     }
 
-    function atualizarSidebar(grupos) {
-        const div = document.getElementById('listaGrupos');
-        div.innerHTML = '<div class="group-item active" onclick="filtrarGrupo(\'Todos\')">Todos os Canais</div>';
-        grupos.sort().forEach(g => {
-            div.innerHTML += `<div class="group-item" onclick="filtrarGrupo('${g}')">${g}</div>`;
-        });
+    function atualizarInterface() {
+        renderizarTabela(canaisGlobal);
+        renderizarGrupos();
     }
 
-    function renderizarTabela(data = canaisData) {
+    function renderizarTabela(dados) {
         const corpo = document.getElementById('corpoTabela');
         corpo.innerHTML = "";
-        
-        const filtered = grupoAtual === 'Todos' ? data : data.filter(c => c.grupo === grupoAtual);
-
-        filtered.forEach((c, idx) => {
+        dados.forEach((c, i) => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td><input type="checkbox" class="chk-canal"></td>
-                <td><input type="text" value="${c.nome}" onchange="atualizarDado(${idx}, 'nome', this.value)"></td>
-                <td><input type="text" value="${c.grupo}" onchange="atualizarDado(${idx}, 'grupo', this.value)"></td>
-                <td><input type="text" value="${c.epg}" onchange="atualizarDado(${idx}, 'epg', this.value)"></td>
-                <td><button onclick="removerCanal(${idx})" style="color:red; background:none;">✖</button></td>
+                <td><input type="checkbox" ${c.selecionado ? 'checked' : ''} onchange="canaisGlobal[${i}].selecionado = this.checked"></td>
+                <td contenteditable="true" onblur="canaisGlobal[${i}].nome = this.innerText">${c.nome}</td>
+                <td contenteditable="true" onblur="canaisGlobal[${i}].grupo = this.innerText">${c.grupo}</td>
+                <td contenteditable="true" onblur="canaisGlobal[${i}].epg = this.innerText">${c.epg}</td>
+                <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis;">${c.url}</td>
             `;
             corpo.appendChild(tr);
         });
     }
 
-    function atualizarDado(idx, campo, valor) {
-        canaisData[idx][campo] = valor;
+    function renderizarGrupos() {
+        const sidebar = document.getElementById('listaGrupos');
+        const grupos = [...new Set(canaisGlobal.map(c => c.grupo))];
+        sidebar.innerHTML = '<div class="group-item active" onclick="filtrarPorGrupo(\'all\')">Todos os Canais <span>' + canaisGlobal.length + '</span></div>';
+        
+        grupos.forEach(g => {
+            const count = canaisGlobal.filter(c => c.grupo === g).length;
+            sidebar.innerHTML += `<div class="group-item" onclick="filtrarPorGrupo('${g}')">${g} <span>${count}</span></div>`;
+        });
     }
 
     function aplicarDNA() {
-        canaisData.forEach(c => {
-            if(c.epg && !c.epg.endsWith('.BRASIL.')) {
+        canaisGlobal.forEach(c => {
+            if (c.epg && !c.epg.endsWith('.BRASIL.')) {
                 c.epg = c.epg.split('.')[0] + ".BRASIL.";
-            } else if(!c.epg) {
-                c.epg = c.nome.replace(/\s+/g, '') + ".BRASIL.";
+            } else if (!c.epg) {
+                c.epg = c.nome.replace(/\s+/g, '').toUpperCase() + ".BRASIL.";
             }
         });
-        renderizarTabela();
-        document.getElementById('statusMsg').innerText = "DNA Aplicado: Todos IDs terminam em .BRASIL.";
+        atualizarInterface();
+        updateStatus("Protocolo DNA Aplicado com Sucesso.");
     }
 
-    function buscarNaTabela() {
-        const termo = document.getElementById('buscaCanal').value.toLowerCase();
-        const filtrados = canaisData.filter(c => c.nome.toLowerCase().includes(termo));
+    function limparNomes() {
+        canaisGlobal.forEach(c => {
+            c.nome = c.nome.replace(/\[.*?\]/g, "").replace(/\{.*?\}/g, "").trim();
+        });
+        atualizarInterface();
+    }
+
+    function filtrarCanais() {
+        const busca = document.getElementById('filtroNome').value.toLowerCase();
+        const filtrados = canaisGlobal.filter(c => 
+            c.nome.toLowerCase().includes(busca) || c.grupo.toLowerCase().includes(busca)
+        );
         renderizarTabela(filtrados);
     }
 
-    function filtrarGrupo(g) {
-        grupoAtual = g;
-        document.querySelectorAll('.group-item').forEach(el => el.classList.remove('active'));
-        event.target.classList.add('active');
-        renderizarTabela();
+    function updateStatus(msg) {
+        document.getElementById('statusBar').innerText = "SISTEMA: " + msg.toUpperCase();
     }
 
     function exportarM3U() {
         let m3u = "#EXTM3U\n";
-        canaisData.forEach(c => {
+        canaisGlobal.forEach(c => {
             m3u += `#EXTINF:-1 tvg-id="${c.epg}" group-title="${c.grupo}",${c.nome}\n${c.url}\n`;
         });
         const blob = new Blob([m3u], { type: 'text/plain' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = "lista_gemini_pro.m3u";
+        a.download = "GeminiTV_Master.m3u";
         a.click();
     }
 
-    function selecionarTodos(master) {
-        document.querySelectorAll('.chk-canal').forEach(c => c.checked = master.checked);
-    }
-
-    function removerCanal(idx) {
-        canaisData.splice(idx, 1);
-        renderizarTabela();
+    function toggleSelectAll(source) {
+        canaisGlobal.forEach(c => c.selecionado = source.checked);
+        renderizarTabela(canaisGlobal);
     }
 </script>
+
 </body>
 </html>
