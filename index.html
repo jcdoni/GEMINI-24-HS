@@ -1,26 +1,203 @@
-// Substitua a sua função connectXtream por esta:
-async function connectXtream() {
-    const h = document.getElementById('host').value.trim();
-    const u = document.getElementById('user').value.trim();
-    const p = document.getElementById('pass').value.trim();
-    if(!h || !u || !p) return alert("Preencha tudo!");
-    
-    // Lista de Proxies para furar o bloqueio CORS
-    const proxies = ["", "https://cors-anywhere.herokuapp.com/", "https://api.allorigins.win/raw?url="];
-    
-    CONFIG = { host: h, user: u, pass: p, type: 'xtream' };
-    
-    // Tenta conexão com Proxy se a direta falhar
-    try {
-        const testUrl = `${h}/player_api.php?username=${u}&password=${p}`;
-        const res = await fetch(proxies[2] + encodeURIComponent(testUrl)); // Usando AllOrigins
-        if(res.ok) {
-            localStorage.setItem('gemini_global_cfg', JSON.stringify(CONFIG));
-            location.reload();
-        } else {
-            alert("Dados incorretos ou servidor offline.");
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GEMINI GLOBAL | XTREAM UNLOCKED</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        :root { --primary: #00ff88; --bg: #080808; --side: #111; --card: #1a1a1a; --text: #fff; }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        
+        #setup-panel { position: fixed; inset: 0; background: #000; z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+        .input-box { width: 100%; max-width: 350px; background: #111; padding: 25px; border-radius: 20px; border: 1px solid #222; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        input { width: 100%; padding: 14px; margin: 10px 0; border-radius: 10px; border: 1px solid #333; background: #000; color: #fff; box-sizing: border-box; outline: none; }
+        input:focus { border-color: var(--primary); }
+        .btn-main { width: 100%; padding: 16px; background: var(--primary); color: #000; border: none; border-radius: 10px; font-weight: 800; cursor: pointer; margin-top: 15px; text-transform: uppercase; letter-spacing: 1px; }
+
+        .main-container { display: flex; flex: 1; overflow: hidden; }
+        .sidebar { width: 280px; background: var(--side); border-right: 1px solid #222; overflow-y: auto; display: none; }
+        .content { flex: 1; overflow-y: auto; padding: 15px; background: var(--bg); }
+        
+        .header { background: #000; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
+        .cat-item { padding: 14px 20px; border-bottom: 1px solid #1a1a1a; cursor: pointer; font-size: 13px; color: #aaa; transition: 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .cat-item:hover, .cat-item.active { background: #1a1a1a; color: var(--primary); border-left: 5px solid var(--primary); }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 18px; }
+        .card { background: var(--card); border-radius: 12px; overflow: hidden; border: 1px solid #222; cursor: pointer; transition: 0.3s; }
+        .card:hover { border-color: var(--primary); transform: translateY(-5px); }
+        .card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; background: #000; }
+        .card-name { padding: 12px; font-size: 11px; font-weight: bold; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        #player-modal { position: fixed; inset: 0; background: #000; z-index: 10000; display: none; }
+        video { width: 100%; height: 100%; }
+        .close-p { position: absolute; top: 25px; left: 25px; z-index: 10001; background: var(--primary); color: #000; padding: 12px 20px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
+
+        .nav-tabs { display: flex; gap: 10px; }
+        .btn-tab { background: #111; border: 1px solid #333; color: #fff; padding: 8px 18px; border-radius: 20px; font-size: 11px; cursor: pointer; font-weight: 600; }
+        .btn-tab.active { background: var(--primary); color: #000; border-color: var(--primary); }
+    </style>
+</head>
+<body>
+
+    <div id="setup-panel">
+        <h1 style="color:var(--primary); font-size: 2.8rem; margin: 0; letter-spacing: -2px;">GEMINI GLOBAL</h1>
+        <p style="color: #666; margin: 0 0 25px 0; font-weight: bold; letter-spacing: 2px;">DNA SYSTEM V8.1</p>
+        <div class="input-box">
+            <input type="text" id="host" placeholder="http://url-do-servidor.com:8080">
+            <input type="text" id="user" placeholder="Usuário">
+            <input type="password" id="pass" placeholder="Senha">
+            <button class="btn-main" id="btnConnect" onclick="connectXtream()">Conectar Agora</button>
+            <p id="status" style="font-size: 11px; color: #555; margin-top: 15px;">A conexão utiliza túnel CORS automático.</p>
+        </div>
+    </div>
+
+    <div class="header">
+        <div style="font-weight: 900; color: var(--primary); font-size: 1.4rem;">GEMINI <span style="color:#fff">TV</span></div>
+        <div class="nav-tabs">
+            <button onclick="setGlobalTab('live', this)" class="btn-tab active">TV AO VIVO</button>
+            <button onclick="setGlobalTab('movie', this)" class="btn-tab">FILMES</button>
+            <button onclick="setGlobalTab('series', this)" class="btn-tab">SÉRIES</button>
+            <button onclick="logout()" style="background:none; border:none; color:#555; cursor:pointer; font-size: 11px; margin-left: 10px;">SAIR</button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="sidebar" id="sidebar"></div>
+        <div class="content">
+            <div class="grid" id="grid"></div>
+        </div>
+    </div>
+
+    <div id="player-modal">
+        <button class="close-p" onclick="closePlayer()">← VOLTAR AO PAINEL</button>
+        <video id="video" controls autoplay playsinline></video>
+    </div>
+
+    <script>
+        let CONFIG = null;
+        let CURRENT_TAB = 'live';
+        let PROXY = "https://api.allorigins.win/raw?url=";
+
+        window.onload = () => {
+            const saved = localStorage.getItem('gemini_global_cfg');
+            if(saved) {
+                CONFIG = JSON.parse(saved);
+                document.getElementById('setup-panel').style.display = 'none';
+                document.getElementById('sidebar').style.display = 'block';
+                loadCategories();
+            }
+        };
+
+        async function fetchWithProxy(url) {
+            const response = await fetch(PROXY + encodeURIComponent(url));
+            return await response.json();
         }
-    } catch (e) {
-        alert("Erro de CORS! Tentando contornar...");
-    }
-}
+
+        async function connectXtream() {
+            const btn = document.getElementById('btnConnect');
+            const h = document.getElementById('host').value.trim();
+            const u = document.getElementById('user').value.trim();
+            const p = document.getElementById('pass').value.trim();
+            
+            if(!h || !u || !p) return alert("Por favor, preencha todos os campos.");
+            
+            btn.innerText = "VERIFICANDO...";
+            btn.disabled = true;
+
+            const testUrl = `${h}/player_api.php?username=${u}&password=${p}`;
+            
+            try {
+                const data = await fetchWithProxy(testUrl);
+                if(data.user_info && data.user_info.auth === 1) {
+                    CONFIG = { host: h, user: u, pass: p };
+                    localStorage.setItem('gemini_global_cfg', JSON.stringify(CONFIG));
+                    location.reload();
+                } else {
+                    alert("Acesso negado. Verifique seu usuário e senha.");
+                    btn.innerText = "CONECTAR AGORA";
+                    btn.disabled = false;
+                }
+            } catch (e) {
+                alert("Erro de conexão. O servidor pode estar offline ou o link está errado.");
+                btn.innerText = "CONECTAR AGORA";
+                btn.disabled = false;
+            }
+        }
+
+        async function loadCategories() {
+            const action = CURRENT_TAB === 'live' ? 'get_live_categories' : CURRENT_TAB === 'movie' ? 'get_vod_categories' : 'get_series_categories';
+            const url = `${CONFIG.host}/player_api.php?username=${CONFIG.user}&password=${CONFIG.pass}&action=${action}`;
+            try {
+                const data = await fetchWithProxy(url);
+                renderSidebar(data);
+                if(data.length > 0) loadContent(data[0].category_id);
+            } catch(e) { console.error("Erro ao carregar categorias"); }
+        }
+
+        async function loadContent(catId) {
+            const action = CURRENT_TAB === 'live' ? 'get_live_streams' : CURRENT_TAB === 'movie' ? 'get_vod_streams' : 'get_series';
+            const url = `${CONFIG.host}/player_api.php?username=${CONFIG.user}&password=${CONFIG.pass}&action=${action}&category_id=${catId}`;
+            const grid = document.getElementById('grid');
+            grid.innerHTML = "<p style='color:var(--primary)'>Carregando conteúdo...</p>";
+            
+            try {
+                const data = await fetchWithProxy(url);
+                renderGrid(data);
+            } catch(e) { grid.innerHTML = "<p>Erro ao carregar itens.</p>"; }
+        }
+
+        function renderSidebar(cats) {
+            const side = document.getElementById('sidebar');
+            side.innerHTML = cats.map(c => `
+                <div class="cat-item" onclick="selectCat(this, '${c.category_id}')">${c.category_name}</div>
+            `).join('');
+        }
+
+        function selectCat(el, id) {
+            document.querySelectorAll('.cat-item').forEach(x => x.classList.remove('active'));
+            el.classList.add('active');
+            loadContent(id);
+        }
+
+        function renderGrid(items) {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = items.map(i => {
+                const id = i.stream_id || i.series_id;
+                const logo = i.stream_icon || i.cover || "";
+                return `
+                    <div class="card" onclick="play('${id}')">
+                        <img src="${logo}" onerror="this.src='https://via.placeholder.com/160x90?text=SINAL+TV'">
+                        <div class="card-name">${i.name}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function setGlobalTab(t, el) {
+            document.querySelectorAll('.btn-tab').forEach(x => x.classList.remove('active'));
+            el.classList.add('active');
+            CURRENT_TAB = t;
+            loadCategories();
+        }
+
+        function play(id) {
+            const ext = CURRENT_TAB === 'live' ? 'ts' : 'mp4';
+            const folder = CURRENT_TAB === 'series' ? 'series' : CURRENT_TAB === 'movie' ? 'movie' : 'live';
+            let url = `${CONFIG.host}/${CONFIG.user}/${CONFIG.pass}/${id}.${ext}`;
+            if(CURRENT_TAB !== 'live') url = `${CONFIG.host}/${folder}/${CONFIG.user}/${CONFIG.pass}/${id}.${ext}`;
+
+            const modal = document.getElementById('player-modal');
+            const video = document.getElementById('video');
+            modal.style.display = 'block';
+            
+            if(Hls.isSupported() && (url.includes('m3u8') || url.includes('ts'))) {
+                const hls = new Hls(); hls.loadSource(url); hls.attachMedia(video);
+            } else { video.src = url; }
+        }
+
+        function closePlayer() { document.getElementById('video').pause(); document.getElementById('player-modal').style.display = 'none'; }
+        function logout() { localStorage.clear(); location.reload(); }
+    </script>
+</body>
+</html>
