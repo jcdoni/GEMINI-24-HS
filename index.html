@@ -3,35 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GEMINI TV | PLAYER V4.5</title>
+    <title>SISTEMA TV | PLAYER V5</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        :root { --primary: #00ff88; --bg: #0f0f0f; --card: #1a1a1a; --text: #ffffff; }
-        body { margin: 0; background-color: var(--bg); color: var(--text); font-family: sans-serif; overflow-x: hidden; }
+        :root { --primary: #00ff88; --bg: #0a0a0a; --card: #151515; --text: #ffffff; }
+        body { margin: 0; background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; overflow-x: hidden; }
         
-        #login-area { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .brand { font-size: 3rem; font-weight: 900; margin-bottom: 2rem; color: var(--primary); text-shadow: 0 0 10px rgba(0,255,136,0.5); }
-        .input-group { display: flex; flex-direction: column; gap: 10px; width: 80%; max-width: 300px; }
-        input { padding: 15px; border-radius: 8px; border: 1px solid #333; background: #222; color: #fff; outline: none; font-size: 16px; }
-        button.btn-main { padding: 15px; border-radius: 8px; border: none; background: var(--primary); color: #000; font-weight: bold; cursor: pointer; font-size: 16px; }
+        /* TELA DE LOGIN ESTILIZADA */
+        #login-area { position: fixed; inset: 0; background: radial-gradient(circle, #1a1a1a 0%, #000 100%); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .brand { font-size: 3.5rem; font-weight: 900; margin-bottom: 2rem; color: var(--primary); text-shadow: 0 0 15px rgba(0,255,136,0.3); letter-spacing: -2px; }
+        .input-group { display: flex; flex-direction: column; gap: 15px; width: 85%; max-width: 320px; }
+        input { padding: 18px; border-radius: 12px; border: 1px solid #333; background: rgba(255,255,255,0.05); color: #fff; outline: none; font-size: 16px; transition: 0.3s; }
+        input:focus { border-color: var(--primary); background: rgba(255,255,255,0.1); }
+        button.btn-main { padding: 18px; border-radius: 12px; border: none; background: var(--primary); color: #000; font-weight: 800; cursor: pointer; font-size: 16px; text-transform: uppercase; }
 
-        #app-area { display: none; }
-        .header { padding: 15px; background: #000; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
-        .search { width: 90%; padding: 12px; margin: 10px auto; display: block; background: #222; border: none; border-radius: 8px; color: #fff; font-size: 14px; }
+        /* ÁREA DO APLICATIVO */
+        #app-area { display: none; padding-bottom: 50px; }
+        .header { padding: 20px; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
         
-        .tabs { display: flex; gap: 10px; padding: 10px; overflow-x: auto; justify-content: center; }
-        .tab { padding: 10px 20px; background: #222; border-radius: 20px; font-size: 12px; cursor: pointer; white-space: nowrap; color: #888; border: 1px solid transparent; }
-        .tab.active { background: var(--primary); color: #000; font-weight: bold; }
+        .search-container { padding: 10px 20px; }
+        .search { width: 100%; padding: 14px; background: #1a1a1a; border: 1px solid #333; border-radius: 10px; color: #fff; font-size: 14px; box-sizing: border-box; }
+        
+        .tabs { display: flex; gap: 12px; padding: 10px 20px; overflow-x: auto; scrollbar-width: none; }
+        .tab { padding: 12px 25px; background: #1a1a1a; border-radius: 25px; font-size: 13px; cursor: pointer; white-space: nowrap; color: #666; font-weight: 600; border: 1px solid #222; }
+        .tab.active { background: var(--primary); color: #000; border-color: var(--primary); }
 
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; padding: 15px; }
-        .card { background: var(--card); border-radius: 10px; overflow: hidden; position: relative; aspect-ratio: 16/9; cursor: pointer; border: 1px solid #333; transition: transform 0.2s; }
-        .card:active { transform: scale(0.95); }
+        /* GRADE DE CANAIS/FILMES */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; padding: 20px; }
+        .card { background: var(--card); border-radius: 12px; overflow: hidden; position: relative; aspect-ratio: 16/9; cursor: pointer; border: 1px solid #222; transition: 0.3s; }
+        .card:hover { transform: translateY(-5px); border-color: var(--primary); }
         .card img { width: 100%; height: 100%; object-fit: cover; }
-        .card-name { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.85); padding: 5px; font-size: 10px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card-name { position: absolute; bottom: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.9)); padding: 10px 5px; font-size: 11px; text-align: center; font-weight: 500; }
 
+        /* PLAYER MODAL */
         #player-modal { position: fixed; inset: 0; background: #000; z-index: 10000; display: none; flex-direction: column; }
-        video { width: 100%; height: 100%; background: #000; }
-        .close-btn { position: absolute; top: 20px; right: 20px; background: rgba(255,0,0,0.7); color: #fff; border: none; padding: 12px; border-radius: 50%; cursor: pointer; z-index: 10001; font-weight: bold; }
+        video { width: 100%; height: 100%; }
+        .close-btn { position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid #444; padding: 10px 15px; border-radius: 8px; cursor: pointer; z-index: 10001; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -39,30 +46,33 @@
     <div id="login-area">
         <div class="brand">GEMINI TV</div>
         <div class="input-group">
-            <input type="text" id="user" placeholder="O seu Login">
-            <input type="password" id="pass" placeholder="A sua Senha">
-            <button class="btn-main" id="login-btn" onclick="handleLogin()">ENTRAR NO SISTEMA</button>
-            <div id="msg" style="color:#ff4444; margin-top:15px; font-size: 13px; text-align: center;"></div>
+            <input type="text" id="user" placeholder="Seu Usuário">
+            <input type="password" id="pass" placeholder="Sua Senha">
+            <button class="btn-main" id="login-btn" onclick="handleLogin()">Acessar Agora</button>
+            <div id="msg" style="color:red; font-size: 12px; margin-top: 10px;"></div>
         </div>
     </div>
 
     <div id="app-area">
         <div class="header">
-            <div style="color:var(--primary); font-weight:bold; font-size: 1.2rem;">GEMINI TV</div>
-            <button onclick="logout()" style="background:none; border:1px solid #444; color:#888; font-size:10px; border-radius:5px; padding:5px 10px;">SAIR</button>
+            <div style="color:var(--primary); font-weight:900; font-size: 1.4rem;">GEMINI <span style="color:#fff">TV</span></div>
+            <button onclick="logout()" style="background:none; border:1px solid #333; color:#555; font-size:11px; border-radius:8px; padding:8px 15px;">SAIR</button>
         </div>
-        <input type="text" class="search" placeholder="🔍 Pesquisar canais ou filmes..." onkeyup="filter(this.value)">
+        
+        <div class="search-container">
+            <input type="text" class="search" placeholder="🔍 Buscar canais, filmes ou séries..." onkeyup="filter(this.value)">
+        </div>
         
         <div class="tabs">
-            <div class="tab active" onclick="setTab('live', this)">TV AO VIVO</div>
-            <div class="tab" onclick="setTab('movies', this)">FILMES</div>
-            <div class="tab" onclick="setTab('series', this)">SÉRIES</div>
+            <div class="tab active" onclick="setTab('live', this)">CANAIS AO VIVO</div>
+            <div class="tab" onclick="setTab('movies', this)">CINEMA / FILMES</div>
+            <div class="tab" onclick="setTab('series', this)">SÉRIES PREMIUM</div>
         </div>
         <div class="grid" id="content"></div>
     </div>
 
     <div id="player-modal">
-        <button class="close-btn" onclick="closePlayer()">X</button>
+        <button class="close-btn" onclick="closePlayer()">← VOLTAR</button>
         <video id="video" controls autoplay playsinline></video>
     </div>
 
@@ -71,100 +81,76 @@
         let USERS = {};
         let TAB = 'live';
 
-        // 1. INICIALIZAÇÃO
         window.onload = async () => {
-            await loadUsers(); // Carrega a lista de clientes do GitHub
-            if(localStorage.getItem('gemini_sessao') === 'ativa') {
-                mostrarApp();
-            }
+            await loadUsers();
+            if(localStorage.getItem('gemini_sessao') === 'ativa') mostrarApp();
         };
 
         async function loadUsers() {
             try {
                 const r = await fetch('users.json?t=' + Date.now());
                 USERS = await r.json();
-            } catch(e) { 
-                console.log("Erro ao carregar utilizadores.");
-            }
+            } catch(e) { console.log("Erro ao buscar usuários."); }
         }
 
-        // 2. SISTEMA DE LOGIN
         async function handleLogin() {
             const u = document.getElementById('user').value.trim();
             const p = document.getElementById('pass').value.trim();
             const btn = document.getElementById('login-btn');
-            
-            btn.innerText = "A verificar...";
-            await loadUsers(); // Garante que pegou a lista mais nova da planilha
-
+            btn.innerText = "Carregando...";
+            await loadUsers();
             if(USERS[u] && USERS[u] === p) {
                 localStorage.setItem('gemini_sessao', 'ativa');
-                localStorage.setItem('gemini_user', u);
                 mostrarApp();
             } else {
-                document.getElementById('msg').innerText = "Acesso negado ou conta inativa!";
-                btn.innerText = "ENTRAR NO SISTEMA";
+                document.getElementById('msg').innerText = "Dados incorretos!";
+                btn.innerText = "Acessar Agora";
             }
         }
 
         function mostrarApp() {
             document.getElementById('login-area').style.display = 'none';
             document.getElementById('app-area').style.display = 'block';
-            loadChannels();
+            loadData();
         }
 
-        // 3. CARREGAR CANAIS
-        async function loadChannels() {
+        async function loadData() {
             try {
                 const r = await fetch('database.json?t=' + Date.now());
                 DB = await r.json();
-                renderItems();
-            } catch(e) {
-                alert("Erro ao carregar canais. Atualize na planilha.");
-            }
+                render();
+            } catch(e) { console.log("Erro ao carregar banco de dados."); }
         }
 
-        function renderItems(search = "") {
+        function render(s = "") {
             const container = document.getElementById('content');
             container.innerHTML = "";
-            const list = DB[TAB] || [];
-            
-            list.forEach(item => {
-                if(item.name.toLowerCase().includes(search.toLowerCase())) {
+            (DB[TAB] || []).forEach(item => {
+                if(item.name.toLowerCase().includes(s.toLowerCase())) {
                     const card = document.createElement('div');
                     card.className = 'card';
-                    card.innerHTML = `
-                        <img src="${item.logo || ''}" onerror="this.src='https://via.placeholder.com/160x90?text=SEM+FOTO'">
-                        <div class="card-name">${item.name}</div>
-                    `;
-                    card.onclick = () => playStream(item.url);
+                    card.innerHTML = `<img src="${item.logo || ''}" onerror="this.src='https://via.placeholder.com/160x90?text=SINAL+TV'"><div class="card-name">${item.name}</div>`;
+                    card.onclick = () => play(item.url);
                     container.appendChild(card);
                 }
             });
         }
 
-        // 4. PLAYER E NAVEGAÇÃO
-        function setTab(category, element) {
+        function setTab(t, el) {
             document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-            element.classList.add('active');
-            TAB = category; 
-            renderItems();
+            el.classList.add('active');
+            TAB = t; render();
         }
 
-        function filter(value) { renderItems(value); }
+        function filter(v) { render(v); }
 
-        function playStream(url) {
+        function play(url) {
             const modal = document.getElementById('player-modal');
             const video = document.getElementById('video');
             modal.style.display = 'flex';
-            
             if(Hls.isSupported() && url.includes('.m3u8')) {
-                const hls = new Hls();
-                hls.loadSource(url);
-                hls.attachMedia(video);
-            } else {
-                video.src = url;
-            }
+                const hls = new Hls(); hls.loadSource(url); hls.attachMedia(video);
+            } else { video.src = url; }
         }
 
         function closePlayer() {
@@ -173,10 +159,7 @@
             document.getElementById('player-modal').style.display = 'none';
         }
 
-        function logout() {
-            localStorage.clear();
-            location.reload();
-        }
+        function logout() { localStorage.clear(); location.reload(); }
     </script>
 </body>
 </html>
