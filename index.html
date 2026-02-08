@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini TV v6.9 | Ultimate Edition</title>
+    <title>Gemini TV v7.0 | Enterprise Edition</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap');
         
@@ -27,513 +29,695 @@
             --bg-sidebar: #e1e4e8;
         }
 
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--fire-dark); color: var(--text-main); margin: 0; overflow: hidden; height: 100vh; transition: 0.3s; }
+        /* Layout Estrutural (Flexbox Matemático para Scroll Perfeito) */
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: var(--fire-dark); 
+            color: var(--text-main); 
+            margin: 0; 
+            height: 100vh; 
+            overflow: hidden; /* O body não rola, quem rola são os painéis */
+            display: flex;
+            flex-direction: column;
+        }
 
-        .glass-nav { background: rgba(15, 23, 30, 0.95); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
+        .glass-nav { 
+            height: 80px; 
+            flex-shrink: 0; 
+            background: rgba(15, 23, 30, 0.98); 
+            border-bottom: 1px solid var(--border); 
+            display: flex;
+            align-items: center;
+            padding: 0 2rem;
+            z-index: 50;
+        }
 
-        /* Layout Dual Pane (Editor) com ROLAGEM INDEPENDENTE */
-        .editor-container { display: grid; grid-template-columns: 350px 1fr; height: calc(100vh - 80px); overflow: hidden; }
-        .col-groups { background: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; height: 100%; }
-        .col-channels { background: var(--fire-dark); display: flex; flex-direction: column; height: 100%; }
-        
-        /* Listas com Scroll */
-        .scroll-list { flex: 1; overflow-y: auto; overflow-x: hidden; }
-        
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
+        /* Container Principal */
+        #main-view {
+            flex: 1; /* Ocupa todo o espaço restante (100vh - 80px) */
+            position: relative;
+            overflow: hidden; 
+        }
+
+        /* Sections que rolam (Home, Playlists) */
+        .scrollable-page {
+            height: 100%;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        /* Layout Dual Pane (Editor & Theater) - Sem Scroll na Página, só nas listas */
+        .split-view {
+            display: grid; 
+            grid-template-columns: 320px 1fr; 
+            height: 100%; 
+        }
+
+        .col-sidebar {
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .col-content {
+            background: var(--fire-dark);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* O Segredo da Rolagem: Flex-1 + Overflow Auto */
+        .list-container {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-bottom: 20px; /* Espaço extra no fim */
+        }
+
+        /* Scrollbar Estilizada */
+        ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--fire-blue); }
 
-        /* Theater Mode Grid */
-        .theater-grid { display: grid; grid-template-columns: 280px 1fr; height: calc(100vh - 80px); }
-        .video-container { width: 100%; height: 50vh; background: black; position: relative; }
+        /* Theater Mode */
+        .video-wrapper {
+            background: black;
+            height: 55%; /* Altura fixa pro vídeo */
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         video { width: 100%; height: 100%; object-fit: contain; }
-        
-        .channel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; padding: 20px; overflow-y: auto; height: calc(50vh - 80px); }
-        .channel-card { background: var(--fire-card); border-radius: 12px; padding: 15px; text-align: center; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
-        .channel-card:hover { transform: scale(1.05); border-color: var(--fire-blue); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .channel-card img { width: 50px; height: 50px; object-fit: contain; margin-bottom: 10px; border-radius: 4px; background: rgba(0,0,0,0.2); }
 
-        /* Toolbar & Buttons */
-        .toolbar-pro { display: flex; align-items: center; gap: 10px; padding: 12px; background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border); min-height: 55px; }
-        .btn-tool { background: var(--fire-card); border: 1px solid var(--border); padding: 6px 10px; border-radius: 6px; font-size: 10px; font-weight: 800; color: var(--text-main); text-transform: uppercase; cursor: pointer; transition: 0.2s; }
-        .btn-tool:hover { border-color: var(--fire-blue); color: var(--fire-blue); transform: translateY(-1px); }
+        .theater-channels {
+            height: 45%; /* Resto pra grade */
+            overflow-y: auto;
+            background: var(--fire-dark);
+            padding: 1rem;
+        }
 
-        /* Rows */
-        .item-row { display: flex; align-items: center; padding: 12px 20px; border-bottom: 1px solid var(--border); transition: 0.2s; cursor: pointer; }
-        .item-row:hover { background: rgba(0, 168, 225, 0.08); }
+        .channel-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        .channel-card {
+            background: var(--fire-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .channel-card:hover { border-color: var(--fire-blue); transform: translateY(-2px); }
+        .channel-card img { width: 40px; height: 40px; object-fit: contain; margin: 0 auto 8px; }
+
+        /* Toolbar de Busca */
+        .search-bar {
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(0,0,0,0.2);
+        }
+        .search-input {
+            width: 100%;
+            background: var(--fire-card);
+            border: 1px solid var(--border);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            outline: none;
+        }
+        .search-input:focus { border-color: var(--fire-blue); }
+
+        /* Linhas do Editor */
+        .item-row {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .item-row:hover { background: rgba(255,255,255,0.05); }
         .item-row.active { background: var(--fire-blue); color: white; }
-        .item-row.hidden-item { opacity: 0.4; filter: grayscale(1); }
-        .item-row.hidden-item span { text-decoration: line-through; }
-
-        .row-actions { display: flex; gap: 14px; opacity: 0; transition: 0.2s; margin-left: auto; }
+        .item-row.hidden-item { opacity: 0.5; filter: grayscale(1); }
+        
+        .row-actions { margin-left: auto; display: flex; gap: 10px; opacity: 0; transition: 0.2s; }
         .item-row:hover .row-actions { opacity: 1; }
-        .row-actions i { cursor: pointer; font-size: 13px; z-index: 10; } /* z-index para garantir clique */
-        .row-actions i:hover { color: var(--fire-blue); }
+        .row-actions i { 
+            padding: 6px; 
+            border-radius: 4px; 
+            background: rgba(0,0,0,0.3); 
+            font-size: 12px;
+        }
+        .row-actions i:hover { background: var(--fire-blue); color: white; }
 
-        /* Tabela Playlists Detalhada (v6.5) */
+        /* Tabela Playlists */
         .pl-table { width: 100%; border-collapse: collapse; }
-        .pl-table th { text-align: left; padding: 18px; border-bottom: 2px solid var(--border); color: var(--fire-blue); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
-        .pl-table td { padding: 18px; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-main); }
-        .pl-table tr:hover { background: rgba(255,255,255,0.03); }
+        .pl-table th { text-align: left; padding: 15px; border-bottom: 2px solid var(--border); color: var(--fire-blue); font-size: 11px; text-transform: uppercase; }
+        .pl-table td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 13px; }
 
-        /* Inputs & Modais */
-        .modal-base { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
-        .modal-box { background: var(--fire-card); padding: 35px; border-radius: 28px; width: 420px; border: 1px solid var(--border); position: relative; }
+        /* UI Helpers */
+        .btn-primary { background: var(--fire-blue); color: white; font-weight: bold; padding: 8px 16px; border-radius: 6px; font-size: 12px; text-transform: uppercase; cursor: pointer; transition: 0.2s; }
+        .btn-primary:hover { background: #0090c0; }
         
-        input.edit-inline { background: rgba(0, 168, 225, 0.1); border: 1px solid var(--fire-blue); color: var(--text-main); padding: 2px 6px; border-radius: 4px; width: 100%; font-size: 13px; outline: none; }
-        
-        select.dark-select { background-color: var(--fire-card) !important; color: var(--text-main) !important; border: 1px solid var(--border); padding: 5px; border-radius: 6px; outline: none; }
-        option { background-color: var(--fire-card); color: var(--text-main); }
+        .active-nav { color: var(--fire-blue); border-bottom: 3px solid var(--fire-blue); }
 
-        .active-tab { color: var(--fire-blue); border-bottom: 3px solid var(--fire-blue); }
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-content { background: var(--fire-card); padding: 30px; border-radius: 16px; width: 400px; border: 1px solid var(--border); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        
+        /* Toast Notification */
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 200; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: var(--fire-card); border-left: 4px solid var(--fire-blue); padding: 15px 20px; border-radius: 4px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: bold; }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
     </style>
 </head>
-<body class="flex flex-col">
+<body>
 
-    <nav class="glass-nav h-20 flex items-center justify-between px-8 z-50">
-        <div class="flex items-center space-x-6">
-            <div class="text-2xl font-bold tracking-tighter text-white cursor-pointer" onclick="navigateTo('home')">
-                GEMINI<span class="text-cyan-500">TV</span>
+    <nav class="glass-nav">
+        <div class="flex items-center gap-8 w-full">
+            <div class="text-2xl font-bold tracking-tighter text-white cursor-pointer" onclick="App.nav('home')">
+                GEMINI<span class="text-cyan-500">TV</span> <span class="text-[9px] text-gray-500 ml-1 border border-gray-600 px-1 rounded">ENT V7.0</span>
             </div>
             
-            <div class="flex space-x-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest h-full items-end pb-0">
-                <span id="nav-home" class="cursor-pointer hover:text-white transition-all active-tab pb-7" onclick="navigateTo('home')">Início</span>
-                <span id="nav-playlists" class="cursor-pointer hover:text-white transition-all pb-7" onclick="navigateTo('playlists')">Playlists</span>
-                <span id="nav-editor" class="cursor-pointer hover:text-white transition-all pb-7" onclick="navigateTo('editor')">Editor</span>
-                <span id="nav-channels" class="cursor-pointer hover:text-white transition-all pb-7" onclick="navigateTo('channels')">Canais</span>
-                <span id="nav-logos" class="cursor-pointer hover:text-white transition-all pb-7" onclick="navigateTo('logos')">Logos</span>
-                <span id="nav-epgs" class="cursor-pointer hover:text-white transition-all pb-7" onclick="navigateTo('epgs')">EPGs</span>
+            <div class="flex h-full items-end gap-6 text-[11px] font-bold text-gray-400 uppercase tracking-widest pb-6">
+                <span id="nav-home" class="cursor-pointer hover:text-white transition-all pb-1 active-nav" onclick="App.nav('home')">Início</span>
+                <span id="nav-playlists" class="cursor-pointer hover:text-white transition-all pb-1" onclick="App.nav('playlists')">Playlists</span>
+                <span id="nav-editor" class="cursor-pointer hover:text-white transition-all pb-1" onclick="App.nav('editor')">Editor</span>
+                <span id="nav-channels" class="cursor-pointer hover:text-white transition-all pb-1" onclick="App.nav('editor')">Canais</span>
+                <span id="nav-logos" class="cursor-pointer hover:text-white transition-all pb-1">Logos</span>
+                <span id="nav-epgs" class="cursor-pointer hover:text-white transition-all pb-1">EPGs</span>
             </div>
 
-            <div class="flex space-x-2 ml-4 border-l border-white/10 pl-4 h-8 items-center">
-                <button onclick="importUI()" class="text-gray-300 hover:text-white text-[10px] font-bold uppercase flex items-center gap-2 px-2 py-1 rounded hover:bg-white/5">
-                    <i class="fa-solid fa-file-import"></i> Importar
+            <div class="ml-auto flex items-center gap-4">
+                <button onclick="App.importUI()" class="text-gray-300 hover:text-white text-[10px] font-bold uppercase flex items-center gap-2 border border-white/10 px-3 py-1.5 rounded hover:bg-white/5">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Importar
                 </button>
-                <button onclick="exportM3U()" class="text-gray-300 hover:text-white text-[10px] font-bold uppercase flex items-center gap-2 px-2 py-1 rounded hover:bg-white/5">
-                    <i class="fa-solid fa-file-export"></i> Exportar
-                </button>
-            </div>
-        </div>
-
-        <div class="flex items-center space-x-6">
-            <i id="theme-icon" class="fa-solid fa-moon text-gray-400 cursor-pointer hover:text-white text-xl" onclick="toggleTheme()" title="Mudar Tema"></i>
-            <div id="user-area">
-                <button onclick="toggleM('modal-login', true)" class="bg-cyan-600 text-white px-5 py-2 rounded-lg font-bold text-xs uppercase hover:bg-cyan-500 transition-all shadow-lg shadow-cyan-900/50">
-                    Entrar
-                </button>
+                <div id="user-display" class="flex items-center gap-3">
+                    <button onclick="UI.toggleModal('modal-login', true)" class="btn-primary">Entrar</button>
+                </div>
             </div>
         </div>
     </nav>
 
-    <div id="main-view" class="flex-1 overflow-hidden relative">
+    <div id="main-view">
         
-        <section id="page-home" class="p-10 h-full overflow-y-auto">
-            <div class="grid grid-cols-2 gap-6 mb-10 h-48">
-                <div onclick="navigateTo('theater')" class="relative bg-gradient-to-r from-blue-900 to-cyan-900 rounded-2xl p-8 cursor-pointer hover:scale-[1.01] transition-all flex items-center justify-between overflow-hidden shadow-2xl">
-                    <div class="z-10">
-                        <h2 class="text-3xl font-bold text-white mb-2">Theater Mode</h2>
-                        <p class="text-cyan-200 text-sm">Player Profissional HLS</p>
-                        <button class="mt-4 bg-white text-blue-900 px-4 py-2 rounded-full font-bold text-xs uppercase">Abrir Player</button>
-                    </div>
-                    <i class="fa-solid fa-tv text-9xl absolute -right-4 -bottom-4 text-white/10"></i>
+        <section id="page-home" class="scrollable-page">
+            <div class="grid grid-cols-2 gap-6 mb-8 h-48">
+                <div onclick="App.nav('theater')" class="relative bg-gradient-to-br from-blue-900 to-cyan-900 rounded-xl p-8 cursor-pointer hover:scale-[1.01] transition-all flex flex-col justify-center overflow-hidden shadow-2xl group">
+                    <h2 class="text-3xl font-bold text-white z-10">Theater Mode</h2>
+                    <p class="text-cyan-200 text-sm z-10">Player HLS Profissional</p>
+                    <i class="fa-solid fa-tv text-9xl absolute -right-6 -bottom-6 text-white/10 group-hover:text-white/20 transition-all"></i>
                 </div>
-                <div class="relative bg-gradient-to-r from-purple-900 to-pink-900 rounded-2xl p-8 cursor-pointer hover:scale-[1.01] transition-all flex items-center justify-between overflow-hidden shadow-2xl opacity-80">
-                    <div class="z-10">
-                        <h2 class="text-3xl font-bold text-white mb-2">VOD & Filmes</h2>
-                        <p class="text-purple-200 text-sm">Em breve disponível</p>
-                    </div>
-                    <i class="fa-solid fa-film text-9xl absolute -right-4 -bottom-4 text-white/10"></i>
+                <div class="relative bg-gradient-to-br from-purple-900 to-pink-900 rounded-xl p-8 cursor-pointer flex flex-col justify-center overflow-hidden shadow-2xl opacity-80">
+                    <h2 class="text-3xl font-bold text-white z-10">VOD & Filmes</h2>
+                    <p class="text-purple-200 text-sm z-10">Em Breve</p>
+                    <i class="fa-solid fa-film text-9xl absolute -right-6 -bottom-6 text-white/10"></i>
                 </div>
             </div>
-
-            <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6 border-b border-white/5 pb-2">Suas Playlists</h3>
-            <div id="home-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            
+            <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 border-b border-white/10 pb-2">Suas Playlists Salvas (IndexedDB)</h3>
+            <div id="home-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 </div>
         </section>
 
-        <section id="page-playlists" class="hidden p-12 h-full overflow-y-auto">
-            <h2 class="text-3xl font-bold mb-8">Gerenciador de Bases</h2>
+        <section id="page-playlists" class="scrollable-page hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Gerenciador de Bases</h2>
+                <button onclick="App.importUI()" class="btn-primary">+ Nova Lista</button>
+            </div>
             <table class="pl-table">
                 <thead>
-                    <tr>
-                        <th>Nome da Playlist</th>
-                        <th>URL / Origem</th>
-                        <th>Grupos</th>
-                        <th>Canais</th>
-                        <th>Validade</th>
-                        <th>Ações</th>
-                    </tr>
+                    <tr><th>Nome</th><th>Origem</th><th>Grupos</th><th>Canais</th><th>Ações</th></tr>
                 </thead>
                 <tbody id="pl-body"></tbody>
             </table>
         </section>
 
-        <section id="page-editor" class="hidden h-full">
-            <div class="editor-container">
-                <div class="col-groups">
-                    <div class="toolbar-pro">
-                        <select id="pl-selector" onchange="switchPL(this.value)" class="dark-select flex-1 text-xs"></select>
-                        <button class="btn-tool" onclick="groupAction('az')" title="Ordenar A-Z"><i class="fa-solid fa-arrow-down-a-z"></i></button>
-                    </div>
-                    <div id="group-list-editor" class="scroll-list"></div>
+        <section id="page-editor" class="split-view hidden">
+            <div class="col-sidebar">
+                <div class="p-3 border-b border-white/10 bg-[#151f28]">
+                    <select id="editor-pl-select" onchange="Editor.switchPL(this.value)" class="w-full bg-black/30 text-xs text-white p-2 rounded border border-white/10 outline-none mb-2"></select>
+                    <input type="text" id="search-groups" placeholder="Filtrar Grupos..." onkeyup="Editor.renderGroups()" class="search-input">
                 </div>
-                <div class="col-channels">
-                    <div class="toolbar-pro">
-                        <button class="btn-tool" onclick="chanAction('az')">Ordenar A-Z</button>
-                        <button class="btn-tool" onclick="chanAction('hide')">Esconder Tudo</button>
-                        <div class="flex-1"></div>
-                        <span class="text-[10px] text-gray-500 font-bold uppercase">Edição In-Place Ativa</span>
-                    </div>
-                    <div id="chan-list-editor" class="scroll-list p-2"></div>
+                <div id="list-groups" class="list-container"></div>
+            </div>
+            <div class="col-content">
+                <div class="search-bar flex gap-2">
+                    <input type="text" id="search-channels" placeholder="Filtrar Canais..." onkeyup="Editor.renderChannels()" class="search-input flex-1">
+                    <button class="text-xs font-bold uppercase text-gray-400 hover:text-white px-3" onclick="Editor.sortChannels()">A-Z</button>
                 </div>
+                <div id="list-channels" class="list-container"></div>
             </div>
         </section>
 
-        <section id="page-theater" class="hidden h-full">
-            <div class="theater-grid">
-                <div class="bg-[#131a22] border-r border-white/5 flex flex-col h-full overflow-hidden">
-                    <div class="p-4 border-b border-white/5 font-bold text-cyan-500 uppercase text-xs tracking-widest">Grupos</div>
-                    <div id="theater-groups" class="scroll-list"></div>
+        <section id="page-theater" class="split-view hidden">
+            <div class="col-sidebar">
+                <div class="p-4 border-b border-white/10 font-bold text-cyan-500 text-xs uppercase">Grupos</div>
+                <div id="theater-groups" class="list-container"></div>
+            </div>
+            <div class="col-content">
+                <div class="video-wrapper">
+                    <video id="main-player" controls autoplay></video>
                 </div>
-                <div class="flex flex-col h-full overflow-hidden">
-                    <div class="video-container">
-                        <video id="video-player" controls autoplay></video>
-                        <div id="player-msg" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-                            <i class="fa-solid fa-play-circle text-6xl opacity-20 mb-2"></i>
-                            <p class="text-xs uppercase font-bold opacity-40">Selecione um canal</p>
-                        </div>
-                    </div>
-                    <div class="p-4 bg-[#0f171e] border-b border-white/5 font-bold text-white uppercase text-xs">Canais Disponíveis</div>
-                    <div id="theater-channels" class="channel-grid bg-[#0f171e] scroll-list"></div>
+                <div class="theater-channels">
+                    <div id="theater-grid" class="channel-card-grid"></div>
                 </div>
             </div>
         </section>
-
-        <section id="page-channels" class="hidden p-10 flex items-center justify-center opacity-30 text-2xl font-bold uppercase">Gestão de Canais em breve</section>
-        <section id="page-logos" class="hidden p-10 flex items-center justify-center opacity-30 text-2xl font-bold uppercase">Galeria de Logos em breve</section>
-        <section id="page-epgs" class="hidden p-10 flex items-center justify-center opacity-30 text-2xl font-bold uppercase">Gestão de IDs em breve</section>
 
     </div>
 
-    <div id="modal-login" class="modal-base">
-        <div class="modal-box text-left">
-            <i class="fa-solid fa-xmark absolute top-6 right-6 cursor-pointer opacity-50" onclick="toggleM('modal-login', false)"></i>
-            <h3 class="font-bold text-2xl mb-2 text-white">Login Seguro</h3>
-            <p class="text-gray-400 text-xs mb-6">Suas playlists salvas localmente.</p>
+    <div id="toast-container"></div>
+
+    <div id="modal-login" class="modal-overlay">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold">Acesso Seguro</h3>
+                <i class="fa-solid fa-xmark cursor-pointer" onclick="UI.toggleModal('modal-login', false)"></i>
+            </div>
             <div class="space-y-4">
-                <div>
-                    <label class="text-[10px] uppercase font-bold text-cyan-500">E-mail</label>
-                    <input type="email" id="login-email" class="w-full bg-black/20 border border-white/10 p-3 rounded-lg text-white outline-none focus:border-cyan-500">
-                </div>
-                <button onclick="doLogin()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white py-3 rounded-lg font-bold text-xs uppercase tracking-widest shadow-lg shadow-cyan-900/50">
-                    Entrar / Criar Conta
-                </button>
+                <input type="email" id="login-email" placeholder="Seu E-mail" class="w-full bg-black/20 border border-white/10 p-3 rounded text-white outline-none">
+                <button onclick="App.login()" class="w-full btn-primary py-3">Entrar / Criar Conta</button>
             </div>
-        </div>
-    </div>
-
-    <div id="modal-edit-pl" class="modal-base">
-        <div class="modal-box">
-            <i class="fa-solid fa-xmark absolute top-6 right-6 cursor-pointer opacity-50" onclick="toggleM('modal-edit-pl', false)"></i>
-            <h3 class="font-bold text-xl mb-6">Editar Metadados</h3>
-            <input type="text" id="edit-pl-name" class="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none text-white">
-            <button onclick="savePLMetadata()" class="w-full bg-cyan-600 py-3 mt-4 rounded-xl font-bold text-xs uppercase">Salvar</button>
         </div>
     </div>
 
     <script>
-        // --- SISTEMA DE DADOS ---
-        let currentUser = JSON.parse(localStorage.getItem('gtv_user')) || null;
-        let db = currentUser ? currentUser.playlists : (JSON.parse(localStorage.getItem('gtv_temp_db')) || []);
-        let curPL = null, curGR = null, editingId = null;
-        let hls = null;
-
-        // --- AUTH ---
-        function updateAuthUI() {
-            const area = document.getElementById('user-area');
-            if(currentUser) {
-                area.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <div class="text-right">
-                            <div class="text-[10px] font-bold text-cyan-500 uppercase">Logado como</div>
-                            <div class="text-xs font-bold">${currentUser.email.split('@')[0]}</div>
-                        </div>
-                        <i class="fa-solid fa-right-from-bracket cursor-pointer text-gray-400 hover:text-red-500" onclick="doLogout()" title="Sair"></i>
-                    </div>`;
-            } else {
-                area.innerHTML = `<button onclick="toggleM('modal-login', true)" class="bg-cyan-600 text-white px-5 py-2 rounded-lg font-bold text-xs uppercase hover:bg-cyan-500">Entrar</button>`;
-            }
-        }
-
-        function doLogin() {
-            const email = document.getElementById('login-email').value;
-            if(!email) return alert('Digite um e-mail');
-            currentUser = { email: email, playlists: db }; // Migra dados temporários para o user
-            localStorage.setItem('gtv_user', JSON.stringify(currentUser));
-            toggleM('modal-login', false);
-            updateAuthUI();
-            alert(`Bem-vindo, ${email}!`);
-        }
-
-        function doLogout() {
-            if(confirm("Sair da conta?")) {
-                currentUser = null;
-                localStorage.removeItem('gtv_user');
-                db = []; // Limpa view local
-                updateAuthUI();
-                renderHome(); renderPL();
-            }
-        }
-
-        function save() {
-            if(currentUser) {
-                currentUser.playlists = db;
-                localStorage.setItem('gtv_user', JSON.stringify(currentUser));
-            } else {
-                localStorage.setItem('gtv_temp_db', JSON.stringify(db));
-            }
-        }
-
-        // --- NAVEGAÇÃO ---
-        function navigateTo(id) {
-            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
-            document.querySelectorAll('.glass-nav span').forEach(s => s.classList.remove('active-tab'));
+        // --- 1. INDEXEDDB WRAPPER (O CÉREBRO) ---
+        const DB = {
+            dbName: 'GeminiTV_DB_v7',
+            version: 1,
+            db: null,
             
-            document.getElementById('page-'+id).classList.remove('hidden');
-            if(document.getElementById('nav-'+id)) document.getElementById('nav-'+id).classList.add('active-tab');
-            
-            if(id === 'home') renderHome();
-            if(id === 'playlists') renderPL();
-            if(id === 'editor') renderEditorBase();
-            if(id === 'theater') renderTheaterBase();
-        }
+            async init() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(this.dbName, this.version);
+                    request.onupgradeneeded = (e) => {
+                        const db = e.target.result;
+                        if (!db.objectStoreNames.contains('playlists')) {
+                            db.createObjectStore('playlists', { keyPath: 'id' });
+                        }
+                    };
+                    request.onsuccess = (e) => {
+                        this.db = e.target.result;
+                        console.log("IndexedDB Conectado.");
+                        resolve(this.db);
+                    };
+                    request.onerror = (e) => reject("Erro ao abrir DB");
+                });
+            },
 
-        // --- IMPORTAR ---
-        async function importUI() {
-            const url = prompt("Cole a URL M3U:");
-            if(!url) return;
-            const res = await fetch(`https://geminitv-proxy.jcdoni.workers.dev/?url=${encodeURIComponent(url)}`);
-            const text = await res.text();
-            const lines = text.split('\n');
-            let chans = [], groups = new Set();
-            
-            lines.forEach(l => {
-                if(l.startsWith('#EXTINF:')) {
-                    const info = l.substring(8);
-                    const name = info.split(',')[1] || "Canal";
-                    const meta = info.split(',')[0];
-                    const g = (meta.match(/group-title="([^"]+)"/) || ["","GERAL"])[1].toUpperCase();
-                    const logo = (meta.match(/tvg-logo="([^"]+)"/) || ["",""])[1];
-                    const epg = (meta.match(/tvg-id="([^"]+)"/) || ["",""])[1];
-                    groups.add(g);
-                    chans.push({ id: Math.random().toString(36).substr(2,9), nome: name.trim(), grupo: g, logo, epg, url: '', oculto: false });
-                } else if(l.startsWith('http') && chans.length > 0) {
-                    chans[chans.length-1].url = l.trim();
+            async savePlaylist(playlist) {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction('playlists', 'readwrite');
+                    const store = tx.objectStore('playlists');
+                    store.put(playlist);
+                    tx.oncomplete = () => resolve(true);
+                    tx.onerror = () => reject("Erro ao salvar");
+                });
+            },
+
+            async getAllPlaylists() {
+                return new Promise((resolve, reject) => {
+                    if(!this.db) return resolve([]);
+                    const tx = this.db.transaction('playlists', 'readonly');
+                    const store = tx.objectStore('playlists');
+                    const request = store.getAll();
+                    request.onsuccess = () => resolve(request.result);
+                });
+            },
+
+            async deletePlaylist(id) {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction('playlists', 'readwrite');
+                    tx.objectStore('playlists').delete(id);
+                    tx.oncomplete = () => resolve(true);
+                });
+            }
+        };
+
+        // --- 2. APP CORE ---
+        const App = {
+            user: null,
+            playlists: [],
+            currentPL: null,
+            currentGroup: null,
+
+            async start() {
+                await DB.init();
+                this.checkUser();
+                await this.loadData();
+                this.nav('home');
+            },
+
+            checkUser() {
+                const u = localStorage.getItem('gtv_user_session');
+                if(u) {
+                    this.user = JSON.parse(u);
+                    document.getElementById('user-display').innerHTML = `
+                        <div class="text-right mr-2"><div class="text-[10px] text-cyan-500 uppercase font-bold">Olá</div><div class="text-xs font-bold">${this.user.email.split('@')[0]}</div></div>
+                        <i class="fa-solid fa-power-off cursor-pointer hover:text-red-500" onclick="App.logout()"></i>`;
                 }
-            });
-            
-            db.unshift({ id: Date.now(), name: "Nova Playlist", source: url, channels: chans, groups: Array.from(groups).sort() });
-            save(); navigateTo('home');
-        }
+            },
 
-        // --- HOME ---
-        function renderHome() {
-            const grid = document.getElementById('home-grid');
-            if(db.length === 0) { grid.innerHTML = `<div class="col-span-4 text-center opacity-30 py-10">Nenhuma playlist. Importe uma lista para começar.</div>`; return; }
-            grid.innerHTML = db.map(p => `
-                <div class="bg-fire-card border border-white/5 rounded-xl p-5 hover:border-cyan-500 transition-all cursor-pointer group" onclick="goEd(${p.id})">
-                    <h3 class="font-bold text-white mb-1 truncate group-hover:text-cyan-400">${p.name}</h3>
-                    <p class="text-xs text-gray-500 mb-4 truncate">${p.source}</p>
-                    <div class="flex justify-between border-t border-white/5 pt-3">
-                        <div class="text-center"><div class="font-bold">${p.channels.length}</div><div class="text-[9px] uppercase text-gray-500">Canais</div></div>
-                        <div class="text-center"><div class="font-bold">${p.groups.length}</div><div class="text-[9px] uppercase text-gray-500">Grupos</div></div>
-                    </div>
-                </div>
-            `).join('');
-        }
+            login() {
+                const email = document.getElementById('login-email').value;
+                if(!email) return UI.toast("Digite um e-mail", "error");
+                this.user = { email: email };
+                localStorage.setItem('gtv_user_session', JSON.stringify(this.user));
+                UI.toggleModal('modal-login', false);
+                this.checkUser();
+                UI.toast("Login realizado com sucesso");
+            },
 
-        // --- PLAYLISTS TABELA DETALHADA ---
-        function renderPL() {
-            const b = document.getElementById('pl-body');
-            b.innerHTML = db.map(p => `
-                <tr>
-                    <td class="font-bold text-white">${p.name}</td>
-                    <td class="text-xs text-gray-400 truncate max-w-[150px]">${p.source}</td>
-                    <td class="text-center">${p.groups.length}</td>
-                    <td class="text-center">${p.channels.length}</td>
-                    <td class="text-green-500 text-xs font-bold uppercase">Ativa</td>
-                    <td>
-                        <div class="flex gap-4 text-gray-400">
-                            <i class="fa-solid fa-pen hover:text-cyan-500 cursor-pointer" onclick="openEditPL(${p.id})"></i>
-                            <i class="fa-solid fa-cloud-arrow-down hover:text-white cursor-pointer" onclick="exportOne(${p.id})"></i>
-                            <i class="fa-solid fa-table-list hover:text-white cursor-pointer" onclick="goEd(${p.id})"></i>
-                            <i class="fa-solid fa-trash hover:text-red-500 cursor-pointer" onclick="delPL(${p.id})"></i>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        // --- EDITOR (CORRIGIDO) ---
-        function renderEditorBase() {
-            const sel = document.getElementById('pl-selector');
-            sel.innerHTML = `<option value="">Selecione Playlist</option>` + db.map(p => `<option value="${p.id}" ${curPL && curPL.id == p.id ? 'selected':''}>${p.name}</option>`).join('');
-            if(curPL) { renderGR(); renderCH(); }
-            else { 
-                document.getElementById('group-list-editor').innerHTML = ''; 
-                document.getElementById('chan-list-editor').innerHTML = ''; 
-            }
-        }
-
-        function switchPL(id) { if(!id) return; curPL = db.find(x=>x.id==id); curGR = curPL.groups[0]; renderGR(); renderCH(); }
-        function goEd(id) { curPL = db.find(x=>x.id==id); curGR = curPL.groups[0]; navigateTo('editor'); }
-
-        function renderGR() {
-            document.getElementById('group-list-editor').innerHTML = curPL.groups.map(g => `
-                <div class="item-row cursor-pointer ${curGR === g ? 'active' : ''}" onclick="setGR('${g}')">
-                    <span id="g-txt-${g}" class="flex-1 font-bold text-xs truncate mr-2">${g}</span>
-                    <div class="row-actions">
-                        <i class="fa-solid fa-pen" onclick="editGR(event, '${g}')"></i>
-                        <i class="fa-solid fa-trash" onclick="delGR(event, '${g}')"></i>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function renderCH() {
-            if(!curGR) return;
-            const chans = curPL.channels.filter(c => c.grupo === curGR);
-            document.getElementById('chan-list-editor').innerHTML = chans.map(c => `
-                <div class="item-row ${c.oculto ? 'hidden-item':''}">
-                    <img src="${c.logo}" class="w-6 h-6 object-contain mr-3 bg-white/10 rounded">
-                    <span id="c-txt-${c.id}" class="flex-1 font-semibold text-sm mr-2 truncate">${c.nome}</span>
-                    <div class="row-actions">
-                        <i class="fa-solid fa-pen" onclick="editCH(event, '${c.id}')"></i>
-                        <i class="fa-solid ${c.oculto ? 'fa-eye-slash text-red-400':'fa-eye'}" onclick="togCH(event, '${c.id}')"></i>
-                        <i class="fa-solid fa-trash" onclick="delCH(event, '${c.id}')"></i>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // --- AÇÕES EDITOR (IN-PLACE & PROPAGATION FIX) ---
-        function setGR(g) { curGR = g; renderGR(); renderCH(); }
-
-        function editGR(e, oldG) {
-            e.stopPropagation(); // Impede selecionar a linha
-            const el = document.getElementById(`g-txt-${oldG}`);
-            el.innerHTML = `<input id="inp-g-${oldG}" value="${oldG}" class="edit-inline">`;
-            const inp = document.getElementById(`inp-g-${oldG}`);
-            inp.focus();
-            
-            const saveFn = () => {
-                const val = inp.value.toUpperCase();
-                if(val && val !== oldG) {
-                    curPL.channels.forEach(c => { if(c.grupo === oldG) c.grupo = val; });
-                    curPL.groups[curPL.groups.indexOf(oldG)] = val;
-                    curGR = val; save();
+            logout() {
+                if(confirm("Sair do sistema?")) {
+                    localStorage.removeItem('gtv_user_session');
+                    location.reload();
                 }
-                renderGR(); renderCH();
-            };
-            
-            inp.onblur = saveFn;
-            inp.onkeydown = (ev) => { if(ev.key === 'Enter') saveFn(); };
-            inp.onclick = (ev) => ev.stopPropagation();
-        }
+            },
 
-        function delGR(e, g) {
-            e.stopPropagation();
-            if(!confirm("Apagar grupo e canais?")) return;
-            curPL.channels = curPL.channels.filter(c => c.grupo !== g);
-            curPL.groups = curPL.groups.filter(x => x !== g);
-            curGR = curPL.groups[0] || null;
-            save(); renderGR(); renderCH();
-        }
+            async loadData() {
+                this.playlists = await DB.getAllPlaylists();
+                UI.renderHome();
+                UI.renderPlaylistsTable();
+            },
 
-        function editCH(e, id) {
-            e.stopPropagation();
-            const el = document.getElementById(`c-txt-${id}`);
-            const c = curPL.channels.find(x=>x.id==id);
-            el.innerHTML = `<input id="inp-c-${id}" value="${c.nome}" class="edit-inline">`;
-            const inp = document.getElementById(`inp-c-${id}`);
-            inp.focus();
-            
-            const saveFn = () => {
-                if(inp.value) c.nome = inp.value;
-                save(); renderCH();
-            };
-            inp.onblur = saveFn;
-            inp.onkeydown = (ev) => { if(ev.key === 'Enter') saveFn(); };
-            inp.onclick = (ev) => ev.stopPropagation();
-        }
+            async importUI() {
+                const url = prompt("Cole a URL M3U:");
+                if(!url) return;
+                
+                UI.toast("Baixando lista... Aguarde.");
+                try {
+                    // Proxy Bypass CORS
+                    const res = await fetch(`https://geminitv-proxy.jcdoni.workers.dev/?url=${encodeURIComponent(url)}`);
+                    if(!res.ok) throw new Error("Erro no download");
+                    const text = await res.text();
+                    
+                    const lines = text.split('\n');
+                    let chans = [], groups = new Set();
+                    
+                    // Parse Rápido
+                    for(let i=0; i<lines.length; i++) {
+                        if(lines[i].startsWith('#EXTINF:')) {
+                            const info = lines[i];
+                            const name = info.split(',')[1] || "Canal Sem Nome";
+                            const meta = info.split(',')[0];
+                            const g = (meta.match(/group-title="([^"]+)"/) || ["","GERAL"])[1].toUpperCase();
+                            const logo = (meta.match(/tvg-logo="([^"]+)"/) || ["",""])[1];
+                            const idStr = (meta.match(/tvg-id="([^"]+)"/) || ["",""])[1];
+                            
+                            groups.add(g);
+                            
+                            // Pega URL na proxima linha
+                            let urlLink = "";
+                            if(lines[i+1] && lines[i+1].startsWith('http')) urlLink = lines[i+1].trim();
+                            
+                            chans.push({ id: crypto.randomUUID(), nome: name.trim(), grupo: g, logo, epg: idStr, url: urlLink, oculto: false });
+                        }
+                    }
 
-        function togCH(e, id) { 
-            e.stopPropagation(); 
-            const c = curPL.channels.find(x=>x.id==id); 
-            c.oculto = !c.oculto; 
-            save(); renderCH(); 
-        }
-        
-        function delCH(e, id) { 
-            e.stopPropagation(); 
-            curPL.channels = curPL.channels.filter(x=>x.id!==id); 
-            save(); renderCH(); 
-        }
+                    const newPL = {
+                        id: Date.now(),
+                        name: "Playlist Importada " + (this.playlists.length + 1),
+                        source: url,
+                        channels: chans,
+                        groups: Array.from(groups).sort()
+                    };
 
-        // --- THEATER MODE ---
-        function renderTheaterBase() {
-            if(!curPL && db.length > 0) curPL = db[0];
-            if(!curPL) return;
-            document.getElementById('theater-groups').innerHTML = curPL.groups.map(g => `
-                <div class="p-4 border-b border-white/5 cursor-pointer hover:bg-white/5 text-xs font-bold text-gray-400 hover:text-white transition-all ${curGR===g ? 'text-cyan-500 bg-white/5':''}" onclick="setTheaterGR('${g}')">
-                    ${g}
-                </div>
-            `).join('');
-            renderTheaterChannels();
-        }
-        function setTheaterGR(g) { curGR = g; renderTheaterBase(); }
-        function renderTheaterChannels() {
-            if(!curGR && curPL.groups.length > 0) curGR = curPL.groups[0];
-            const chans = curPL.channels.filter(c => c.grupo === curGR && !c.oculto);
-            document.getElementById('theater-channels').innerHTML = chans.map(c => `
-                <div class="channel-card" onclick="playChannel('${c.url}', '${c.nome}')">
-                    <img src="${c.logo || 'https://via.placeholder.com/50'}" loading="lazy">
-                    <div class="text-[10px] font-bold truncate">${c.nome}</div>
-                </div>
-            `).join('');
-        }
-        function playChannel(url, name) {
-            const video = document.getElementById('video-player');
-            document.getElementById('player-msg').style.display = 'none';
-            if(Hls.isSupported()) {
-                if(hls) hls.destroy();
-                hls = new Hls();
-                hls.loadSource(url);
-                hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-            } else if(video.canPlayType('application/vnd.apple.mpegurl')) {
-                video.src = url;
-                video.play();
+                    await DB.savePlaylist(newPL);
+                    await this.loadData();
+                    UI.toast(`Sucesso! ${chans.length} canais importados.`);
+                    
+                } catch(e) {
+                    console.error(e);
+                    UI.toast("Falha ao importar. Verifique a URL.", "error");
+                }
+            },
+
+            async deletePL(id) {
+                if(confirm("Tem certeza? Essa ação é irreversível.")) {
+                    await DB.deletePlaylist(id);
+                    await this.loadData();
+                    UI.toast("Playlist removida.");
+                }
+            },
+
+            nav(page) {
+                document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('.glass-nav span').forEach(el => el.classList.remove('active-nav'));
+                
+                document.getElementById('page-'+page).classList.remove('hidden');
+                const navBtn = document.getElementById('nav-'+page);
+                if(navBtn) navBtn.classList.add('active-nav');
+
+                if(page === 'editor') Editor.init();
+                if(page === 'theater') Theater.init();
             }
-        }
+        };
 
-        // --- GERAL ---
-        function openEditPL(id) { editingId = id; const p = db.find(x=>x.id==id); document.getElementById('edit-pl-name').value = p.name; toggleM('modal-edit-pl', true); }
-        function savePLMetadata() { const p = db.find(x=>x.id==editingId); p.name = document.getElementById('edit-pl-name').value; save(); toggleM('modal-edit-pl', false); renderPL(); }
-        function delPL(id) { if(confirm("Apagar playlist?")) { db = db.filter(x=>x.id!==id); curPL = null; save(); renderPL(); } }
-        function exportOne(id) {
-            const p = db.find(x=>x.id==id);
-            let c = "#EXTM3U\n" + p.channels.map(x=>`#EXTINF:-1 group-title="${x.grupo}" tvg-logo="${x.logo}",${x.nome}\n${x.url}`).join('\n');
-            let b = new Blob([c],{type:'text/plain'});
-            let l = document.createElement('a'); l.href = URL.createObjectURL(b); l.download = p.name + '.m3u'; l.click();
-        }
-        function exportM3U() { if(!curPL) return alert("Selecione Playlist"); exportOne(curPL.id); }
-        function toggleM(id, show) { document.getElementById(id).style.display = show ? 'flex' : 'none'; }
-        function toggleTheme() { document.body.classList.toggle('light-mode'); }
-        
-        window.onload = () => { updateAuthUI(); navigateTo('home'); };
+        // --- 3. EDITOR LOGIC (BLINDADO) ---
+        const Editor = {
+            init() {
+                const sel = document.getElementById('editor-pl-select');
+                sel.innerHTML = `<option value="">Selecione uma Playlist...</option>` + 
+                                App.playlists.map(p => `<option value="${p.id}" ${App.currentPL && App.currentPL.id === p.id ? 'selected':''}>${p.name}</option>`).join('');
+                
+                if(App.currentPL) {
+                    if(!App.currentGroup && App.currentPL.groups.length > 0) App.currentGroup = App.currentPL.groups[0];
+                    this.renderGroups();
+                    this.renderChannels();
+                }
+            },
+
+            switchPL(id) {
+                if(!id) return;
+                App.currentPL = App.playlists.find(p => p.id == id);
+                App.currentGroup = App.currentPL.groups[0];
+                this.renderGroups();
+                this.renderChannels();
+            },
+
+            renderGroups() {
+                const term = document.getElementById('search-groups').value.toUpperCase();
+                const list = document.getElementById('list-groups');
+                
+                const filtered = App.currentPL.groups.filter(g => g.includes(term));
+                
+                list.innerHTML = filtered.map(g => `
+                    <div class="item-row ${App.currentGroup === g ? 'active' : ''}" onclick="Editor.selectGroup('${g}')">
+                        <span class="text-xs font-bold truncate flex-1">${g}</span>
+                        <div class="row-actions">
+                            <i class="fa-solid fa-eye" onclick="Editor.toggleGroup(event, '${g}')"></i>
+                            <i class="fa-solid fa-pen" onclick="Editor.renameGroup(event, '${g}')"></i>
+                            <i class="fa-solid fa-trash" onclick="Editor.deleteGroup(event, '${g}')"></i>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            renderChannels() {
+                if(!App.currentGroup) return;
+                const term = document.getElementById('search-channels').value.toUpperCase();
+                const list = document.getElementById('list-channels');
+                
+                const chans = App.currentPL.channels.filter(c => c.grupo === App.currentGroup && c.nome.toUpperCase().includes(term));
+                
+                list.innerHTML = chans.map(c => `
+                    <div class="item-row ${c.oculto ? 'hidden-item' : ''}">
+                        <img src="${c.logo || 'https://via.placeholder.com/40'}" class="w-8 h-8 object-contain mr-3 bg-white/5 rounded">
+                        <div class="flex-1 min-w-0 mr-4">
+                            <div class="text-xs font-bold truncate" id="name-${c.id}">${c.nome}</div>
+                            <div class="text-[9px] text-gray-500 truncate">${c.epg || 'Sem ID'}</div>
+                        </div>
+                        <div class="row-actions">
+                             <i class="fa-solid fa-pen" onclick="Editor.renameChannel(event, '${c.id}')"></i>
+                             <i class="fa-solid ${c.oculto ? 'fa-eye-slash text-red-400' : 'fa-eye'}" onclick="Editor.toggleChannel(event, '${c.id}')"></i>
+                             <i class="fa-solid fa-trash" onclick="Editor.deleteChannel(event, '${c.id}')"></i>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            // AÇÕES BLINDADAS (stopPropagation)
+            selectGroup(g) { App.currentGroup = g; this.renderGroups(); this.renderChannels(); },
+
+            renameGroup(e, oldG) {
+                e.stopPropagation();
+                const newG = prompt("Novo nome do grupo:", oldG);
+                if(newG && newG !== oldG) {
+                    const upG = newG.toUpperCase();
+                    // Atualiza canais
+                    App.currentPL.channels.forEach(c => { if(c.grupo === oldG) c.grupo = upG; });
+                    // Atualiza lista grupos
+                    const idx = App.currentPL.groups.indexOf(oldG);
+                    App.currentPL.groups[idx] = upG;
+                    App.currentGroup = upG;
+                    DB.savePlaylist(App.currentPL);
+                    this.renderGroups();
+                    this.renderChannels();
+                }
+            },
+
+            deleteGroup(e, g) {
+                e.stopPropagation();
+                if(confirm(`Apagar grupo ${g} e TODOS os seus canais?`)) {
+                    App.currentPL.channels = App.currentPL.channels.filter(c => c.grupo !== g);
+                    App.currentPL.groups = App.currentPL.groups.filter(x => x !== g);
+                    App.currentGroup = App.currentPL.groups[0] || null;
+                    DB.savePlaylist(App.currentPL);
+                    this.renderGroups();
+                    this.renderChannels();
+                }
+            },
+
+            renameChannel(e, id) {
+                e.stopPropagation();
+                const c = App.currentPL.channels.find(x => x.id === id);
+                const newName = prompt("Novo nome:", c.nome);
+                if(newName) {
+                    c.nome = newName;
+                    DB.savePlaylist(App.currentPL);
+                    this.renderChannels();
+                }
+            },
+
+            toggleChannel(e, id) {
+                e.stopPropagation();
+                const c = App.currentPL.channels.find(x => x.id === id);
+                c.oculto = !c.oculto;
+                DB.savePlaylist(App.currentPL);
+                this.renderChannels();
+            },
+
+            deleteChannel(e, id) {
+                e.stopPropagation();
+                App.currentPL.channels = App.currentPL.channels.filter(x => x.id !== id);
+                DB.savePlaylist(App.currentPL);
+                this.renderChannels();
+            },
+            
+            sortChannels() {
+                if(!App.currentGroup) return;
+                App.currentPL.channels.sort((a,b) => a.nome.localeCompare(b.nome));
+                DB.savePlaylist(App.currentPL);
+                this.renderChannels();
+            }
+        };
+
+        // --- 4. THEATER MODE ---
+        const Theater = {
+            hls: null,
+            init() {
+                if(!App.currentPL && App.playlists.length > 0) App.currentPL = App.playlists[0];
+                if(!App.currentPL) return;
+                if(!App.currentGroup && App.currentPL.groups.length > 0) App.currentGroup = App.currentPL.groups[0];
+                
+                this.renderGroups();
+                this.renderGrid();
+            },
+
+            renderGroups() {
+                document.getElementById('theater-groups').innerHTML = App.currentPL.groups.map(g => `
+                    <div class="p-3 border-b border-white/5 cursor-pointer hover:bg-white/5 text-xs font-bold text-gray-400 hover:text-white transition-all ${App.currentGroup === g ? 'text-cyan-500 bg-white/5' : ''}" onclick="Theater.selectGroup('${g}')">
+                        ${g}
+                    </div>
+                `).join('');
+            },
+
+            selectGroup(g) {
+                App.currentGroup = g;
+                this.renderGroups();
+                this.renderGrid();
+            },
+
+            renderGrid() {
+                const chans = App.currentPL.channels.filter(c => c.grupo === App.currentGroup && !c.oculto);
+                document.getElementById('theater-grid').innerHTML = chans.map(c => `
+                    <div class="channel-card" onclick="Theater.play('${c.url}')">
+                        <img src="${c.logo || 'https://via.placeholder.com/50'}" loading="lazy">
+                        <div class="text-[10px] font-bold truncate">${c.nome}</div>
+                    </div>
+                `).join('');
+            },
+
+            play(url) {
+                const video = document.getElementById('main-player');
+                if (Hls.isSupported()) {
+                    if(this.hls) this.hls.destroy();
+                    this.hls = new Hls();
+                    this.hls.loadSource(url);
+                    this.hls.attachMedia(video);
+                    this.hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    video.src = url;
+                    video.play();
+                }
+            }
+        };
+
+        // --- 5. UI HELPERS ---
+        const UI = {
+            toggleModal(id, show) {
+                document.getElementById(id).style.display = show ? 'flex' : 'none';
+            },
+
+            toast(msg, type='success') {
+                const box = document.createElement('div');
+                box.className = 'toast';
+                if(type === 'error') box.style.borderLeftColor = '#ef4444';
+                box.innerHTML = `<i class="fa-solid ${type==='error'?'fa-circle-exclamation':'fa-check-circle'}"></i> ${msg}`;
+                document.getElementById('toast-container').appendChild(box);
+                setTimeout(() => box.remove(), 3000);
+            },
+
+            renderHome() {
+                const grid = document.getElementById('home-grid');
+                if(App.playlists.length === 0) {
+                    grid.innerHTML = `<div class="col-span-4 text-center opacity-30 py-10">Nenhuma playlist salva.</div>`;
+                    return;
+                }
+                grid.innerHTML = App.playlists.map(p => `
+                    <div class="bg-fire-card border border-white/10 rounded-lg p-5 hover:border-cyan-500 cursor-pointer transition-all" onclick="Editor.switchPL(${p.id}); App.nav('editor')">
+                        <div class="font-bold truncate text-white mb-1">${p.name}</div>
+                        <div class="text-xs text-gray-500 mb-4">${p.channels.length} canais</div>
+                        <div class="w-full bg-white/5 h-1 rounded-full"><div class="bg-cyan-500 h-1 rounded-full" style="width: 70%"></div></div>
+                    </div>
+                `).join('');
+            },
+
+            renderPlaylistsTable() {
+                document.getElementById('pl-body').innerHTML = App.playlists.map(p => `
+                    <tr class="hover:bg-white/5">
+                        <td class="font-bold">${p.name}</td>
+                        <td class="text-xs text-gray-400 truncate max-w-[150px]">${p.source}</td>
+                        <td>${p.groups.length}</td>
+                        <td>${p.channels.length}</td>
+                        <td>
+                            <div class="flex gap-3 text-gray-400">
+                                <i class="fa-solid fa-pen cursor-pointer hover:text-cyan-500" onclick="alert('Edição de metadados em breve')"></i>
+                                <i class="fa-solid fa-trash cursor-pointer hover:text-red-500" onclick="App.deletePL(${p.id})"></i>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        };
+
+        // BOOT
+        window.onload = () => App.start();
+
     </script>
 </body>
 </html>
