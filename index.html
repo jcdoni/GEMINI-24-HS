@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini TV v6.8 | Master Edition</title>
+    <title>Gemini TV v6.9 | Ultimate Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap');
         
@@ -30,19 +31,29 @@
 
         .glass-nav { background: rgba(15, 23, 30, 0.95); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
 
-        /* Layout Dual Pane (Editor) */
-        .editor-container { display: grid; grid-template-columns: 350px 1fr; height: calc(100vh - 80px); }
-        .col-groups { background: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
-        .col-channels { background: var(--fire-dark); display: flex; flex-direction: column; }
+        /* Layout Dual Pane (Editor) com ROLAGEM INDEPENDENTE */
+        .editor-container { display: grid; grid-template-columns: 350px 1fr; height: calc(100vh - 80px); overflow: hidden; }
+        .col-groups { background: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; height: 100%; }
+        .col-channels { background: var(--fire-dark); display: flex; flex-direction: column; height: 100%; }
+        
+        /* Listas com Scroll */
+        .scroll-list { flex: 1; overflow-y: auto; overflow-x: hidden; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--fire-blue); }
 
-        /* Theater Mode */
+        /* Theater Mode Grid */
         .theater-grid { display: grid; grid-template-columns: 280px 1fr; height: calc(100vh - 80px); }
-        .player-area { background: #000; display: flex; flex-direction: column; }
-        .video-placeholder { flex: 1; background: black; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--border); }
-        .channel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; padding: 20px; overflow-y: auto; }
+        .video-container { width: 100%; height: 50vh; background: black; position: relative; }
+        video { width: 100%; height: 100%; object-fit: contain; }
+        
+        .channel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; padding: 20px; overflow-y: auto; height: calc(50vh - 80px); }
         .channel-card { background: var(--fire-card); border-radius: 12px; padding: 15px; text-align: center; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
         .channel-card:hover { transform: scale(1.05); border-color: var(--fire-blue); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .channel-card img { width: 60px; height: 60px; object-fit: contain; margin-bottom: 10px; border-radius: 8px; background: rgba(0,0,0,0.2); }
+        .channel-card img { width: 50px; height: 50px; object-fit: contain; margin-bottom: 10px; border-radius: 4px; background: rgba(0,0,0,0.2); }
 
         /* Toolbar & Buttons */
         .toolbar-pro { display: flex; align-items: center; gap: 10px; padding: 12px; background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border); min-height: 55px; }
@@ -50,90 +61,109 @@
         .btn-tool:hover { border-color: var(--fire-blue); color: var(--fire-blue); transform: translateY(-1px); }
 
         /* Rows */
-        .item-row { display: flex; align-items: center; padding: 12px 20px; border-bottom: 1px solid var(--border); transition: 0.2s; }
+        .item-row { display: flex; align-items: center; padding: 12px 20px; border-bottom: 1px solid var(--border); transition: 0.2s; cursor: pointer; }
         .item-row:hover { background: rgba(0, 168, 225, 0.08); }
         .item-row.active { background: var(--fire-blue); color: white; }
-        .item-row.hidden-item { opacity: 0.3; filter: grayscale(1); }
-        
+        .item-row.hidden-item { opacity: 0.4; filter: grayscale(1); }
+        .item-row.hidden-item span { text-decoration: line-through; }
+
         .row-actions { display: flex; gap: 14px; opacity: 0; transition: 0.2s; margin-left: auto; }
         .item-row:hover .row-actions { opacity: 1; }
-        .row-actions i { cursor: pointer; font-size: 12px; }
+        .row-actions i { cursor: pointer; font-size: 13px; }
         .row-actions i:hover { color: var(--fire-blue); }
 
-        /* Cards Home */
-        .playlist-card { background: var(--fire-card); border: 1px solid var(--border); border-radius: 16px; padding: 25px; transition: 0.3s; position: relative; overflow: hidden; }
-        .playlist-card:hover { transform: translateY(-5px); border-color: var(--fire-blue); }
-        .playlist-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: var(--fire-blue); }
+        /* Tabela Playlists Detalhada (v6.5) */
+        .pl-table { width: 100%; border-collapse: collapse; }
+        .pl-table th { text-align: left; padding: 18px; border-bottom: 2px solid var(--border); color: var(--fire-blue); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+        .pl-table td { padding: 18px; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-main); }
+        .pl-table tr:hover { background: rgba(255,255,255,0.03); }
 
-        /* Modais & Inputs */
+        /* Inputs & Modais */
         .modal-base { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
-        .modal-box { background: var(--fire-card); padding: 35px; border-radius: 28px; width: 400px; border: 1px solid var(--border); position: relative; text-align: center; }
-        .active-tab { color: var(--fire-blue); border-bottom: 4px solid var(--fire-blue); }
+        .modal-box { background: var(--fire-card); padding: 35px; border-radius: 28px; width: 420px; border: 1px solid var(--border); position: relative; }
+        
         input.edit-inline { background: rgba(0, 168, 225, 0.1); border: 1px solid var(--fire-blue); color: var(--text-main); padding: 2px 6px; border-radius: 4px; width: 100%; font-size: 13px; outline: none; }
         
-        /* Fix Select Color */
         select.dark-select { background-color: var(--fire-card) !important; color: var(--text-main) !important; border: 1px solid var(--border); padding: 5px; border-radius: 6px; outline: none; }
         option { background-color: var(--fire-card); color: var(--text-main); }
+
+        .active-tab { color: var(--fire-blue); border-bottom: 3px solid var(--fire-blue); }
     </style>
 </head>
 <body class="flex flex-col">
 
-    <nav class="glass-nav h-20 flex items-center justify-between px-10 z-50">
-        <div class="flex items-center space-x-8">
+    <nav class="glass-nav h-20 flex items-center justify-between px-8 z-50">
+        <div class="flex items-center space-x-6">
             <div class="text-2xl font-bold tracking-tighter text-white cursor-pointer" onclick="navigateTo('home')">
                 GEMINI<span class="text-cyan-500">TV</span>
             </div>
-            <button onclick="navigateTo('theater')" class="bg-white/5 border border-white/10 text-white px-4 py-1.5 rounded-full font-bold text-[10px] uppercase hover:bg-cyan-600 transition-all shadow-lg hover:shadow-cyan-500/20">
-                <i class="fa-solid fa-tv mr-2"></i> Theater Mode
-            </button>
-            <div class="flex space-x-6 text-xs font-bold text-gray-400 uppercase tracking-widest h-full items-end pb-0">
+            
+            <div class="flex space-x-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest h-full items-end pb-0">
                 <span id="nav-home" class="cursor-pointer hover:text-white transition-all active-tab pb-7" onclick="navigateTo('home')">Início</span>
                 <span id="nav-playlists" class="cursor-pointer hover:text-white transition-all pb-7" onclick="navigateTo('playlists')">Playlists</span>
                 <span id="nav-editor" class="cursor-pointer hover:text-white transition-all pb-7" onclick="navigateTo('editor')">Editor</span>
+                <span id="nav-channels" class="cursor-pointer hover:text-white transition-all pb-7" onclick="navigateTo('channels')">Canais</span>
+                <span id="nav-logos" class="cursor-pointer hover:text-white transition-all pb-7" onclick="navigateTo('logos')">Logos</span>
+                <span id="nav-epgs" class="cursor-pointer hover:text-white transition-all pb-7" onclick="navigateTo('epgs')">EPGs</span>
             </div>
-            <div class="flex space-x-2 ml-4 border-l border-white/10 pl-6 h-10 items-center">
-                <button onclick="importUI()" class="text-gray-300 hover:text-white text-[10px] font-bold uppercase flex items-center gap-2">
+
+            <div class="flex space-x-2 ml-4 border-l border-white/10 pl-4 h-8 items-center">
+                <button onclick="importUI()" class="text-gray-300 hover:text-white text-[10px] font-bold uppercase flex items-center gap-2 px-2 py-1 rounded hover:bg-white/5">
                     <i class="fa-solid fa-file-import"></i> Importar
                 </button>
-                <button onclick="exportM3U()" class="text-gray-300 hover:text-white text-[10px] font-bold uppercase flex items-center gap-2">
+                <button onclick="exportM3U()" class="text-gray-300 hover:text-white text-[10px] font-bold uppercase flex items-center gap-2 px-2 py-1 rounded hover:bg-white/5">
                     <i class="fa-solid fa-file-export"></i> Exportar
                 </button>
             </div>
         </div>
+
         <div class="flex items-center space-x-6">
             <i id="theme-icon" class="fa-solid fa-moon text-gray-400 cursor-pointer hover:text-white text-xl" onclick="toggleTheme()" title="Mudar Tema"></i>
-            <button onclick="toggleM('modal-login', true)" class="bg-cyan-600 text-white px-5 py-2 rounded-lg font-bold text-xs uppercase hover:bg-cyan-500 transition-all">
-                Entrar
-            </button>
+            <div id="user-area">
+                <button onclick="toggleM('modal-login', true)" class="bg-cyan-600 text-white px-5 py-2 rounded-lg font-bold text-xs uppercase hover:bg-cyan-500 transition-all shadow-lg shadow-cyan-900/50">
+                    Entrar
+                </button>
+            </div>
         </div>
     </nav>
 
     <div id="main-view" class="flex-1 overflow-hidden relative">
         
-        <section id="page-home" class="p-12 h-full overflow-y-auto">
-            <div class="flex justify-between items-center mb-10">
-                <div>
-                    <h2 class="text-3xl font-bold mb-2">Bem-vindo ao Gemini TV</h2>
-                    <p class="text-gray-400 text-sm">Gerencie suas listas e assista em alta definição.</p>
+        <section id="page-home" class="p-10 h-full overflow-y-auto">
+            <div class="grid grid-cols-2 gap-6 mb-10 h-48">
+                <div onclick="navigateTo('theater')" class="relative bg-gradient-to-r from-blue-900 to-cyan-900 rounded-2xl p-8 cursor-pointer hover:scale-[1.01] transition-all flex items-center justify-between overflow-hidden shadow-2xl">
+                    <div class="z-10">
+                        <h2 class="text-3xl font-bold text-white mb-2">Theater Mode</h2>
+                        <p class="text-cyan-200 text-sm">Player Profissional HLS</p>
+                        <button class="mt-4 bg-white text-blue-900 px-4 py-2 rounded-full font-bold text-xs uppercase">Abrir Player</button>
+                    </div>
+                    <i class="fa-solid fa-tv text-9xl absolute -right-4 -bottom-4 text-white/10"></i>
                 </div>
-                <button onclick="importUI()" class="bg-fire-card border border-white/10 px-6 py-3 rounded-xl hover:border-cyan-500 transition-all text-sm font-bold uppercase">
-                    + Nova Lista
-                </button>
+                <div class="relative bg-gradient-to-r from-purple-900 to-pink-900 rounded-2xl p-8 cursor-pointer hover:scale-[1.01] transition-all flex items-center justify-between overflow-hidden shadow-2xl opacity-80">
+                    <div class="z-10">
+                        <h2 class="text-3xl font-bold text-white mb-2">VOD & Filmes</h2>
+                        <p class="text-purple-200 text-sm">Em breve disponível</p>
+                    </div>
+                    <i class="fa-solid fa-film text-9xl absolute -right-4 -bottom-4 text-white/10"></i>
+                </div>
             </div>
-            
-            <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6 border-b border-white/5 pb-2">Minhas Playlists</h3>
-            <div id="home-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+            <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6 border-b border-white/5 pb-2">Suas Playlists</h3>
+            <div id="home-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 </div>
         </section>
 
         <section id="page-playlists" class="hidden p-12 h-full overflow-y-auto">
             <h2 class="text-3xl font-bold mb-8">Gerenciador de Bases</h2>
-            <table class="pl-table w-full text-left">
+            <table class="pl-table">
                 <thead>
                     <tr>
-                        <th class="p-4 border-b border-white/10 text-cyan-500 text-xs uppercase">Nome</th>
-                        <th class="p-4 border-b border-white/10 text-cyan-500 text-xs uppercase">Canais</th>
-                        <th class="p-4 border-b border-white/10 text-cyan-500 text-xs uppercase">Ações</th>
+                        <th>Nome da Playlist</th>
+                        <th>URL / Origem</th>
+                        <th>Grupos</th>
+                        <th>Canais</th>
+                        <th>Validade</th>
+                        <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody id="pl-body"></tbody>
@@ -145,64 +175,61 @@
                 <div class="col-groups">
                     <div class="toolbar-pro">
                         <select id="pl-selector" onchange="switchPL(this.value)" class="dark-select flex-1 text-xs"></select>
-                        <button class="btn-tool" onclick="groupAction('az')" title="Ordenar Grupos A-Z">A-Z</button>
+                        <button class="btn-tool" onclick="groupAction('az')" title="Ordenar A-Z"><i class="fa-solid fa-arrow-down-a-z"></i></button>
                     </div>
-                    <div id="group-list-editor" class="flex-1 overflow-y-auto"></div>
+                    <div id="group-list-editor" class="scroll-list"></div>
                 </div>
                 <div class="col-channels">
                     <div class="toolbar-pro">
-                        <button class="btn-tool" onclick="chanAction('az')" title="Ordenar Canais A-Z">Ordenar A-Z</button>
-                        <button class="btn-tool" onclick="chanAction('prefix')" title="Prefixo">Prefix</button>
-                        <button class="btn-tool" onclick="chanAction('hide')" title="Esconder">Hide All</button>
+                        <button class="btn-tool" onclick="chanAction('az')">Ordenar A-Z</button>
+                        <button class="btn-tool" onclick="chanAction('hide')">Esconder Tudo</button>
                         <div class="flex-1"></div>
-                        <span id="editor-status" class="text-[10px] text-gray-500 uppercase font-bold">Pronto</span>
+                        <span class="text-[10px] text-gray-500 font-bold uppercase">Edição In-Place Ativa</span>
                     </div>
-                    <div id="chan-list-editor" class="flex-1 overflow-y-auto p-2"></div>
+                    <div id="chan-list-editor" class="scroll-list p-2"></div>
                 </div>
             </div>
         </section>
 
         <section id="page-theater" class="hidden h-full">
             <div class="theater-grid">
-                <div class="bg-[#131a22] border-r border-white/5 flex flex-col">
-                    <div class="p-4 border-b border-white/5 font-bold text-cyan-500 uppercase text-xs tracking-widest">Canais / Grupos</div>
-                    <div id="theater-groups" class="flex-1 overflow-y-auto"></div>
+                <div class="bg-[#131a22] border-r border-white/5 flex flex-col h-full overflow-hidden">
+                    <div class="p-4 border-b border-white/5 font-bold text-cyan-500 uppercase text-xs tracking-widest">Grupos</div>
+                    <div id="theater-groups" class="scroll-list"></div>
                 </div>
-                <div class="player-area">
-                    <div class="video-placeholder h-[40vh]">
-                        <div class="text-center opacity-50">
-                            <i class="fa-solid fa-play-circle text-6xl mb-4"></i>
-                            <p class="text-sm font-bold uppercase tracking-widest">Selecione um Canal</p>
+                <div class="flex flex-col h-full overflow-hidden">
+                    <div class="video-container">
+                        <video id="video-player" controls autoplay></video>
+                        <div id="player-msg" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
+                            <i class="fa-solid fa-play-circle text-6xl opacity-20 mb-2"></i>
+                            <p class="text-xs uppercase font-bold opacity-40">Selecione um canal</p>
                         </div>
                     </div>
-                    <div class="flex-1 bg-[#0f171e] overflow-y-auto p-6">
-                        <h3 class="text-white font-bold text-lg mb-4 flex items-center gap-2"><i class="fa-solid fa-grip"></i> Grade de Canais</h3>
-                        <div id="theater-channels" class="channel-grid"></div>
-                    </div>
+                    <div class="p-4 bg-[#0f171e] border-b border-white/5 font-bold text-white uppercase text-xs">Canais Disponíveis</div>
+                    <div id="theater-channels" class="channel-grid bg-[#0f171e] scroll-list"></div>
                 </div>
             </div>
         </section>
+
+        <section id="page-channels" class="hidden p-10 flex items-center justify-center opacity-30 text-2xl font-bold uppercase">Gestão de Canais em breve</section>
+        <section id="page-logos" class="hidden p-10 flex items-center justify-center opacity-30 text-2xl font-bold uppercase">Galeria de Logos em breve</section>
+        <section id="page-epgs" class="hidden p-10 flex items-center justify-center opacity-30 text-2xl font-bold uppercase">Gestão de IDs em breve</section>
 
     </div>
 
     <div id="modal-login" class="modal-base">
         <div class="modal-box text-left">
             <i class="fa-solid fa-xmark absolute top-6 right-6 cursor-pointer opacity-50" onclick="toggleM('modal-login', false)"></i>
-            <h3 class="font-bold text-2xl mb-2 text-white">Acessar Conta</h3>
-            <p class="text-gray-400 text-xs mb-6">Salve suas playlists na nuvem.</p>
+            <h3 class="font-bold text-2xl mb-2 text-white">Login Seguro</h3>
+            <p class="text-gray-400 text-xs mb-6">Suas playlists salvas localmente.</p>
             <div class="space-y-4">
                 <div>
                     <label class="text-[10px] uppercase font-bold text-cyan-500">E-mail</label>
-                    <input type="email" class="w-full bg-black/20 border border-white/10 p-3 rounded-lg text-white outline-none focus:border-cyan-500 transition-all">
+                    <input type="email" id="login-email" class="w-full bg-black/20 border border-white/10 p-3 rounded-lg text-white outline-none focus:border-cyan-500">
                 </div>
-                <div>
-                    <label class="text-[10px] uppercase font-bold text-cyan-500">Senha</label>
-                    <input type="password" class="w-full bg-black/20 border border-white/10 p-3 rounded-lg text-white outline-none focus:border-cyan-500 transition-all">
-                </div>
-                <button class="w-full bg-cyan-600 hover:bg-cyan-500 text-white py-3 rounded-lg font-bold text-xs uppercase tracking-widest shadow-lg shadow-cyan-900/50 transition-all">
-                    Entrar no Sistema
+                <button onclick="doLogin()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white py-3 rounded-lg font-bold text-xs uppercase tracking-widest shadow-lg shadow-cyan-900/50">
+                    Entrar / Criar Conta
                 </button>
-                <p class="text-center text-xs text-gray-500 cursor-pointer hover:text-white">Criar uma nova conta</p>
             </div>
         </div>
     </div>
@@ -210,21 +237,70 @@
     <div id="modal-edit-pl" class="modal-base">
         <div class="modal-box">
             <i class="fa-solid fa-xmark absolute top-6 right-6 cursor-pointer opacity-50" onclick="toggleM('modal-edit-pl', false)"></i>
-            <h3 class="font-bold text-xl mb-6">Editar Playlist</h3>
-            <div class="space-y-4">
-                <input type="text" id="edit-pl-name" class="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none text-white">
-                <button onclick="savePLMetadata()" class="w-full bg-cyan-600 py-3 rounded-xl font-bold text-xs uppercase">Salvar</button>
-            </div>
+            <h3 class="font-bold text-xl mb-6">Editar Metadados</h3>
+            <input type="text" id="edit-pl-name" class="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none text-white">
+            <button onclick="savePLMetadata()" class="w-full bg-cyan-600 py-3 mt-4 rounded-xl font-bold text-xs uppercase">Salvar</button>
         </div>
     </div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('gtv_v68_db')) || [];
+        // --- SISTEMA DE DADOS ---
+        let currentUser = JSON.parse(localStorage.getItem('gtv_user')) || null;
+        let db = currentUser ? currentUser.playlists : (JSON.parse(localStorage.getItem('gtv_temp_db')) || []);
         let curPL = null, curGR = null, editingId = null;
+        let hls = null;
 
+        // --- AUTH ---
+        function updateAuthUI() {
+            const area = document.getElementById('user-area');
+            if(currentUser) {
+                area.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="text-right">
+                            <div class="text-[10px] font-bold text-cyan-500 uppercase">Logado como</div>
+                            <div class="text-xs font-bold">${currentUser.email.split('@')[0]}</div>
+                        </div>
+                        <i class="fa-solid fa-right-from-bracket cursor-pointer text-gray-400 hover:text-red-500" onclick="doLogout()" title="Sair"></i>
+                    </div>`;
+            } else {
+                area.innerHTML = `<button onclick="toggleM('modal-login', true)" class="bg-cyan-600 text-white px-5 py-2 rounded-lg font-bold text-xs uppercase hover:bg-cyan-500">Entrar</button>`;
+            }
+        }
+
+        function doLogin() {
+            const email = document.getElementById('login-email').value;
+            if(!email) return alert('Digite um e-mail');
+            currentUser = { email: email, playlists: db }; // Migra dados temporários para o user
+            localStorage.setItem('gtv_user', JSON.stringify(currentUser));
+            toggleM('modal-login', false);
+            updateAuthUI();
+            alert(`Bem-vindo, ${email}!`);
+        }
+
+        function doLogout() {
+            if(confirm("Sair da conta?")) {
+                currentUser = null;
+                localStorage.removeItem('gtv_user');
+                db = []; // Limpa view local
+                updateAuthUI();
+                renderHome(); renderPL();
+            }
+        }
+
+        function save() {
+            if(currentUser) {
+                currentUser.playlists = db;
+                localStorage.setItem('gtv_user', JSON.stringify(currentUser));
+            } else {
+                localStorage.setItem('gtv_temp_db', JSON.stringify(db));
+            }
+        }
+
+        // --- NAVEGAÇÃO ---
         function navigateTo(id) {
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
             document.querySelectorAll('.glass-nav span').forEach(s => s.classList.remove('active-tab'));
+            
             document.getElementById('page-'+id).classList.remove('hidden');
             if(document.getElementById('nav-'+id)) document.getElementById('nav-'+id).classList.add('active-tab');
             
@@ -234,11 +310,10 @@
             if(id === 'theater') renderTheaterBase();
         }
 
-        /* --- IMPORTAÇÃO --- */
+        // --- IMPORTAR ---
         async function importUI() {
             const url = prompt("Cole a URL M3U:");
             if(!url) return;
-            // Usando proxy para evitar CORS em testes locais
             const res = await fetch(`https://geminitv-proxy.jcdoni.workers.dev/?url=${encodeURIComponent(url)}`);
             const text = await res.text();
             const lines = text.split('\n');
@@ -247,91 +322,68 @@
             lines.forEach(l => {
                 if(l.startsWith('#EXTINF:')) {
                     const info = l.substring(8);
-                    const namePart = info.split(',')[1] || "Sem Nome";
+                    const name = info.split(',')[1] || "Canal";
                     const meta = info.split(',')[0];
                     const g = (meta.match(/group-title="([^"]+)"/) || ["","GERAL"])[1].toUpperCase();
                     const logo = (meta.match(/tvg-logo="([^"]+)"/) || ["",""])[1];
                     const epg = (meta.match(/tvg-id="([^"]+)"/) || ["",""])[1];
-
                     groups.add(g);
-                    chans.push({
-                        id: Math.random().toString(36).substr(2,9),
-                        nome: namePart.trim(), // NOME ORIGINAL
-                        grupo: g,
-                        logo: logo,
-                        epg: epg, // ID ORIGINAL
-                        oculto: false
-                    });
+                    chans.push({ id: Math.random().toString(36).substr(2,9), nome: name.trim(), grupo: g, logo, epg, url: '', oculto: false });
+                } else if(l.startsWith('http') && chans.length > 0) {
+                    chans[chans.length-1].url = l.trim();
                 }
             });
             
-            db.unshift({ 
-                id: Date.now(), 
-                name: "Playlist " + (db.length + 1), 
-                source: url, 
-                channels: chans, 
-                groups: Array.from(groups).sort() 
-            });
+            db.unshift({ id: Date.now(), name: "Nova Playlist", source: url, channels: chans, groups: Array.from(groups).sort() });
             save(); navigateTo('home');
         }
 
-        /* --- RENDER HOME (CARDS) --- */
+        // --- HOME ---
         function renderHome() {
-            const grid = document.getElementById('home-cards');
-            if(db.length === 0) {
-                grid.innerHTML = `<div class="col-span-3 text-center opacity-30 py-20">Nenhuma playlist encontrada. Clique em Importar ou Nova Lista.</div>`;
-                return;
-            }
+            const grid = document.getElementById('home-grid');
+            if(db.length === 0) { grid.innerHTML = `<div class="col-span-4 text-center opacity-30 py-10">Nenhuma playlist. Importe uma lista para começar.</div>`; return; }
             grid.innerHTML = db.map(p => `
-                <div class="playlist-card group">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="bg-cyan-900/30 text-cyan-400 text-[10px] font-bold px-2 py-1 rounded uppercase">M3U</div>
-                        <i class="fa-solid fa-ellipsis-vertical text-gray-500 cursor-pointer hover:text-white"></i>
-                    </div>
-                    <h3 class="text-xl font-bold mb-1 text-white group-hover:text-cyan-400 transition-colors">${p.name}</h3>
-                    <p class="text-xs text-gray-400 mb-6 truncate">${p.source}</p>
-                    <div class="flex items-center justify-between border-t border-white/5 pt-4">
-                        <div class="text-center">
-                            <div class="text-lg font-bold text-white">${p.channels.length}</div>
-                            <div class="text-[9px] uppercase text-gray-500 font-bold">Canais</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-lg font-bold text-white">${p.groups.length}</div>
-                            <div class="text-[9px] uppercase text-gray-500 font-bold">Grupos</div>
-                        </div>
-                        <button onclick="goEd(${p.id})" class="bg-white/10 hover:bg-cyan-600 text-white p-2 rounded-lg transition-all" title="Editar">
-                            <i class="fa-solid fa-pen-to-square"></i>
-                        </button>
+                <div class="bg-fire-card border border-white/5 rounded-xl p-5 hover:border-cyan-500 transition-all cursor-pointer group" onclick="goEd(${p.id})">
+                    <h3 class="font-bold text-white mb-1 truncate group-hover:text-cyan-400">${p.name}</h3>
+                    <p class="text-xs text-gray-500 mb-4 truncate">${p.source}</p>
+                    <div class="flex justify-between border-t border-white/5 pt-3">
+                        <div class="text-center"><div class="font-bold">${p.channels.length}</div><div class="text-[9px] uppercase text-gray-500">Canais</div></div>
+                        <div class="text-center"><div class="font-bold">${p.groups.length}</div><div class="text-[9px] uppercase text-gray-500">Grupos</div></div>
                     </div>
                 </div>
             `).join('');
         }
 
-        /* --- RENDER PLAYLISTS (TABELA) --- */
+        // --- PLAYLISTS TABELA DETALHADA ---
         function renderPL() {
             const b = document.getElementById('pl-body');
             b.innerHTML = db.map(p => `
-                <tr class="hover:bg-white/5 transition-colors border-b border-white/5">
-                    <td class="p-4 font-bold text-sm">${p.name}</td>
-                    <td class="p-4 text-xs opacity-50">${p.channels.length} items</td>
-                    <td class="p-4 flex gap-4 text-gray-400">
-                        <i class="fa-solid fa-pen cursor-pointer hover:text-cyan-500" onclick="openEditPL(${p.id})"></i>
-                        <i class="fa-solid fa-trash cursor-pointer hover:text-red-500" onclick="delPL(${p.id})"></i>
+                <tr>
+                    <td class="font-bold text-white">${p.name}</td>
+                    <td class="text-xs text-gray-400 truncate max-w-[150px]">${p.source}</td>
+                    <td class="text-center">${p.groups.length}</td>
+                    <td class="text-center">${p.channels.length}</td>
+                    <td class="text-green-500 text-xs font-bold uppercase">Ativa</td>
+                    <td>
+                        <div class="flex gap-4 text-gray-400">
+                            <i class="fa-solid fa-pen hover:text-cyan-500 cursor-pointer" onclick="openEditPL(${p.id})"></i>
+                            <i class="fa-solid fa-cloud-arrow-down hover:text-white cursor-pointer" onclick="exportOne(${p.id})"></i>
+                            <i class="fa-solid fa-table-list hover:text-white cursor-pointer" onclick="goEd(${p.id})"></i>
+                            <i class="fa-solid fa-trash hover:text-red-500 cursor-pointer" onclick="delPL(${p.id})"></i>
+                        </div>
                     </td>
                 </tr>
             `).join('');
         }
 
-        /* --- EDITOR LOGIC --- */
+        // --- EDITOR (CORRIGIDO) ---
         function renderEditorBase() {
             const sel = document.getElementById('pl-selector');
-            sel.innerHTML = `<option value="">Selecione uma Playlist...</option>` + 
-                db.map(p => `<option value="${p.id}" ${curPL && curPL.id == p.id ? 'selected':''}>${p.name}</option>`).join('');
-            
+            sel.innerHTML = `<option value="">Selecione Playlist</option>` + db.map(p => `<option value="${p.id}" ${curPL && curPL.id == p.id ? 'selected':''}>${p.name}</option>`).join('');
             if(curPL) { renderGR(); renderCH(); }
             else { 
-                document.getElementById('group-list-editor').innerHTML = '<div class="p-10 text-center opacity-30 text-xs uppercase font-bold">Selecione uma lista acima</div>';
-                document.getElementById('chan-list-editor').innerHTML = '';
+                document.getElementById('group-list-editor').innerHTML = ''; 
+                document.getElementById('chan-list-editor').innerHTML = ''; 
             }
         }
 
@@ -339,13 +391,12 @@
         function goEd(id) { curPL = db.find(x=>x.id==id); curGR = curPL.groups[0]; navigateTo('editor'); }
 
         function renderGR() {
-            const list = document.getElementById('group-list-editor');
-            list.innerHTML = curPL.groups.map(g => `
+            document.getElementById('group-list-editor').innerHTML = curPL.groups.map(g => `
                 <div class="item-row cursor-pointer ${curGR === g ? 'active' : ''}" onclick="setGR('${g}')">
-                    <span id="g-text-${g}" class="flex-1 font-bold text-xs truncate mr-2">${g}</span>
+                    <span id="g-txt-${g}" class="flex-1 font-bold text-xs truncate mr-2">${g}</span>
                     <div class="row-actions">
-                        <i class="fa-solid fa-pen" onclick="editInPlaceG('${g}')" title="Renomear"></i>
-                        <i class="fa-solid fa-trash" onclick="delGR('${g}')" title="Apagar"></i>
+                        <i class="fa-solid fa-pen" onclick="editGR(event, '${g}')"></i>
+                        <i class="fa-solid fa-trash" onclick="delGR(event, '${g}')"></i>
                     </div>
                 </div>
             `).join('');
@@ -353,168 +404,119 @@
 
         function renderCH() {
             if(!curGR) return;
-            const list = document.getElementById('chan-list-editor');
-            const filtered = curPL.channels.filter(c => c.grupo === curGR);
-            list.innerHTML = filtered.map(c => `
+            const chans = curPL.channels.filter(c => c.grupo === curGR);
+            document.getElementById('chan-list-editor').innerHTML = chans.map(c => `
                 <div class="item-row ${c.oculto ? 'hidden-item':''}">
-                    <img src="${c.logo}" class="w-8 h-8 object-contain mr-4 bg-black/20 rounded">
-                    <span id="c-text-${c.id}" class="flex-1 font-semibold text-sm mr-2">${c.nome}</span>
+                    <img src="${c.logo}" class="w-6 h-6 object-contain mr-3 bg-white/10 rounded">
+                    <span id="c-txt-${c.id}" class="flex-1 font-semibold text-sm mr-2 truncate">${c.nome}</span>
                     <div class="row-actions">
-                        <i class="fa-solid fa-pen" onclick="editInPlaceC('${c.id}')"></i>
-                        <i class="fa-solid ${c.oculto ? 'fa-eye-slash text-red-400':'fa-eye'}" onclick="togCH('${c.id}')"></i>
-                        <i class="fa-solid fa-trash" onclick="delCH('${c.id}')"></i>
+                        <i class="fa-solid fa-pen" onclick="editCH(event, '${c.id}')"></i>
+                        <i class="fa-solid ${c.oculto ? 'fa-eye-slash text-red-400':'fa-eye'}" onclick="togCH(event, '${c.id}')"></i>
+                        <i class="fa-solid fa-trash" onclick="delCH(event, '${c.id}')"></i>
                     </div>
                 </div>
             `).join('');
         }
 
-        /* --- THEATER MODE LOGIC --- */
+        // --- AÇÕES EDITOR (IN-PLACE) ---
+        function setGR(g) { curGR = g; renderGR(); renderCH(); }
+
+        function editGR(e, oldG) {
+            e.stopPropagation();
+            const el = document.getElementById(`g-txt-${oldG}`);
+            el.innerHTML = `<input id="inp-g-${oldG}" value="${oldG}" class="edit-inline">`;
+            const inp = document.getElementById(`inp-g-${oldG}`);
+            inp.focus();
+            
+            const saveFn = () => {
+                const val = inp.value.toUpperCase();
+                if(val && val !== oldG) {
+                    curPL.channels.forEach(c => { if(c.grupo === oldG) c.grupo = val; });
+                    curPL.groups[curPL.groups.indexOf(oldG)] = val;
+                    curGR = val; save();
+                }
+                renderGR(); renderCH();
+            };
+            
+            inp.onblur = saveFn;
+            inp.onkeydown = (ev) => { if(ev.key === 'Enter') saveFn(); };
+            inp.onclick = (ev) => ev.stopPropagation();
+        }
+
+        function delGR(e, g) {
+            e.stopPropagation();
+            curPL.channels = curPL.channels.filter(c => c.grupo !== g);
+            curPL.groups = curPL.groups.filter(x => x !== g);
+            curGR = curPL.groups[0] || null;
+            save(); renderGR(); renderCH();
+        }
+
+        function editCH(e, id) {
+            e.stopPropagation();
+            const el = document.getElementById(`c-txt-${id}`);
+            const c = curPL.channels.find(x=>x.id==id);
+            el.innerHTML = `<input id="inp-c-${id}" value="${c.nome}" class="edit-inline">`;
+            const inp = document.getElementById(`inp-c-${id}`);
+            inp.focus();
+            
+            const saveFn = () => {
+                if(inp.value) c.nome = inp.value;
+                save(); renderCH();
+            };
+            inp.onblur = saveFn;
+            inp.onkeydown = (ev) => { if(ev.key === 'Enter') saveFn(); };
+            inp.onclick = (ev) => ev.stopPropagation();
+        }
+
+        function togCH(e, id) { e.stopPropagation(); const c = curPL.channels.find(x=>x.id==id); c.oculto = !c.oculto; save(); renderCH(); }
+        function delCH(e, id) { e.stopPropagation(); curPL.channels = curPL.channels.filter(x=>x.id!==id); save(); renderCH(); }
+
+        // --- THEATER MODE ---
         function renderTheaterBase() {
             if(!curPL && db.length > 0) curPL = db[0];
             if(!curPL) return;
-            
-            // Render Groups
             document.getElementById('theater-groups').innerHTML = curPL.groups.map(g => `
                 <div class="p-4 border-b border-white/5 cursor-pointer hover:bg-white/5 text-xs font-bold text-gray-400 hover:text-white transition-all ${curGR===g ? 'text-cyan-500 bg-white/5':''}" onclick="setTheaterGR('${g}')">
                     ${g}
                 </div>
             `).join('');
-            
             renderTheaterChannels();
         }
-
-        function setTheaterGR(g) { curGR = g; renderTheaterBase(); } // Refresh UI
-
+        function setTheaterGR(g) { curGR = g; renderTheaterBase(); }
         function renderTheaterChannels() {
-            const grid = document.getElementById('theater-channels');
             if(!curGR && curPL.groups.length > 0) curGR = curPL.groups[0];
-            
             const chans = curPL.channels.filter(c => c.grupo === curGR && !c.oculto);
-            grid.innerHTML = chans.map(c => `
-                <div class="channel-card">
-                    <img src="${c.logo || 'https://via.placeholder.com/60?text=TV'}" loading="lazy">
+            document.getElementById('theater-channels').innerHTML = chans.map(c => `
+                <div class="channel-card" onclick="playChannel('${c.url}', '${c.nome}')">
+                    <img src="${c.logo || 'https://via.placeholder.com/50'}" loading="lazy">
                     <div class="text-[10px] font-bold truncate">${c.nome}</div>
                 </div>
             `).join('');
         }
-
-        /* --- ACTIONS (IN-PLACE & DIRECT) --- */
-        function setGR(g) { curGR = g; renderGR(); renderCH(); }
-        
-        function editInPlaceC(id) {
-            const el = document.getElementById(`c-text-${id}`);
-            const oldVal = curPL.channels.find(x=>x.id==id).nome;
-            el.innerHTML = `<input id="inp-${id}" value="${oldVal}" class="edit-inline">`;
-            const inp = document.getElementById(`inp-${id}`);
-            inp.focus();
-            inp.onblur = () => saveC(id, inp.value);
-            inp.onkeydown = (e) => { if(e.key === 'Enter') saveC(id, inp.value); };
-            // Stop click propagation to avoid resetting row
-            inp.onclick = (e) => e.stopPropagation();
-        }
-
-        function saveC(id, val) {
-            const c = curPL.channels.find(x=>x.id==id);
-            if(val) c.nome = val;
-            save(); renderCH();
-        }
-
-        function editInPlaceG(oldG) {
-            const el = document.getElementById(`g-text-${oldG}`);
-            el.innerHTML = `<input id="inp-g-${oldG}" value="${oldG}" class="edit-inline">`;
-            const inp = document.getElementById(`inp-g-${oldG}`);
-            inp.focus();
-            inp.onblur = () => saveG(oldG, inp.value);
-            inp.onkeydown = (e) => { if(e.key === 'Enter') saveG(oldG, inp.value); };
-            inp.onclick = (e) => e.stopPropagation();
-        }
-
-        function saveG(oldG, newG) {
-            if(!newG || newG === oldG) { renderGR(); return; }
-            newG = newG.toUpperCase();
-            // Update all channels in this group
-            curPL.channels.forEach(c => { if(c.grupo === oldG) c.grupo = newG; });
-            // Update group list
-            const idx = curPL.groups.indexOf(oldG);
-            curPL.groups[idx] = newG;
-            curGR = newG;
-            save(); renderGR(); renderCH();
-        }
-
-        function delGR(g) {
-            // Direct delete, no confirm
-            curPL.channels = curPL.channels.filter(c => c.grupo !== g); // Remove channels
-            curPL.groups = curPL.groups.filter(x => x !== g); // Remove group
-            curGR = curPL.groups[0] || null;
-            save(); renderGR(); renderCH();
-        }
-
-        function togCH(id) {
-            const c = curPL.channels.find(x=>x.id==id);
-            c.oculto = !c.oculto;
-            save(); renderCH();
-        }
-        
-        function delCH(id) {
-            curPL.channels = curPL.channels.filter(x=>x.id!==id);
-            save(); renderCH();
-        }
-
-        function delPL(id) {
-            db = db.filter(x=>x.id!==id);
-            curPL = null;
-            save(); renderPL();
-        }
-
-        function groupAction(act) {
-            if(!curPL) return;
-            if(act === 'az') { curPL.groups.sort(); renderGR(); save(); }
-        }
-
-        function chanAction(act) {
-            if(!curPL) return;
-            if(act === 'az' && curGR) {
-                curPL.channels.sort((a,b) => a.nome.localeCompare(b.nome));
-                renderCH(); save();
-            }
-            if(act === 'hide') {
-                 curPL.channels.forEach(c => { if(c.grupo === curGR) c.oculto = true; });
-                 renderCH(); save();
+        function playChannel(url, name) {
+            const video = document.getElementById('video-player');
+            document.getElementById('player-msg').style.display = 'none';
+            if(Hls.isSupported()) {
+                if(hls) hls.destroy();
+                hls = new Hls();
+                hls.loadSource(url);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+            } else if(video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = url;
+                video.play();
             }
         }
 
-        function exportM3U() {
-            if(!curPL) return alert("Selecione uma playlist no Editor primeiro.");
-            let content = "#EXTM3U\n";
-            curPL.channels.forEach(c => {
-                if(!c.oculto) {
-                    content += `#EXTINF:-1 tvg-id="${c.epg || ''}" tvg-logo="${c.logo || ''}" group-title="${c.grupo}",${c.nome}\n${c.url || 'http://stream-placeholder.com'}\n`;
-                }
-            });
-            const blob = new Blob([content], {type: 'text/plain'});
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'Gemini_Playlist.m3u';
-            link.click();
-        }
-
-        function openEditPL(id) {
-            editingId = id;
-            const p = db.find(x=>x.id==id);
-            document.getElementById('edit-pl-name').value = p.name;
-            toggleM('modal-edit-pl', true);
-        }
-        function savePLMetadata() {
-            const p = db.find(x=>x.id==editingId);
-            p.name = document.getElementById('edit-pl-name').value;
-            save(); toggleM('modal-edit-pl', false); renderPL(); renderHome();
-        }
-
+        // --- GERAL ---
+        function openEditPL(id) { editingId = id; const p = db.find(x=>x.id==id); document.getElementById('edit-pl-name').value = p.name; toggleM('modal-edit-pl', true); }
+        function savePLMetadata() { const p = db.find(x=>x.id==editingId); p.name = document.getElementById('edit-pl-name').value; save(); toggleM('modal-edit-pl', false); renderPL(); }
+        function delPL(id) { if(confirm("Apagar playlist?")) { db = db.filter(x=>x.id!==id); curPL = null; save(); renderPL(); } }
+        function exportM3U() { if(!curPL) return alert("Selecione Playlist"); let c = "#EXTM3U\n" + curPL.channels.map(x=>`#EXTINF:-1 group-title="${x.grupo}" tvg-logo="${x.logo}",${x.nome}\n${x.url}`).join('\n'); let b = new Blob([c],{type:'text/plain'}); let l = document.createElement('a'); l.href = URL.createObjectURL(b); l.download = 'lista.m3u'; l.click(); }
         function toggleM(id, show) { document.getElementById(id).style.display = show ? 'flex' : 'none'; }
-        function save() { localStorage.setItem('gtv_v68_db', JSON.stringify(db)); }
         function toggleTheme() { document.body.classList.toggle('light-mode'); }
         
-        window.onload = () => navigateTo('home');
+        window.onload = () => { updateAuthUI(); navigateTo('home'); };
     </script>
 </body>
 </html>
