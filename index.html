@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini TV - Enterprise v7.1</title>
+    <title>Gemini TV - Enterprise v7.3</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -17,7 +17,7 @@
                 extend: {
                     colors: {
                         slate: { 850: '#1e293b', 900: '#0f172a', 950: '#020617' },
-                        cyan: { 450: '#06b6d4' } // Custom cyan
+                        cyan: { 450: '#06b6d4' }
                     },
                     fontFamily: { sans: ['Inter', 'sans-serif'] }
                 }
@@ -30,181 +30,179 @@
         
         body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; overflow: hidden; }
         
-        /* SCROLLBAR CUSTOMIZATION */
+        /* UI TWEAKS */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
 
-        /* GLASS EFFECTS */
-        .glass-panel { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
-        .glass-nav { background: rgba(2, 6, 23, 0.95); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); }
+        .glass-header { background: rgba(2, 6, 23, 0.95); border-bottom: 1px solid rgba(255,255,255,0.05); }
         
-        /* ANIMATIONS */
-        .fade-in { animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        /* DRAG AND DROP STYLES */
+        .draggable-item { cursor: grab; }
+        .draggable-item:active { cursor: grabbing; background: rgba(6, 182, 212, 0.2); }
+        .draggable-item.dragging { opacity: 0.5; border: 1px dashed #06b6d4; }
 
-        .active-nav { color: #06b6d4; border-bottom: 2px solid #06b6d4; }
-        
-        /* TOAST NOTIFICATION */
-        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
-        .toast { background: #1e293b; color: white; padding: 12px 20px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #06b6d4; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 10px; animation: slideIn 0.3s ease-out; }
-        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        /* TOAST */
+        .toast { animation: slideIn 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        /* EDITOR LAYOUT */
-        .editor-grid { display: grid; grid-template-columns: 280px 1fr; height: calc(100vh - 110px); gap: 1px; }
-        .item-row { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.03); cursor: pointer; transition: all 0.2s; }
-        .item-row:hover { background: rgba(255,255,255,0.03); }
-        .item-row.active { background: rgba(6, 182, 212, 0.1); border-left: 3px solid #06b6d4; }
-        .hidden-item { opacity: 0.4; filter: grayscale(1); }
-
-        .row-actions { display: none; gap: 10px; margin-left: auto; }
-        .item-row:hover .row-actions { display: flex; }
-        .row-actions i { font-size: 12px; padding: 6px; border-radius: 4px; background: rgba(0,0,0,0.3); transition: 0.2s; }
-        .row-actions i:hover { background: #06b6d4; color: white; }
-
-        /* THEATER */
-        .theater-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; padding: 20px; overflow-y: auto; height: 100%; }
-        .channel-card { background: #1e293b; border-radius: 8px; padding: 10px; text-align: center; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
-        .channel-card:hover { transform: translateY(-2px); border-color: #06b6d4; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        .channel-card img { width: 40px; height: 40px; margin: 0 auto 8px; object-fit: contain; }
-
-        /* LOADING OVERLAY */
-        #loading-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
-        .spinner { width: 40px; height: 40px; border: 4px solid #1e293b; border-top: 4px solid #06b6d4; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* MODAL */
+        .modal-bg { background-color: rgba(0,0,0,0.8); backdrop-filter: blur(4px); }
     </style>
 </head>
 <body>
 
-    <div id="loading-overlay">
-        <div class="spinner"></div>
-        <div id="loading-text" class="text-cyan-400 font-bold tracking-wider">PROCESSANDO...</div>
+    <div id="system-layer" class="fixed inset-0 z-50 pointer-events-none flex flex-col items-end p-4">
+        <div id="toast-container" class="flex flex-col gap-2 pointer-events-auto"></div>
     </div>
 
-    <div id="toast-container"></div>
-
-    <div id="modal-login" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="glass-panel w-full max-w-md p-8 rounded-2xl shadow-2xl border border-cyan-900/30">
-            <div class="text-center mb-8">
-                <h1 class="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">GEMINI TV</h1>
-                <p class="text-gray-500 text-sm mt-2 tracking-widest uppercase">Enterprise Edition v7.1</p>
+    <div id="modal-overlay" class="fixed inset-0 z-50 modal-bg hidden flex items-center justify-center p-4">
+        <div class="glass w-full max-w-md p-6 rounded-xl shadow-2xl border border-white/10 transform scale-100 transition-all">
+            <h3 id="modal-title" class="text-xl font-bold text-white mb-2">Título</h3>
+            <p id="modal-desc" class="text-gray-400 text-sm mb-4">Descrição</p>
+            <div id="modal-content" class="mb-6">
+                </div>
+            <div class="flex justify-end gap-3">
+                <button onclick="Modal.close()" class="px-4 py-2 rounded text-sm font-bold text-gray-400 hover:text-white transition-colors">CANCELAR</button>
+                <button id="modal-confirm-btn" class="bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-2 rounded text-sm font-bold shadow-lg transition-transform transform active:scale-95">CONFIRMAR</button>
             </div>
-            
-            <form onsubmit="App.login(event)" class="space-y-5">
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 mb-1 uppercase">E-mail de Acesso</label>
-                    <input type="email" id="login-email" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 focus:outline-none transition-colors" placeholder="seu@email.com">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 mb-1 uppercase">Senha</label>
-                    <input type="password" id="login-pass" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 focus:outline-none transition-colors" placeholder="••••••••">
-                </div>
-                <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-lg shadow-lg shadow-cyan-900/20 transition-all transform hover:scale-[1.02]">
-                    <i class="fa-solid fa-rocket mr-2"></i> ACESSAR SISTEMA
-                </button>
-            </form>
-            
-            <p class="text-center text-xs text-gray-600 mt-6">Ambiente Seguro &bull; IndexedDB Local</p>
         </div>
     </div>
 
-    <div id="app-container" class="h-screen flex flex-col hidden fade-in">
-        
-        <nav class="glass-nav h-16 flex items-center px-6 justify-between select-none">
-            <div class="flex items-center gap-6">
-                <div class="text-xl font-bold tracking-tight text-white"><span class="text-cyan-500">GEMINI</span> TV</div>
-                <div class="h-6 w-px bg-white/10"></div>
-                <div class="flex gap-4 text-sm font-medium text-gray-400">
-                    <span id="nav-home" onclick="App.nav('home')" class="cursor-pointer hover:text-white transition-colors active-nav py-5">INÍCIO</span>
-                    <span id="nav-editor" onclick="App.nav('editor')" class="cursor-pointer hover:text-white transition-colors py-5">EDITOR</span>
-                    <span id="nav-theater" onclick="App.nav('theater')" class="cursor-pointer hover:text-white transition-colors py-5">THEATER</span>
-                </div>
+    <div id="login-screen" class="fixed inset-0 z-40 bg-[#020617] flex items-center justify-center p-4">
+        <div class="w-full max-w-md bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-2xl">
+            <div class="text-center mb-8">
+                <div class="text-4xl text-cyan-500 mb-2"><i class="fa-solid fa-infinity"></i></div>
+                <h1 class="text-2xl font-bold text-white">Gemini TV <span class="text-cyan-500">7.3</span></h1>
+                <p class="text-gray-500 text-xs uppercase tracking-widest mt-1">Acesso Seguro</p>
             </div>
 
-            <div class="flex items-center gap-4">
-                <button onclick="App.importUI()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded text-xs font-bold transition-colors">
-                    <i class="fa-solid fa-cloud-arrow-down mr-2"></i> IMPORTAR
-                </button>
-                <button onclick="App.exportM3U()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded text-xs font-bold transition-colors">
-                    <i class="fa-solid fa-cloud-arrow-up mr-2"></i> EXPORTAR
-                </button>
-                
-                <div class="h-6 w-px bg-white/10 mx-2"></div>
-                
-                <div id="user-display" class="flex items-center gap-3"></div>
+            <div class="flex border-b border-slate-800 mb-6">
+                <button onclick="Auth.switchTab('login')" id="tab-login" class="flex-1 pb-3 text-sm font-bold text-cyan-500 border-b-2 border-cyan-500">ENTRAR</button>
+                <button onclick="Auth.switchTab('register')" id="tab-register" class="flex-1 pb-3 text-sm font-bold text-gray-500 hover:text-gray-300">CRIAR CONTA</button>
             </div>
-        </nav>
+
+            <form onsubmit="Auth.submit(event)" class="space-y-4">
+                <div>
+                    <label class="text-xs font-bold text-gray-400 uppercase">E-mail</label>
+                    <input type="email" id="auth-email" required class="w-full mt-1 bg-slate-950 border border-slate-800 rounded p-3 text-white focus:border-cyan-500 outline-none transition-colors" placeholder="seu@email.com">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-400 uppercase">Senha</label>
+                    <input type="password" id="auth-pass" required minlength="4" class="w-full mt-1 bg-slate-950 border border-slate-800 rounded p-3 text-white focus:border-cyan-500 outline-none transition-colors" placeholder="••••">
+                </div>
+                <button type="submit" id="auth-btn" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded mt-2 transition-all">ACESSAR SISTEMA</button>
+            </form>
+            <p id="auth-msg" class="text-center text-xs text-red-400 mt-4 h-4"></p>
+        </div>
+    </div>
+
+    <div id="app-container" class="hidden h-screen flex flex-col">
+        
+        <header class="glass-header h-16 flex items-center justify-between px-6 shrink-0 select-none">
+            <div class="flex items-center gap-8">
+                <div class="font-bold text-lg tracking-tight"><span class="text-cyan-400">GEMINI</span> TV</div>
+                
+                <nav class="flex gap-1 bg-slate-800/50 p-1 rounded-lg">
+                    <button onclick="Router.go('home')" id="nav-home" class="px-4 py-1.5 rounded text-xs font-bold text-white bg-slate-700 shadow transition-all">
+                        <i class="fa-solid fa-home mr-1"></i> INÍCIO
+                    </button>
+                    <button onclick="Router.go('editor')" id="nav-editor" class="px-4 py-1.5 rounded text-xs font-bold text-gray-400 hover:text-white hover:bg-slate-700/50 transition-all">
+                        <i class="fa-solid fa-layer-group mr-1"></i> EDITOR
+                    </button>
+                    <button onclick="Router.go('theater')" id="nav-theater" class="px-4 py-1.5 rounded text-xs font-bold text-gray-400 hover:text-white hover:bg-slate-700/50 transition-all">
+                        <i class="fa-solid fa-play mr-1"></i> THEATER
+                    </button>
+                </nav>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button onclick="IO.importDialog()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded text-xs font-bold transition-colors">
+                    <i class="fa-solid fa-download mr-1"></i> IMPORTAR
+                </button>
+                <div class="h-8 w-px bg-white/10 mx-2"></div>
+                <div class="text-right hidden md:block">
+                    <div class="text-[10px] text-gray-400 uppercase">Logado como</div>
+                    <div id="user-display" class="text-xs font-bold text-white">usuario@email.com</div>
+                </div>
+                <button onclick="Auth.logout()" class="text-gray-400 hover:text-red-500 p-2 transition-colors" title="Sair">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </div>
+        </header>
 
         <main class="flex-1 overflow-hidden relative">
             
-            <section id="page-home" class="p-8 h-full overflow-y-auto">
-                <h2 class="text-2xl font-bold mb-6 border-l-4 border-cyan-500 pl-4">Minhas Playlists</h2>
-                <div id="home-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <section id="view-home" class="absolute inset-0 p-8 overflow-y-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-white">Minhas Playlists</h2>
+                </div>
+                
+                <div id="playlist-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     </div>
-
-                <div class="mt-10">
-                    <h3 class="text-lg font-bold mb-4 text-gray-400">Resumo do Sistema</h3>
-                    <div class="bg-slate-800/50 rounded-xl p-6 border border-white/5">
-                        <table class="w-full text-left text-sm text-gray-400">
-                            <thead>
-                                <tr class="border-b border-white/5 text-gray-500 uppercase text-xs">
-                                    <th class="pb-3">Playlist</th>
-                                    <th class="pb-3">Fonte</th>
-                                    <th class="pb-3">Grupos</th>
-                                    <th class="pb-3">Canais</th>
-                                    <th class="pb-3">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="pl-body">
-                                </tbody>
-                        </table>
-                    </div>
+                
+                <div id="empty-state" class="hidden text-center py-20 opacity-50">
+                    <i class="fa-solid fa-ghost text-6xl mb-4 text-gray-600"></i>
+                    <p>Nenhuma playlist encontrada.</p>
                 </div>
             </section>
 
-            <section id="page-editor" class="hidden h-full flex flex-col">
-                <div class="h-14 bg-slate-900 border-b border-white/5 flex items-center px-4 justify-between shrink-0">
+            <section id="view-editor" class="absolute inset-0 hidden flex flex-col">
+                <div class="h-12 bg-slate-900 border-b border-white/5 flex items-center px-4 justify-between shrink-0">
                     <div class="flex items-center gap-3">
-                        <select id="editor-pl-select" onchange="Editor.switchPL(this.value)" class="bg-slate-800 text-white text-xs rounded border border-slate-700 px-3 py-2 outline-none focus:border-cyan-500">
-                            <option>Carregando...</option>
+                        <span class="text-xs font-bold text-gray-500 uppercase">Editando:</span>
+                        <select id="editor-pl-select" onchange="Editor.loadPlaylist(this.value)" class="bg-slate-800 text-white text-xs rounded border border-slate-700 px-3 py-1 outline-none focus:border-cyan-500">
                         </select>
-                        <div class="h-6 w-px bg-white/10"></div>
-                        <span id="editor-stats" class="text-xs text-gray-500 font-mono">0 Grupos &bull; 0 Canais</span>
                     </div>
-                    <div class="flex gap-2">
-                         <input type="text" id="search-groups" onkeyup="Editor.renderGroups()" placeholder="Filtrar Grupos..." class="bg-slate-950 text-white text-xs rounded border border-slate-800 px-3 py-2 w-48 outline-none focus:border-cyan-500">
-                         <input type="text" id="search-channels" onkeyup="Editor.renderChannels()" placeholder="Buscar Canais..." class="bg-slate-950 text-white text-xs rounded border border-slate-800 px-3 py-2 w-64 outline-none focus:border-cyan-500">
+                    <div>
+                         <button onclick="IO.exportCurrent()" class="text-emerald-400 hover:text-emerald-300 text-xs font-bold px-3 py-1 border border-emerald-500/30 rounded hover:bg-emerald-500/10 transition-colors">
+                            <i class="fa-solid fa-file-export mr-1"></i> EXPORTAR M3U
+                        </button>
                     </div>
                 </div>
 
-                <div class="editor-grid">
-                    <div class="border-r border-white/5 bg-slate-900/50 overflow-y-auto" id="list-groups">
-                        </div>
+                <div class="flex-1 flex overflow-hidden">
                     
-                    <div class="overflow-y-auto bg-slate-950/30" id="list-channels">
+                    <div class="w-80 bg-slate-900 border-r border-white/5 flex flex-col">
+                        <div class="p-3 border-b border-white/5 bg-slate-800/30">
+                            <div class="flex justify-between items-center mb-2">
+                                <div class="text-xs font-bold text-gray-400 uppercase">GRUPOS <span id="count-groups" class="bg-slate-700 text-white px-1.5 rounded text-[10px] ml-1">0</span></div>
+                                <div class="flex gap-1">
+                                    <button onclick="Editor.sortGroups()" class="p-1.5 hover:bg-white/10 rounded text-gray-400" title="Ordenar A-Z"><i class="fa-solid fa-arrow-down-a-z text-xs"></i></button>
+                                    <button onclick="Editor.toggleAllGroups()" class="p-1.5 hover:bg-white/10 rounded text-gray-400" title="Esconder/Mostrar Todos"><i class="fa-solid fa-eye text-xs"></i></button>
+                                </div>
+                            </div>
+                            <input type="text" id="search-groups" onkeyup="Editor.renderGroups()" placeholder="Filtrar..." class="w-full bg-slate-950 text-white text-xs rounded border border-slate-700 px-3 py-2 outline-none focus:border-cyan-500">
                         </div>
+                        <div id="list-groups" class="flex-1 overflow-y-auto p-2 space-y-1"></div>
+                    </div>
+
+                    <div class="flex-1 bg-slate-950 flex flex-col">
+                        <div class="p-3 border-b border-white/5 bg-slate-900/50 flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <div class="text-xs font-bold text-gray-400 uppercase">CANAIS <span id="count-channels" class="bg-cyan-900 text-cyan-200 px-1.5 rounded text-[10px] ml-1">0</span></div>
+                                <input type="text" id="search-channels" onkeyup="Editor.renderChannels()" placeholder="Buscar canal..." class="bg-slate-900 text-white text-xs rounded border border-slate-700 px-3 py-1.5 w-64 outline-none focus:border-cyan-500">
+                            </div>
+                            <div class="flex bg-slate-800 rounded p-0.5">
+                                <button class="px-3 py-1 text-[10px] font-bold bg-slate-600 text-white rounded shadow">LISTA</button>
+                                <button class="px-3 py-1 text-[10px] font-bold text-gray-500 hover:text-white">LOGOS</button>
+                                <button class="px-3 py-1 text-[10px] font-bold text-gray-500 hover:text-white">EPG</button>
+                            </div>
+                        </div>
+                        <div id="list-channels" class="flex-1 overflow-y-auto p-2"></div>
+                    </div>
                 </div>
             </section>
 
-            <section id="page-theater" class="hidden h-full flex">
-                <div class="w-64 bg-slate-900 border-r border-white/5 flex flex-col shrink-0">
-                    <div class="p-3 border-b border-white/5 font-bold text-center text-xs text-cyan-500 tracking-widest">CANAIS</div>
-                    <div id="theater-groups" class="flex-1 overflow-y-auto"></div>
+            <section id="view-theater" class="absolute inset-0 hidden flex bg-black">
+                <div class="w-64 bg-slate-900 border-r border-white/10 flex flex-col">
+                    <div class="p-3 font-bold text-xs text-cyan-500 border-b border-white/10">SELEÇÃO</div>
+                    <div id="theater-list" class="flex-1 overflow-y-auto p-2"></div>
                 </div>
-                <div class="flex-1 flex flex-col relative">
-                    <div class="bg-black flex-1 flex items-center justify-center overflow-hidden relative group">
-                        <video id="main-player" controls class="w-full h-full max-h-[80vh] object-contain"></video>
-                        <div class="absolute top-4 right-4 bg-black/50 px-3 py-1 rounded text-xs text-white pointer-events-none opacity-0 group-hover:opacity-100 transition">HLS.js Native</div>
-                    </div>
-                    <div class="h-48 bg-slate-900 border-t border-white/5 overflow-hidden flex flex-col">
-                        <div class="p-2 bg-slate-800 text-xs font-bold text-gray-400 flex justify-between">
-                            <span>SELEÇÃO RÁPIDA</span>
-                            <span class="text-cyan-500 cursor-pointer" onclick="Theater.renderGrid()">Atualizar</span>
-                        </div>
-                        <div id="theater-grid" class="theater-grid">
-                            </div>
-                    </div>
+                <div class="flex-1 flex items-center justify-center relative group">
+                    <video id="video-player" controls class="w-full h-full max-h-screen"></video>
                 </div>
             </section>
 
@@ -212,531 +210,479 @@
     </div>
 
     <script>
-        // --- 1. INDEXEDDB WRAPPER (MOTOR DE DADOS) ---
-        const DB = {
-            dbName: 'GeminiTV_DB_v7_1', // Novo nome para evitar conflito com versões antigas
-            version: 1,
-            db: null,
-            
-            async init() {
-                return new Promise((resolve, reject) => {
-                    const request = indexedDB.open(this.dbName, this.version);
-                    request.onupgradeneeded = (e) => {
-                        const db = e.target.result;
-                        if (!db.objectStoreNames.contains('playlists')) {
-                            db.createObjectStore('playlists', { keyPath: 'id' });
-                        }
-                    };
-                    request.onsuccess = (e) => {
-                        this.db = e.target.result;
-                        console.log("DB: Conectado com Sucesso.");
-                        resolve(this.db);
-                    };
-                    request.onerror = (e) => {
-                        console.error("DB: Erro fatal", e);
-                        reject("Erro ao abrir Banco de Dados");
-                    };
-                });
-            },
-
-            async savePlaylist(playlist) {
-                return new Promise((resolve, reject) => {
-                    if(!this.db) return reject("DB Offline");
-                    const tx = this.db.transaction('playlists', 'readwrite');
-                    const store = tx.objectStore('playlists');
-                    const req = store.put(playlist);
-                    req.onsuccess = () => resolve(true);
-                    req.onerror = () => reject("Erro ao salvar");
-                });
-            },
-
-            async getAllPlaylists() {
-                return new Promise((resolve, reject) => {
-                    if(!this.db) return resolve([]);
-                    const tx = this.db.transaction('playlists', 'readonly');
-                    const store = tx.objectStore('playlists');
-                    const request = store.getAll();
-                    request.onsuccess = () => resolve(request.result);
-                    request.onerror = () => resolve([]);
-                });
-            },
-
-            async deletePlaylist(id) {
-                return new Promise((resolve, reject) => {
-                    const tx = this.db.transaction('playlists', 'readwrite');
-                    tx.objectStore('playlists').delete(id);
-                    tx.oncomplete = () => resolve(true);
-                });
+        // --- UTILITÁRIOS ---
+        const Utils = {
+            id: () => Date.now().toString(36) + Math.random().toString(36).substr(2),
+            toast: (msg, type='success') => {
+                const div = document.createElement('div');
+                div.className = `toast px-4 py-3 rounded shadow-lg text-sm font-bold flex items-center gap-3 text-white ${type === 'error' ? 'bg-red-900 border-l-4 border-red-500' : 'bg-slate-800 border-l-4 border-cyan-500'}`;
+                div.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-circle-xmark' : 'fa-check-circle'}"></i> ${msg}`;
+                document.getElementById('toast-container').appendChild(div);
+                setTimeout(() => div.remove(), 4000);
             }
         };
 
-        // --- 2. APP CORE (CONTROLLER) ---
-        const App = {
+        // --- SISTEMA DE MODAL (SEM PROMPT FEIO) ---
+        const Modal = {
+            el: document.getElementById('modal-overlay'),
+            title: document.getElementById('modal-title'),
+            desc: document.getElementById('modal-desc'),
+            content: document.getElementById('modal-content'),
+            confirmBtn: document.getElementById('modal-confirm-btn'),
+            
+            prompt(title, desc, initialValue, callback) {
+                this.title.innerText = title;
+                this.desc.innerText = desc;
+                this.content.innerHTML = `<input type="text" id="modal-input" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white outline-none focus:border-cyan-500" value="${initialValue}">`;
+                this.confirmBtn.onclick = () => {
+                    const val = document.getElementById('modal-input').value;
+                    if(val) callback(val);
+                    this.close();
+                };
+                this.el.classList.remove('hidden');
+                setTimeout(() => document.getElementById('modal-input').focus(), 100);
+            },
+            
+            confirm(title, desc, callback) {
+                this.title.innerText = title;
+                this.desc.innerText = desc;
+                this.content.innerHTML = '';
+                this.confirmBtn.onclick = () => {
+                    callback();
+                    this.close();
+                };
+                this.el.classList.remove('hidden');
+            },
+
+            close() { this.el.classList.add('hidden'); }
+        };
+
+        // --- AUTH (LOGIN REAL) ---
+        const Auth = {
+            mode: 'login', // login | register
             user: null,
+
+            init() {
+                const session = localStorage.getItem('gtv_session');
+                if(session) {
+                    this.user = JSON.parse(session);
+                    this.enterApp();
+                }
+            },
+
+            switchTab(mode) {
+                this.mode = mode;
+                const tabLogin = document.getElementById('tab-login');
+                const tabReg = document.getElementById('tab-register');
+                const btn = document.getElementById('auth-btn');
+                
+                if(mode === 'login') {
+                    tabLogin.className = "flex-1 pb-3 text-sm font-bold text-cyan-500 border-b-2 border-cyan-500";
+                    tabReg.className = "flex-1 pb-3 text-sm font-bold text-gray-500 hover:text-gray-300";
+                    btn.innerText = "ACESSAR SISTEMA";
+                } else {
+                    tabReg.className = "flex-1 pb-3 text-sm font-bold text-cyan-500 border-b-2 border-cyan-500";
+                    tabLogin.className = "flex-1 pb-3 text-sm font-bold text-gray-500 hover:text-gray-300";
+                    btn.innerText = "CRIAR CONTA";
+                }
+                document.getElementById('auth-msg').innerText = "";
+            },
+
+            submit(e) {
+                e.preventDefault();
+                const email = document.getElementById('auth-email').value;
+                const pass = document.getElementById('auth-pass').value;
+                const msg = document.getElementById('auth-msg');
+
+                // Simulação de Banco de Usuários no LocalStorage
+                const usersDB = JSON.parse(localStorage.getItem('gtv_users_db') || '{}');
+
+                if(this.mode === 'register') {
+                    if(usersDB[email]) return msg.innerText = "E-mail já cadastrado.";
+                    usersDB[email] = pass; // Salva senha (em projeto real, usar hash)
+                    localStorage.setItem('gtv_users_db', JSON.stringify(usersDB));
+                    Utils.toast("Conta criada! Faça login.");
+                    this.switchTab('login');
+                } else {
+                    if(!usersDB[email] || usersDB[email] !== pass) return msg.innerText = "E-mail ou senha incorretos.";
+                    
+                    this.user = { email, token: Utils.id() };
+                    localStorage.setItem('gtv_session', JSON.stringify(this.user));
+                    this.enterApp();
+                }
+            },
+
+            enterApp() {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('app-container').classList.remove('hidden');
+                document.getElementById('user-display').innerText = this.user.email;
+                DB.init();
+            },
+
+            logout() {
+                localStorage.removeItem('gtv_session');
+                location.reload();
+            }
+        };
+
+        // --- DATABASE (INDEXEDDB) ---
+        const DB = {
+            db: null,
+            async init() {
+                const request = indexedDB.open("GeminiTV_v7.3", 1);
+                request.onupgradeneeded = e => {
+                    const db = e.target.result;
+                    if(!db.objectStoreNames.contains('playlists')) db.createObjectStore('playlists', { keyPath: 'id' });
+                };
+                request.onsuccess = e => {
+                    this.db = e.target.result;
+                    this.loadAll();
+                };
+            },
+            async save(pl) {
+                const tx = this.db.transaction('playlists', 'readwrite');
+                tx.objectStore('playlists').put(pl);
+                return new Promise(r => tx.oncomplete = r);
+            },
+            async delete(id) {
+                const tx = this.db.transaction('playlists', 'readwrite');
+                tx.objectStore('playlists').delete(id);
+                return new Promise(r => tx.oncomplete = r);
+            },
+            async loadAll() {
+                const tx = this.db.transaction('playlists', 'readonly');
+                const req = tx.objectStore('playlists').getAll();
+                req.onsuccess = () => {
+                    App.playlists = req.result || [];
+                    App.renderHome();
+                };
+            }
+        };
+
+        // --- CORE APP LOGIC ---
+        const App = {
             playlists: [],
             currentPL: null,
             currentGroup: null,
 
-            async start() {
-                await DB.init();
-                this.checkUser(); // Se não logado, modal aparece
-            },
-
-            checkUser() {
-                const u = localStorage.getItem('gtv_user_session_v7');
-                if(u) {
-                    this.user = JSON.parse(u);
-                    document.getElementById('modal-login').style.display = 'none';
-                    document.getElementById('app-container').classList.remove('hidden');
-                    this.renderUserHeader();
-                    this.loadData();
-                } else {
-                    document.getElementById('modal-login').style.display = 'flex';
-                }
-            },
-
-            renderUserHeader() {
-                document.getElementById('user-display').innerHTML = `
-                    <div class="text-right mr-2 leading-tight">
-                        <div class="text-[10px] text-cyan-500 uppercase font-bold">Olá</div>
-                        <div class="text-xs font-bold text-white">${this.user.email.split('@')[0]}</div>
-                    </div>
-                    <button onclick="App.logout()" class="text-gray-400 hover:text-red-500 transition-colors" title="Sair">
-                        <i class="fa-solid fa-power-off"></i>
-                    </button>`;
-            },
-
-            login(e) {
-                e.preventDefault(); // Impede recarregar página (Formulário Real)
+            renderHome() {
+                const grid = document.getElementById('playlist-grid');
+                const empty = document.getElementById('empty-state');
                 
-                const email = document.getElementById('login-email').value;
-                const pass = document.getElementById('login-pass').value;
-
-                if(!email || !pass) return UI.toast("Preencha todos os campos", "error");
-                
-                // Simulação de autenticação (segurança básica)
-                if(pass.length < 4) return UI.toast("Senha muito curta", "error");
-
-                this.user = { email: email, loginTime: Date.now() };
-                localStorage.setItem('gtv_user_session_v7', JSON.stringify(this.user));
-                
-                UI.toast("Login Efetuado com Sucesso!");
-                this.checkUser();
-            },
-
-            logout() {
-                if(confirm("Deseja realmente sair do sistema?")) {
-                    localStorage.removeItem('gtv_user_session_v7');
-                    location.reload();
-                }
-            },
-
-            async loadData() {
-                this.playlists = await DB.getAllPlaylists();
-                UI.renderHome();
-                UI.renderPlaylistsTable();
-                
-                // Se houver playlists, carrega a primeira no editor por padrão
-                if(this.playlists.length > 0 && !this.currentPL) {
-                    this.currentPL = this.playlists[0];
-                }
-            },
-
-            // --- IMPORTAÇÃO CORRIGIDA (Proxy + Date.now) ---
-            async importUI() {
-                const url = prompt("Cole a URL da Lista M3U:");
-                if(!url) return;
-                
-                UI.showLoading(true, "BAIXANDO LISTA...");
-                
-                try {
-                    // Proxy JC Doni (Cloudflare)
-                    const proxyUrl = `https://geminitv-proxy.jcdoni.workers.dev/?url=${encodeURIComponent(url)}`;
-                    const res = await fetch(proxyUrl);
-                    
-                    if(!res.ok) throw new Error("Erro na conexão com a URL");
-                    
-                    const text = await res.text();
-                    if(!text.includes('#EXTM3U')) throw new Error("Arquivo inválido (Não é M3U)");
-
-                    UI.showLoading(true, "PROCESSANDO DADOS...");
-
-                    // Processamento Assíncrono para não travar UI
-                    setTimeout(async () => {
-                        const lines = text.split('\n');
-                        let chans = [], groups = new Set();
-                        
-                        for(let i=0; i<lines.length; i++) {
-                            if(lines[i].startsWith('#EXTINF:')) {
-                                const info = lines[i];
-                                const meta = info.split(',')[0];
-                                const name = info.split(',').slice(1).join(',').trim() || "Canal Sem Nome";
-                                
-                                const g = (meta.match(/group-title="([^"]+)"/) || ["","GERAL"])[1].toUpperCase();
-                                const logo = (meta.match(/tvg-logo="([^"]+)"/) || ["",""])[1];
-                                const epgId = (meta.match(/tvg-id="([^"]+)"/) || ["",""])[1];
-                                
-                                groups.add(g);
-                                
-                                let link = "";
-                                if(lines[i+1] && lines[i+1].startsWith('http')) link = lines[i+1].trim();
-
-                                // FIX: ID Seguro para arquivo local (sem crypto)
-                                const safeID = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
-                                
-                                chans.push({ 
-                                    id: safeID, 
-                                    nome: name, 
-                                    grupo: g, 
-                                    logo: logo, 
-                                    epg: epgId, 
-                                    url: link, 
-                                    oculto: false 
-                                });
-                            }
-                        }
-
-                        const newPL = {
-                            id: Date.now().toString(), // ID da Playlist
-                            name: "Playlist " + (this.playlists.length + 1),
-                            source: url,
-                            channels: chans,
-                            groups: Array.from(groups).sort()
-                        };
-
-                        await DB.savePlaylist(newPL);
-                        await this.loadData();
-                        
-                        UI.showLoading(false);
-                        UI.toast(`Sucesso! ${chans.length} canais importados.`);
-                        App.nav('home');
-                    }, 100); // Timeout para UI renderizar o loader
-
-                } catch(e) {
-                    UI.showLoading(false);
-                    console.error(e);
-                    UI.toast("Falha na importação: " + e.message, "error");
-                }
-            },
-
-            // --- EXPORTAÇÃO RESTAURADA ---
-            exportM3U() {
-                if(!this.currentPL) return UI.toast("Abra ou selecione uma playlist primeiro!", "error");
-                
-                UI.showLoading(true, "GERANDO ARQUIVO...");
-                
-                setTimeout(() => {
-                    let content = "#EXTM3U\n";
-                    this.currentPL.channels.forEach(c => {
-                        if(!c.oculto) {
-                            content += `#EXTINF:-1 tvg-id="${c.epg}" tvg-logo="${c.logo}" group-title="${c.grupo}",${c.nome}\n${c.url}\n`;
-                        }
-                    });
-
-                    const blob = new Blob([content], { type: 'text/plain' });
-                    const a = document.createElement('a');
-                    a.href = URL.createObjectURL(blob);
-                    a.download = `GeminiTV_${this.currentPL.name.replace(/\s/g, '_')}.m3u`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    
-                    UI.showLoading(false);
-                    UI.toast("Arquivo M3U baixado com sucesso!");
-                }, 500);
-            },
-
-            async deletePL(id) {
-                if(confirm("ATENÇÃO: Isso apagará a playlist permanentemente. Confirmar?")) {
-                    await DB.deletePlaylist(id.toString());
-                    if(this.currentPL && this.currentPL.id == id) this.currentPL = null;
-                    await this.loadData();
-                    UI.toast("Playlist removida do banco de dados.");
-                }
-            },
-
-            nav(page) {
-                document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
-                document.querySelectorAll('.glass-nav span').forEach(el => el.classList.remove('active-nav'));
-                
-                document.getElementById('page-'+page).classList.remove('hidden');
-                
-                const btn = document.getElementById('nav-'+page);
-                if(btn) btn.classList.add('active-nav');
-
-                if(page === 'editor') Editor.init();
-                if(page === 'theater') Theater.init();
-            }
-        };
-
-        // --- 3. EDITOR LOGIC (COM FIX DE ASPAS) ---
-        const Editor = {
-            init() {
-                const sel = document.getElementById('editor-pl-select');
-                if(App.playlists.length === 0) {
-                    sel.innerHTML = '<option>Nenhuma playlist</option>';
+                if(this.playlists.length === 0) {
+                    grid.innerHTML = '';
+                    empty.classList.remove('hidden');
                     return;
                 }
 
-                sel.innerHTML = App.playlists.map(p => 
-                    `<option value="${p.id}" ${App.currentPL && App.currentPL.id == p.id ? 'selected':''}>${p.name}</option>`
-                ).join('');
-                
-                if(App.currentPL) {
-                    if(!App.currentGroup && App.currentPL.groups.length > 0) App.currentGroup = App.currentPL.groups[0];
-                    this.renderStats();
-                    this.renderGroups();
-                    this.renderChannels();
-                }
-            },
-
-            switchPL(id) {
-                if(!id) return;
-                App.currentPL = App.playlists.find(p => p.id == id); // == flexível (string/number)
-                App.currentGroup = App.currentPL ? App.currentPL.groups[0] : null;
-                
-                // Se estiver na Home, vai pro Editor
-                const editorSection = document.getElementById('page-editor');
-                if(editorSection.classList.contains('hidden')) {
-                    App.nav('editor');
-                } else {
-                    this.init();
-                }
-            },
-
-            renderStats() {
-                if(!App.currentPL) return;
-                document.getElementById('editor-stats').innerText = 
-                    `${App.currentPL.groups.length} Grupos • ${App.currentPL.channels.length} Canais`;
-            },
-
-            renderGroups() {
-                const term = document.getElementById('search-groups').value.toUpperCase();
-                const list = document.getElementById('list-groups');
-                
-                if(!App.currentPL) return list.innerHTML = '';
-
-                const filtered = App.currentPL.groups.filter(g => g.includes(term));
-                
-                // FIX: Aspas adicionadas nos onclicks ('${g}')
-                list.innerHTML = filtered.map(g => `
-                    <div class="item-row ${App.currentGroup === g ? 'active' : ''}" onclick="Editor.selectGroup('${g}')">
-                        <span class="text-xs font-bold truncate flex-1 text-gray-300">${g}</span>
-                        <div class="row-actions">
-                            <i class="fa-solid fa-pen" title="Renomear" onclick="Editor.renameGroup(event, '${g}')"></i>
-                            <i class="fa-solid fa-trash" title="Apagar" onclick="Editor.deleteGroup(event, '${g}')"></i>
+                empty.classList.add('hidden');
+                // Cards com BOTÕES VISÍVEIS
+                grid.innerHTML = this.playlists.map(p => `
+                    <div class="glass rounded-xl p-5 flex flex-col hover:border-cyan-500/50 transition-colors group">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="bg-gradient-to-br from-cyan-600 to-blue-700 w-12 h-12 rounded-lg flex items-center justify-center shadow-lg">
+                                <i class="fa-solid fa-play text-white text-lg"></i>
+                            </div>
+                            <div class="text-[10px] bg-slate-800 px-2 py-1 rounded text-gray-400 border border-white/5">M3U</div>
+                        </div>
+                        <h3 class="font-bold text-white text-lg truncate mb-1">${p.name}</h3>
+                        <p class="text-xs text-gray-500 font-mono mb-6">${p.channels.length} canais</p>
+                        
+                        <div class="mt-auto grid grid-cols-4 gap-2 pt-4 border-t border-white/5">
+                            <button onclick="Router.openTheater('${p.id}')" class="bg-slate-800 hover:bg-cyan-600 hover:text-white text-gray-400 py-2 rounded transition-colors" title="Assistir">
+                                <i class="fa-solid fa-play"></i>
+                            </button>
+                            <button onclick="Router.openEditor('${p.id}')" class="bg-slate-800 hover:bg-indigo-600 hover:text-white text-gray-400 py-2 rounded transition-colors" title="Editar">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button onclick="IO.exportSingle('${p.id}')" class="bg-slate-800 hover:bg-emerald-600 hover:text-white text-gray-400 py-2 rounded transition-colors" title="Exportar">
+                                <i class="fa-solid fa-file-arrow-down"></i>
+                            </button>
+                            <button onclick="App.deletePlaylist('${p.id}')" class="bg-slate-800 hover:bg-red-600 hover:text-white text-gray-400 py-2 rounded transition-colors" title="Excluir">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
                         </div>
                     </div>
                 `).join('');
             },
 
-            renderChannels() {
-                if(!App.currentGroup) return;
-                const term = document.getElementById('search-channels').value.toUpperCase();
-                const list = document.getElementById('list-channels');
-                
-                const chans = App.currentPL.channels.filter(c => c.grupo === App.currentGroup && c.nome.toUpperCase().includes(term));
-                
-                // FIX: Aspas adicionadas nos onclicks ('${c.id}')
-                list.innerHTML = chans.map(c => `
-                    <div class="item-row ${c.oculto ? 'hidden-item' : ''}">
-                        <img src="${c.logo || 'https://via.placeholder.com/40?text=TV'}" class="w-8 h-8 object-contain mr-3 bg-white/5 rounded">
-                        <div class="flex-1 min-w-0 mr-4">
-                            <div class="text-xs font-bold truncate text-white">${c.nome}</div>
-                            <div class="text-[9px] text-gray-500 truncate font-mono">${c.epg || 'NO EPG ID'}</div>
-                        </div>
-                        <div class="row-actions">
-                             <i class="fa-solid fa-pen" onclick="Editor.renameChannel(event, '${c.id}')"></i>
-                             <i class="fa-solid ${c.oculto ? 'fa-eye-slash text-red-400' : 'fa-eye'}" onclick="Editor.toggleChannel(event, '${c.id}')"></i>
-                             <i class="fa-solid fa-trash hover:bg-red-500" onclick="Editor.deleteChannel(event, '${c.id}')"></i>
-                        </div>
-                    </div>
-                `).join('');
-            },
-
-            selectGroup(g) { App.currentGroup = g; this.renderGroups(); this.renderChannels(); },
-
-            renameGroup(e, oldG) {
-                e.stopPropagation();
-                const newG = prompt("Renomear Grupo para:", oldG);
-                if(newG && newG !== oldG) {
-                    const upG = newG.toUpperCase();
-                    App.currentPL.channels.forEach(c => { if(c.grupo === oldG) c.grupo = upG; });
-                    const idx = App.currentPL.groups.indexOf(oldG);
-                    App.currentPL.groups[idx] = upG;
-                    App.currentGroup = upG;
-                    DB.savePlaylist(App.currentPL);
-                    this.renderGroups();
-                    this.renderChannels();
-                }
-            },
-
-            deleteGroup(e, g) {
-                e.stopPropagation();
-                if(confirm(`ATENÇÃO: Apagar o grupo "${g}" removerá TODOS os canais contidos nele. Continuar?`)) {
-                    App.currentPL.channels = App.currentPL.channels.filter(c => c.grupo !== g);
-                    App.currentPL.groups = App.currentPL.groups.filter(x => x !== g);
-                    App.currentGroup = App.currentPL.groups[0] || null;
-                    DB.savePlaylist(App.currentPL);
-                    this.renderStats();
-                    this.renderGroups();
-                    this.renderChannels();
-                }
-            },
-
-            renameChannel(e, id) {
-                e.stopPropagation();
-                const c = App.currentPL.channels.find(x => x.id === id);
-                const newName = prompt("Novo nome do canal:", c.nome);
-                if(newName) {
-                    c.nome = newName;
-                    DB.savePlaylist(App.currentPL);
-                    this.renderChannels();
-                }
-            },
-
-            toggleChannel(e, id) {
-                e.stopPropagation();
-                const c = App.currentPL.channels.find(x => x.id === id);
-                c.oculto = !c.oculto;
-                DB.savePlaylist(App.currentPL);
-                this.renderChannels();
-            },
-
-            deleteChannel(e, id) {
-                e.stopPropagation();
-                App.currentPL.channels = App.currentPL.channels.filter(x => x.id !== id);
-                DB.savePlaylist(App.currentPL);
-                this.renderStats();
-                this.renderChannels();
+            deletePlaylist(id) {
+                Modal.confirm("Excluir Playlist", "Tem certeza? Isso não pode ser desfeito.", async () => {
+                    await DB.delete(id);
+                    App.playlists = App.playlists.filter(p => p.id !== id);
+                    App.renderHome();
+                    Utils.toast("Playlist removida.");
+                });
             }
         };
 
-        // --- 4. THEATER MODE ---
-        const Theater = {
-            hls: null,
-            init() {
-                if(!App.currentPL && App.playlists.length > 0) App.currentPL = App.playlists[0];
+        // --- ROUTER ---
+        const Router = {
+            go(view) {
+                document.querySelectorAll('main section').forEach(el => el.classList.add('hidden'));
+                document.getElementById('view-'+view).classList.remove('hidden');
+                
+                // Reset Nav styles
+                document.querySelectorAll('nav button').forEach(b => {
+                    b.classList.remove('text-white', 'bg-slate-700');
+                    b.classList.add('text-gray-400');
+                });
+                document.getElementById('nav-'+view).classList.add('text-white', 'bg-slate-700');
+                document.getElementById('nav-'+view).classList.remove('text-gray-400');
+            },
+            openEditor(id) {
+                this.go('editor');
+                Editor.init(id);
+            },
+            openTheater(id) {
+                this.go('theater');
+                Theater.init(id);
+            }
+        };
+
+        // --- EDITOR LOGIC (Gourmet) ---
+        const Editor = {
+            init(id) {
+                const sel = document.getElementById('editor-pl-select');
+                sel.innerHTML = App.playlists.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+                if(id) sel.value = id;
+                this.loadPlaylist(sel.value);
+            },
+
+            loadPlaylist(id) {
+                App.currentPL = App.playlists.find(p => p.id === id);
                 if(!App.currentPL) return;
-                if(!App.currentGroup && App.currentPL.groups.length > 0) App.currentGroup = App.currentPL.groups[0];
+                
+                // Extrair grupos se não existirem
+                if(!App.currentPL.groups || App.currentPL.groups.length === 0) {
+                    const s = new Set(App.currentPL.channels.map(c => c.group));
+                    App.currentPL.groups = Array.from(s).sort().map(g => ({ name: g, hidden: false }));
+                }
+
+                if(!App.currentGroup && App.currentPL.groups.length > 0) App.currentGroup = App.currentPL.groups[0].name;
                 
                 this.renderGroups();
-                this.renderGrid();
+                this.renderChannels();
             },
 
             renderGroups() {
-                document.getElementById('theater-groups').innerHTML = App.currentPL.groups.map(g => `
-                    <div class="p-3 border-b border-white/5 cursor-pointer hover:bg-white/5 text-xs font-bold text-gray-400 hover:text-white transition-all ${App.currentGroup === g ? 'text-cyan-500 bg-white/5 border-l-2 border-cyan-500' : ''}" onclick="Theater.selectGroup('${g}')">
-                        ${g}
+                const list = document.getElementById('list-groups');
+                const term = document.getElementById('search-groups').value.toUpperCase();
+                
+                const filtered = App.currentPL.groups.filter(g => g.name.toUpperCase().includes(term));
+                document.getElementById('count-groups').innerText = filtered.length;
+
+                list.innerHTML = filtered.map(g => {
+                    const count = App.currentPL.channels.filter(c => c.group === g.name).length;
+                    const isActive = App.currentGroup === g.name;
+                    
+                    return `
+                    <div class="group flex items-center justify-between p-2 rounded cursor-pointer border border-transparent hover:border-white/5 hover:bg-white/5 transition-all ${isActive ? 'bg-cyan-500/10 border-cyan-500/50' : ''}" onclick="Editor.selectGroup('${g.name}')">
+                        <div class="flex items-center gap-2 overflow-hidden">
+                            <i class="fa-solid fa-grip-lines text-gray-600 cursor-grab hover:text-white text-xs"></i>
+                            <span class="text-xs font-bold truncate ${isActive ? 'text-cyan-400' : 'text-gray-300'}">${g.name}</span>
+                            <span class="text-[10px] text-gray-500 font-mono">(${count})</span>
+                        </div>
+                        <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="Editor.renameGroup(event, '${g.name}')" class="p-1 hover:text-white text-gray-400"><i class="fa-solid fa-pen text-[10px]"></i></button>
+                            <button onclick="Editor.toggleGroup(event, '${g.name}')" class="p-1 hover:text-white ${g.hidden ? 'text-red-400' : 'text-gray-400'}"><i class="fa-solid ${g.hidden ? 'fa-eye-slash' : 'fa-eye'} text-[10px]"></i></button>
+                        </div>
+                    </div>`;
+                }).join('');
+            },
+
+            selectGroup(name) {
+                App.currentGroup = name;
+                this.renderGroups(); // Para atualizar o highlight
+                this.renderChannels();
+            },
+
+            renderChannels() {
+                const list = document.getElementById('list-channels');
+                if(!App.currentGroup) { list.innerHTML = ''; return; }
+
+                const term = document.getElementById('search-channels').value.toUpperCase();
+                const channels = App.currentPL.channels.filter(c => c.group === App.currentGroup && c.name.toUpperCase().includes(term));
+                
+                document.getElementById('count-channels').innerText = channels.length;
+
+                list.innerHTML = channels.map(c => `
+                    <div class="flex items-center gap-3 p-2 border-b border-white/5 hover:bg-white/5 transition-colors draggable-item" draggable="true">
+                        <i class="fa-solid fa-grip-vertical text-gray-600 cursor-grab"></i>
+                        <img src="${c.logo || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiI+PHJlY3QgeD0iMiIgeT0iNyIgd2lkdGg9IjIwIiBoZWlnaHQ9IjE1IiByeD0iMiIgcnk9IjIiPjwvcmVjdD48cG9seWxpbmUgcG9pbnRzPSIxNyAyIDEyIDcgNyAyIj48L3BvbHlsaW5lPjwvc3ZnPg=='}" class="w-8 h-8 object-contain rounded bg-black/20">
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm text-gray-200 truncate font-medium">${c.name}</div>
+                            <div class="flex gap-2 text-[10px] text-gray-500 font-mono">
+                                <span>ID: ${c.tvgId || 'N/A'}</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 pr-2">
+                             <button onclick="Editor.renameChannel('${c.id}')" class="text-gray-500 hover:text-cyan-400"><i class="fa-solid fa-pen"></i></button>
+                             <button onclick="Editor.deleteChannel('${c.id}')" class="text-gray-500 hover:text-red-500"><i class="fa-solid fa-trash"></i></button>
+                        </div>
                     </div>
                 `).join('');
             },
 
-            selectGroup(g) {
-                App.currentGroup = g;
+            // Ações Gourmet (Sem Prompt)
+            renameGroup(e, oldName) {
+                e.stopPropagation();
+                Modal.prompt("Renomear Grupo", "Digite o novo nome:", oldName, (newName) => {
+                    if(newName === oldName) return;
+                    App.currentPL.channels.forEach(c => { if(c.group === oldName) c.group = newName; });
+                    const g = App.currentPL.groups.find(x => x.name === oldName);
+                    if(g) g.name = newName;
+                    if(App.currentGroup === oldName) App.currentGroup = newName;
+                    DB.save(App.currentPL);
+                    this.renderGroups();
+                    this.renderChannels();
+                });
+            },
+
+            renameChannel(id) {
+                const c = App.currentPL.channels.find(x => x.id === id);
+                Modal.prompt("Renomear Canal", "Novo nome:", c.name, (newName) => {
+                    c.name = newName;
+                    DB.save(App.currentPL);
+                    this.renderChannels();
+                });
+            },
+            
+            toggleGroup(e, name) {
+                e.stopPropagation();
+                const g = App.currentPL.groups.find(x => x.name === name);
+                g.hidden = !g.hidden;
+                // Lógica de ocultar canais seria aplicada na exportação
+                DB.save(App.currentPL);
                 this.renderGroups();
-                this.renderGrid();
             },
 
-            renderGrid() {
-                const chans = App.currentPL.channels.filter(c => c.grupo === App.currentGroup && !c.oculto);
-                document.getElementById('theater-grid').innerHTML = chans.map(c => `
-                    <div class="channel-card group" onclick="Theater.play('${c.url}')">
-                        <img src="${c.logo || 'https://via.placeholder.com/50?text=TV'}" loading="lazy" onerror="this.src='https://via.placeholder.com/50?text=Err'">
-                        <div class="text-[10px] font-bold truncate text-gray-300 group-hover:text-white">${c.nome}</div>
+            deleteChannel(id) {
+                if(confirm("Apagar canal?")) { // Usei confirm nativo para velocidade, mas poderia ser Modal
+                    App.currentPL.channels = App.currentPL.channels.filter(c => c.id !== id);
+                    DB.save(App.currentPL);
+                    this.renderChannels();
+                }
+            }
+        };
+
+        // --- IO (IMPORT/EXPORT) ---
+        const IO = {
+            importDialog() {
+                Modal.prompt("Importar Lista M3U", "Cole a URL da sua lista:", "http://", (url) => {
+                    this.processURL(url);
+                });
+            },
+
+            async processURL(url) {
+                Utils.toast("Baixando lista...", "info");
+                try {
+                    const proxy = `https://geminitv-proxy.jcdoni.workers.dev/?url=${encodeURIComponent(url)}`;
+                    const res = await fetch(proxy);
+                    const text = await res.text();
+                    
+                    if(!text.includes('#EXTM3U')) throw new Error("Não é uma lista M3U válida.");
+
+                    const lines = text.split('\n');
+                    const channels = [];
+                    const groupsSet = new Set();
+
+                    for(let i=0; i<lines.length; i++) {
+                        if(lines[i].startsWith('#EXTINF:')) {
+                            const meta = lines[i];
+                            const urlLine = lines[i+1] || "";
+                            
+                            const name = meta.split(',').slice(1).join(',').trim();
+                            const group = (meta.match(/group-title="([^"]+)"/) || ["","GERAL"])[1];
+                            const logo = (meta.match(/tvg-logo="([^"]+)"/) || ["",""])[1];
+                            const tvgId = (meta.match(/tvg-id="([^"]+)"/) || ["",""])[1];
+
+                            groupsSet.add(group);
+                            channels.push({ id: Utils.id(), name, group, logo, tvgId, url: urlLine.trim() });
+                        }
+                    }
+
+                    const newPL = {
+                        id: Utils.id(),
+                        name: "Lista Importada " + new Date().toLocaleTimeString(),
+                        channels: channels,
+                        groups: Array.from(groupsSet).map(g => ({ name: g, hidden: false }))
+                    };
+
+                    await DB.save(newPL);
+                    await DB.loadAll();
+                    Utils.toast(`Sucesso! ${channels.length} canais.`);
+
+                } catch(e) {
+                    Utils.toast("Erro: " + e.message, "error");
+                }
+            },
+
+            exportCurrent() {
+                if(!App.currentPL) return;
+                this.download(App.currentPL);
+            },
+
+            exportSingle(id) {
+                const pl = App.playlists.find(p => p.id === id);
+                if(pl) this.download(pl);
+            },
+
+            download(pl) {
+                let m3u = "#EXTM3U\n";
+                pl.channels.forEach(c => {
+                    const gInfo = pl.groups.find(g => g.name === c.group);
+                    if(gInfo && gInfo.hidden) return; // Não exporta grupos ocultos
+
+                    m3u += `#EXTINF:-1 tvg-id="${c.tvgId}" tvg-logo="${c.logo}" group-title="${c.group}",${c.name}\n${c.url}\n`;
+                });
+                
+                const blob = new Blob([m3u], { type: 'text/plain' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `GeminiTV_${pl.name}.m3u`;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                Utils.toast("Download iniciado.");
+            }
+        };
+
+        // --- THEATER (HLS PLAYER) ---
+        const Theater = {
+            hls: null,
+            init(id) {
+                if(id) {
+                    App.currentPL = App.playlists.find(p => p.id === id);
+                }
+                if(!App.currentPL) return;
+                
+                const list = document.getElementById('theater-list');
+                list.innerHTML = App.currentPL.channels.slice(0, 100).map(c => `
+                    <div onclick="Theater.play('${c.url}')" class="p-2 text-xs text-gray-400 hover:text-white hover:bg-white/10 cursor-pointer border-b border-white/5 truncate">
+                        ${c.name}
                     </div>
-                `).join('');
+                `).join(''); // Limitado a 100 para demo rápida, ideal seria virtual scroll
             },
 
             play(url) {
-                const video = document.getElementById('main-player');
-                
-                if (Hls.isSupported()) {
+                const video = document.getElementById('video-player');
+                if(Hls.isSupported()) {
                     if(this.hls) this.hls.destroy();
                     this.hls = new Hls();
                     this.hls.loadSource(url);
                     this.hls.attachMedia(video);
                     this.hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-                    this.hls.on(Hls.Events.ERROR, function (event, data) {
-                        if (data.fatal) {
-                           UI.toast("Erro fatal no Stream", "error");
-                        }
-                    });
-                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                } else if(video.canPlayType('application/vnd.apple.mpegurl')) {
                     video.src = url;
                     video.play();
                 }
             }
         };
 
-        // --- 5. UI HELPERS ---
-        const UI = {
-            toast(msg, type='success') {
-                const box = document.createElement('div');
-                box.className = 'toast';
-                if(type === 'error') {
-                    box.style.borderLeftColor = '#ef4444';
-                    box.innerHTML = `<i class="fa-solid fa-circle-exclamation text-red-500"></i> <span class="text-sm font-bold">${msg}</span>`;
-                } else {
-                    box.innerHTML = `<i class="fa-solid fa-check-circle text-cyan-400"></i> <span class="text-sm font-bold">${msg}</span>`;
-                }
-                document.getElementById('toast-container').appendChild(box);
-                setTimeout(() => box.remove(), 4000);
-            },
+        // Start
+        window.onload = () => Auth.init();
 
-            showLoading(show, text="CARREGANDO...") {
-                const el = document.getElementById('loading-overlay');
-                document.getElementById('loading-text').innerText = text;
-                el.style.display = show ? 'flex' : 'none';
-            },
-
-            renderHome() {
-                const grid = document.getElementById('home-grid');
-                if(App.playlists.length === 0) {
-                    grid.innerHTML = `<div class="col-span-4 text-center opacity-30 py-20 border-2 border-dashed border-gray-700 rounded-xl">
-                        <i class="fa-solid fa-folder-open text-4xl mb-4"></i><br>Nenhuma playlist salva.<br>Use o botão IMPORTAR acima.
-                    </div>`;
-                    return;
-                }
-                
-                // FIX: Aspas adicionadas ('${p.id}')
-                grid.innerHTML = App.playlists.map(p => `
-                    <div class="bg-slate-800 border border-white/5 rounded-lg p-5 hover:border-cyan-500 cursor-pointer transition-all relative group shadow-lg" onclick="Editor.switchPL('${p.id}')">
-                        <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <i class="fa-solid fa-arrow-right text-cyan-500"></i>
-                        </div>
-                        <div class="font-bold truncate text-white mb-1 text-lg">${p.name}</div>
-                        <div class="text-xs text-gray-500 mb-6 font-mono">${p.channels.length} canais</div>
-                        <div class="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden"><div class="bg-cyan-500 h-full rounded-full" style="width: 75%"></div></div>
-                        <div class="mt-4 flex gap-2 text-[10px] text-gray-400 uppercase tracking-widest">
-                            <span class="bg-slate-900 px-2 py-1 rounded border border-white/5">IndexedDB</span>
-                            <span class="bg-slate-900 px-2 py-1 rounded border border-white/5">M3U</span>
-                        </div>
-                    </div>
-                `).join('');
-            },
-
-            renderPlaylistsTable() {
-                // FIX: Aspas adicionadas ('${p.id}')
-                document.getElementById('pl-body').innerHTML = App.playlists.map(p => `
-                    <tr class="hover:bg-white/5 transition-colors border-b border-white/5 last:border-0">
-                        <td class="py-3 px-2 font-bold text-white">${p.name}</td>
-                        <td class="py-3 px-2 text-xs text-gray-500 truncate max-w-[150px]" title="${p.source}">${p.source}</td>
-                        <td class="py-3 px-2">${p.groups.length}</td>
-                        <td class="py-3 px-2">${p.channels.length}</td>
-                        <td class="py-3 px-2">
-                            <div class="flex gap-4 text-gray-400">
-                                <i class="fa-solid fa-cloud-arrow-down cursor-pointer hover:text-cyan-500" title="Carregar no Editor" onclick="Editor.switchPL('${p.id}')"></i>
-                                <i class="fa-solid fa-trash cursor-pointer hover:text-red-500" title="Excluir Definitivamente" onclick="App.deletePL('${p.id}')"></i>
-                            </div>
-                        </td>
-                    </tr>
-                `).join('');
-            }
-        };
-
-        // BOOT
-        window.onload = () => App.start();
     </script>
 </body>
 </html>
