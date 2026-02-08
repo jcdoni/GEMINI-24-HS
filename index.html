@@ -3,762 +3,274 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini TV v8.2 | Professional IPTV Management</title>
+    <title>Gemini TV v8.3 | Professional Clone Edition</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        fire: {
-                            blue: '#00a8e1',
-                            dark: '#00050d',
-                            panel: '#0a111f',
-                            border: 'rgba(255,255,255,0.08)'
-                        }
-                    }
+                        'iptv-blue': '#2d5cf7',
+                        'iptv-dark': '#0a0d14',
+                        'iptv-panel': '#161b22',
+                        'fire-cyan': '#00a8e1'
+                    },
+                    fontFamily: { sans: ['Poppins', 'sans-serif'] }
                 }
             }
         }
     </script>
 
     <style>
-        * { font-family: 'Inter', sans-serif; }
-        body { background-color: #00050d; color: #e2e8f0; overflow: hidden; }
+        body { background-color: #0a0d14; color: #e6edf3; overflow-x: hidden; }
+        .glass-header { background: rgba(10, 13, 20, 0.9); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .hero-gradient { background: radial-gradient(circle at top right, rgba(45, 92, 247, 0.15), transparent); }
         
-        /* SCROLLBAR GOURMET */
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: #00050d; }
-        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #00a8e1; }
+        /* DATA TABLE ESTILO IPTVEDITOR */
+        .iptv-table th { background: #0d1117; color: #8b949e; font-size: 11px; text-transform: uppercase; padding: 12px; }
+        .iptv-table td { padding: 10px 12px; border-bottom: 1px solid #21262d; font-size: 13px; }
+        .iptv-table tr:hover { background: rgba(45, 92, 247, 0.05); }
 
-        /* GLASS & FIRE EFFECTS */
-        .glass-nav { background: rgba(0, 5, 13, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .fire-gradient { background: linear-gradient(135deg, #00a8e1 0%, #005f7a 100%); }
-        .active-tab { border-bottom: 2px solid #00a8e1; color: #00a8e1; }
+        /* TRÊS PAINÉIS */
+        .workspace { display: grid; grid-template-columns: 280px 1fr 320px; height: calc(100vh - 64px); }
+        .sidebar-left { background: #0d1117; border-right: 1px solid #30363d; overflow-y: auto; }
+        .editor-main { background: #0a0d14; overflow-y: auto; position: relative; }
+        .sidebar-right { background: #0d1117; border-left: 1px solid #30363d; overflow-y: auto; padding: 20px; }
+
+        .btn-purchase { background: #2d5cf7; transition: all 0.3s; box-shadow: 0 4px 15px rgba(45, 92, 247, 0.3); }
+        .btn-purchase:hover { background: #1e4bd6; transform: translateY(-2px); }
         
-        /* TABLE DENSE STYLE (IPTVEDITOR CLONE) */
-        .data-table tr { border-bottom: 1px solid rgba(255,255,255,0.03); transition: all 0.2s; }
-        .data-table tr:hover { background: rgba(0, 168, 225, 0.05); }
-        .data-table td { padding: 8px 12px; font-size: 13px; }
-        .data-table th { padding: 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #64748b; background: #050a14; }
-
-        /* EDITOR LAYOUT */
-        .editor-container { display: grid; grid-template-columns: 260px 1fr 300px; height: calc(100vh - 100px); }
-        .panel-left { border-right: 1px solid rgba(255,255,255,0.05); background: #020812; }
-        .panel-center { background: #00050d; overflow-y: auto; }
-        .panel-right { border-left: 1px solid rgba(255,255,255,0.05); background: #050a14; }
-
-        /* ANIMATIONS */
-        .fade-in { animation: fadeIn 0.4s ease-out; }
+        .pricing-card { background: #161b22; border: 1px solid #30363d; border-radius: 16px; transition: border-color 0.3s; }
+        .pricing-card:hover { border-color: #2d5cf7; }
+        
+        .fade-in { animation: fadeIn 0.5s ease forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* MULTI-SELECT BAR */
-        #bulk-bar { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #00a8e1; color: white; padding: 12px 24px; border-radius: 50px; display: none; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
     </style>
 </head>
-<body class="dark">
+<body>
 
-    <div id="toast-container" class="fixed top-5 right-5 z-[100] flex flex-col gap-3"></div>
-
-    <div id="modal-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[90] hidden flex items-center justify-center p-4">
-        <div class="bg-fire-panel border border-white/10 w-full max-w-xl rounded-2xl p-8 shadow-2xl fade-in">
-            <h2 id="modal-title" class="text-2xl font-bold mb-4 text-white">Action</h2>
-            <div id="modal-body" class="mb-8 text-gray-400"></div>
-            <div class="flex justify-end gap-4">
-                <button onclick="UI.closeModal()" class="px-6 py-2 text-gray-500 font-bold hover:text-white">CANCELAR</button>
-                <button id="modal-confirm" class="fire-gradient px-8 py-2 rounded-lg font-bold text-white shadow-lg">CONFIRMAR</button>
+    <header class="glass-header h-16 fixed top-0 w-full z-50 px-8 flex items-center justify-between">
+        <div class="flex items-center gap-10">
+            <div class="text-xl font-bold flex items-center gap-2">
+                <i class="fa-solid fa-layer-group text-iptv-blue"></i> GEMINI <span class="text-iptv-blue">TV</span>
             </div>
+            <nav id="main-nav" class="hidden md:flex gap-6 text-sm font-medium text-gray-400">
+                <button onclick="Router.go('home')" class="hover:text-white transition-colors">Home</button>
+                <button onclick="Router.go('features')" class="hover:text-white transition-colors">Features</button>
+                <button onclick="Router.go('pricing')" class="hover:text-white transition-colors">Pricing</button>
+                <button onclick="Router.go('dashboard')" class="hover:text-white transition-colors">My Playlists</button>
+            </nav>
         </div>
-    </div>
-
-    <div id="view-login" class="fixed inset-0 z-[80] bg-fire-dark flex items-center justify-center p-4">
-        <div class="w-full max-w-md bg-fire-panel border border-white/5 p-10 rounded-3xl shadow-2xl text-center">
-            <div class="text-5xl text-fire-blue mb-6"><i class="fa-solid fa-bolt-lightning"></i></div>
-            <h1 class="text-3xl font-black mb-2 tracking-tighter">GEMINI TV <span class="text-fire-blue">v8.2</span></h1>
-            <p class="text-gray-500 text-sm mb-10 uppercase tracking-widest">Enterprise Edition</p>
-            
-            <form onsubmit="Auth.handleLogin(event)" class="space-y-5 text-left">
-                <div>
-                    <label class="text-[10px] font-bold text-gray-500 uppercase ml-1">E-mail</label>
-                    <input type="email" id="login-email" required class="w-full bg-black/40 border border-white/5 p-4 rounded-xl text-white focus:border-fire-blue outline-none transition-all" placeholder="admin@gemini.tv">
-                </div>
-                <div>
-                    <label class="text-[10px] font-bold text-gray-500 uppercase ml-1">Senha</label>
-                    <input type="password" id="login-pass" required class="w-full bg-black/40 border border-white/5 p-4 rounded-xl text-white focus:border-fire-blue outline-none transition-all" placeholder="••••••••">
-                </div>
-                <button type="submit" class="w-full fire-gradient py-4 rounded-xl font-black text-white shadow-xl hover:scale-[1.02] transition-transform">ENTRAR NO SISTEMA</button>
-            </form>
-            <div class="mt-8 text-xs text-gray-600">Site inspirado em IPTVEditor.com &bull; 2026</div>
+        <div class="flex items-center gap-4">
+            <button onclick="Router.go('login')" class="text-sm font-bold text-gray-400 hover:text-white">Sign in</button>
+            <button onclick="Router.go('pricing')" class="btn-purchase px-5 py-2 rounded-lg text-sm font-bold text-white">Purchase now</button>
         </div>
-    </div>
+    </header>
 
-    <div id="app" class="h-screen flex flex-col hidden">
+    <main class="pt-16 min-h-screen">
         
-        <header class="glass-nav h-16 flex items-center justify-between px-8 shrink-0 z-50">
-            <div class="flex items-center gap-10">
-                <div class="text-xl font-black tracking-tighter"><span class="text-fire-blue">GEMINI</span>TV</div>
-                <nav class="flex gap-8 text-xs font-bold uppercase tracking-widest text-gray-400">
-                    <button onclick="Router.go('landing')" id="nav-landing" class="hover:text-white transition-colors">Apresentação</button>
-                    <button onclick="Router.go('playlists')" id="nav-playlists" class="hover:text-white transition-colors">Playlists</button>
-                    <button onclick="Router.go('editor')" id="nav-editor" class="hover:text-white transition-colors">Editor</button>
-                    <button onclick="Router.go('theater')" id="nav-theater" class="hover:text-white transition-colors">Theater</button>
-                </nav>
+        <section id="view-home" class="fade-in">
+            <div class="hero-gradient pt-20 pb-32 px-8 text-center">
+                <h1 class="text-5xl md:text-6xl font-extrabold mb-6 tracking-tight">Your playlists, <span class="text-iptv-blue">made easier</span></h1>
+                <p class="text-gray-400 text-lg max-w-2xl mx-auto mb-10 leading-relaxed">Manage your playlists in one place with wide EPG coverage and updated images ready to use.</p>
+                
+                <div class="relative max-w-4xl mx-auto mb-20">
+                    <img src="https://iptveditor.com/img/macbook_mockup.png" class="w-full drop-shadow-2xl" onerror="this.src='https://via.placeholder.com/800x450/161b22/8b949e?text=Editor+Preview'">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                    <div class="p-8 text-center">
+                        <div class="w-16 h-16 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl">
+                            <i class="fa-solid fa-check-double"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">Wide compatibility</h3>
+                        <p class="text-gray-500 text-sm leading-relaxed">Supports all major formats for both import and export (M3U, Xtream, MAG).</p>
+                    </div>
+                    <div class="p-8 text-center border-x border-white/5">
+                        <div class="w-16 h-16 bg-iptv-blue/10 text-iptv-blue rounded-full flex items-center justify-center mx-auto mb-6 text-2xl">
+                            <i class="fa-solid fa-cloud"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">Cloud computing tech</h3>
+                        <p class="text-gray-500 text-sm leading-relaxed">Save up to 40 playlists on our dedicated Cloud space securely.</p>
+                    </div>
+                    <div class="p-8 text-center">
+                        <div class="w-16 h-16 bg-orange-500/10 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl">
+                            <i class="fa-solid fa-display"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">User friendly</h3>
+                        <p class="text-gray-500 text-sm leading-relaxed">No software to download. All you need is internet and your screen.</p>
+                    </div>
+                </div>
             </div>
-            
-            <div class="flex items-center gap-6">
-                <button onclick="Config.toggleTheme()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-circle-half-stroke"></i></button>
-                <div class="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-full border border-white/5">
-                    <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                    <span id="display-user" class="text-[10px] font-bold text-gray-300">ADMIN</span>
+
+            <div id="pricing" class="py-24 bg-iptv-panel/30">
+                <div class="max-w-6xl mx-auto px-8">
+                    <div class="text-center mb-16">
+                        <h2 class="text-3xl font-bold mb-4">Affordable Pricing Plans</h2>
+                        <div class="flex justify-center gap-4 text-sm">
+                            <span class="text-white font-bold">Annual</span>
+                            <div class="w-10 h-5 bg-iptv-blue rounded-full relative"><div class="absolute right-1 top-1 w-3 h-3 bg-white rounded-full"></div></div>
+                            <span class="text-gray-500">Monthly</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-4xl mx-auto">
+                        <div class="pricing-card p-10 flex flex-col">
+                            <span class="text-iptv-blue font-bold text-xs uppercase tracking-widest mb-2">Advanced</span>
+                            <div class="text-4xl font-bold mb-8">€14.90 <span class="text-sm text-gray-500 font-normal">/year</span></div>
+                            <ul class="space-y-4 text-sm text-gray-400 mb-10 flex-1">
+                                <li class="flex items-center gap-3"><i class="fa-solid fa-check text-green-500"></i> Max playlists up to 40</li>
+                                <li class="flex items-center gap-3"><i class="fa-solid fa-check text-green-500"></i> Entries up to 1 million</li>
+                                <li class="flex items-center gap-3"><i class="fa-solid fa-check text-green-500"></i> Unlimited EPG sources</li>
+                                <li class="flex items-center gap-3"><i class="fa-solid fa-check text-green-500"></i> Auto daily syncs</li>
+                            </ul>
+                            <button class="w-full btn-purchase py-3 rounded-xl font-bold">Purchase now</button>
+                        </div>
+                        <div class="pricing-card p-10 flex flex-col border-white/5">
+                            <span class="text-gray-400 font-bold text-xs uppercase tracking-widest mb-2">Basic</span>
+                            <div class="text-4xl font-bold mb-8">€9.90 <span class="text-sm text-gray-500 font-normal">/year</span></div>
+                            <ul class="space-y-4 text-sm text-gray-500 mb-10 flex-1">
+                                <li class="flex items-center gap-3"><i class="fa-solid fa-check"></i> Max playlists 3</li>
+                                <li class="flex items-center gap-3"><i class="fa-solid fa-check"></i> Entries up to 100k</li>
+                                <li class="flex items-center gap-3"><i class="fa-solid fa-check"></i> 0 EPG sources</li>
+                                <li class="flex items-center gap-3"><i class="fa-solid fa-check"></i> Auto daily syncs</li>
+                            </ul>
+                            <button class="w-full bg-green-600 hover:bg-green-500 py-3 rounded-xl font-bold text-white">Purchase now</button>
+                        </div>
+                    </div>
                 </div>
-                <button onclick="Auth.logout()" class="text-gray-500 hover:text-red-500"><i class="fa-solid fa-power-off"></i></button>
             </div>
-        </header>
+        </section>
 
-        <main class="flex-1 relative overflow-hidden">
-            
-            <section id="view-landing" class="absolute inset-0 overflow-y-auto hidden fade-in">
-                <div class="max-w-6xl mx-auto py-20 px-8 text-center">
-                    <h1 class="text-6xl font-black mb-6 leading-none">O Editor de IPTV mais <span class="text-fire-blue">poderoso</span> do mundo.</h1>
-                    <p class="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">Gerencie, edite e organize suas listas M3U com ferramentas de nível enterprise. Seleção em massa, busca inteligente e player integrado.</p>
-                    
-                    <div class="flex justify-center gap-6 mb-20">
-                        <button onclick="Router.go('playlists')" class="fire-gradient px-10 py-4 rounded-2xl font-black text-lg shadow-2xl">COMEÇAR AGORA</button>
-                        <button class="bg-white/5 border border-white/10 px-10 py-4 rounded-2xl font-black text-lg">VER RECURSOS</button>
+        <section id="view-editor" class="hidden h-screen bg-iptv-dark">
+            <div class="workspace">
+                <aside class="sidebar-left p-4">
+                    <div class="flex items-center justify-between mb-6 px-2">
+                        <span class="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Groups</span>
+                        <button class="text-iptv-blue text-xs"><i class="fa-solid fa-plus-circle"></i></button>
                     </div>
+                    <div id="list-groups" class="space-y-1">
+                        </div>
+                </aside>
 
-                    <div class="grid grid-cols-3 gap-8 text-left">
-                        <div class="bg-fire-panel p-8 rounded-3xl border border-white/5">
-                            <i class="fa-solid fa-wand-magic-sparkles text-fire-blue text-3xl mb-4"></i>
-                            <h3 class="text-xl font-bold mb-2">Bulk Editing</h3>
-                            <p class="text-gray-500 text-sm">Edite milhares de canais de uma só vez. Mude nomes, logos e grupos em segundos.</p>
+                <section class="editor-main flex flex-col">
+                    <div class="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-iptv-panel/20 shrink-0">
+                        <div class="flex gap-4">
+                            <button class="text-xs font-bold text-iptv-blue"><i class="fa-solid fa-pen-nib mr-1"></i> Basic Editor</button>
+                            <button class="text-xs font-bold text-gray-500 hover:text-white"><i class="fa-solid fa-image mr-1"></i> Logo Editor</button>
+                            <button class="text-xs font-bold text-gray-500 hover:text-white"><i class="fa-solid fa-calendar-days mr-1"></i> EPG Editor</button>
                         </div>
-                        <div class="bg-fire-panel p-8 rounded-3xl border border-white/5">
-                            <i class="fa-solid fa-sync text-fire-blue text-3xl mb-4"></i>
-                            <h3 class="text-xl font-bold mb-2">Auto-Sync</h3>
-                            <p class="text-gray-500 text-sm">Suas listas são atualizadas automaticamente da fonte original preservando suas edições.</p>
-                        </div>
-                        <div class="bg-fire-panel p-8 rounded-3xl border border-white/5">
-                            <i class="fa-solid fa-tv text-fire-blue text-3xl mb-4"></i>
-                            <h3 class="text-xl font-bold mb-2">Theater Mode</h3>
-                            <p class="text-gray-500 text-sm">Assista seus canais e VODs diretamente no editor com tecnologia HLS de baixa latência.</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="view-playlists" class="absolute inset-0 overflow-y-auto hidden fade-in">
-                <div class="p-10 max-w-7xl mx-auto">
-                    <div class="flex justify-between items-end mb-10">
-                        <div>
-                            <h2 class="text-4xl font-black">Playlists</h2>
-                            <p class="text-gray-500">Gerenciamento centralizado de fontes M3U.</p>
-                        </div>
-                        <button onclick="IO.importPrompt()" class="fire-gradient px-8 py-3 rounded-xl font-bold flex items-center gap-2">
-                            <i class="fa-solid fa-plus"></i> NOVA PLAYLIST
-                        </button>
-                    </div>
-
-                    <div class="bg-fire-panel rounded-2xl border border-white/5 overflow-hidden">
-                        <table class="w-full data-table text-left">
-                            <thead>
-                                <tr>
-                                    <th>Playlist Name</th>
-                                    <th>Source URL</th>
-                                    <th>Groups</th>
-                                    <th>Channels</th>
-                                    <th>Auto-Sync</th>
-                                    <th>Expiration</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="playlist-list">
-                                </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <section id="view-editor" class="absolute inset-0 hidden fade-in flex flex-col">
-                <div class="h-14 bg-fire-panel border-b border-white/5 flex items-center justify-between px-6 shrink-0">
-                    <div class="flex items-center gap-4">
-                        <select id="editor-pl-select" onchange="Editor.switchPL(this.value)" class="bg-black/40 border border-white/10 rounded px-3 py-1.5 text-xs font-bold text-fire-blue outline-none">
-                            <option>Selecione uma lista...</option>
-                        </select>
-                        <div class="h-6 w-px bg-white/10"></div>
-                        <div class="flex bg-black/40 p-1 rounded-lg">
-                            <button onclick="Editor.setView('channels')" id="btn-view-channels" class="px-4 py-1 rounded text-[10px] font-black bg-fire-blue text-white transition-all">CHANNELS</button>
-                            <button onclick="Editor.setView('vod')" id="btn-view-vod" class="px-4 py-1 rounded text-[10px] font-black text-gray-500 hover:text-white transition-all">MOVIES & SERIES</button>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-3">
-                        <div class="relative">
-                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
-                            <input type="text" id="editor-search" onkeyup="Editor.renderChannels()" placeholder="Search in group..." class="bg-black/40 border border-white/10 rounded-full pl-9 pr-4 py-1.5 text-xs text-white focus:border-fire-blue outline-none w-64">
-                        </div>
-                        <button onclick="Editor.openBulkTools()" class="bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-1.5 rounded-lg text-xs font-bold transition-all">
-                            <i class="fa-solid fa-wand-magic-sparkles mr-2 text-fire-blue"></i> MORE TOOLS
-                        </button>
-                    </div>
-                </div>
-
-                <div class="editor-container">
-                    <aside class="panel-left flex flex-col">
-                        <div class="p-4 border-b border-white/5 flex justify-between items-center bg-black/20">
-                            <span class="text-[10px] font-black text-gray-500 tracking-widest uppercase">Groups</span>
-                            <span id="group-count" class="text-[10px] bg-fire-blue/20 text-fire-blue px-2 py-0.5 rounded-full font-bold">0</span>
-                        </div>
-                        <div id="list-groups" class="flex-1 overflow-y-auto p-2 space-y-1">
+                        <div class="flex items-center gap-3">
+                            <div class="relative">
+                                <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+                                <input type="text" placeholder="Search..." class="bg-iptv-panel border border-white/10 rounded-lg pl-9 pr-4 py-1.5 text-xs focus:border-iptv-blue outline-none w-48">
                             </div>
-                    </aside>
-
-                    <div class="panel-center relative flex flex-col">
-                        <table class="w-full data-table text-left sticky-header">
+                            <button class="bg-iptv-blue/10 text-iptv-blue p-2 rounded-lg text-xs"><i class="fa-solid fa-filter"></i></button>
+                        </div>
+                    </div>
+                    <div class="flex-1 overflow-auto">
+                        <table class="iptv-table w-full text-left border-collapse">
                             <thead>
                                 <tr class="sticky top-0 z-10">
-                                    <th class="w-10 text-center"><input type="checkbox" id="master-check" onclick="Editor.toggleSelectAll()"></th>
-                                    <th class="w-12">Logo</th>
+                                    <th class="w-12 text-center"><input type="checkbox"></th>
                                     <th>Name</th>
                                     <th>EPG ID</th>
-                                    <th class="w-20">Order</th>
-                                    <th class="w-20">Actions</th>
+                                    <th>Status</th>
+                                    <th class="w-20">Edit</th>
                                 </tr>
                             </thead>
-                            <tbody id="list-channels">
+                            <tbody id="channel-body">
                                 </tbody>
                         </table>
                     </div>
+                </section>
 
-                    <aside class="panel-right flex flex-col p-6 overflow-y-auto">
-                        <div class="mb-8">
-                            <h3 class="text-xs font-black text-fire-blue uppercase tracking-widest mb-6">Edit Channel</h3>
-                            <div id="prop-no-selection" class="text-center py-20 text-gray-600">
-                                <i class="fa-solid fa-mouse-pointer text-3xl mb-4 opacity-20"></i>
-                                <p class="text-xs">Selecione um canal para editar</p>
-                            </div>
-                            <div id="prop-form" class="hidden space-y-6">
-                                <div>
-                                    <label class="text-[10px] font-bold text-gray-500 uppercase">Channel Name</label>
-                                    <input type="text" id="edit-name" class="w-full bg-black/40 border border-white/5 p-3 rounded-lg text-sm text-white focus:border-fire-blue outline-none mt-1">
-                                </div>
-                                <div>
-                                    <label class="text-[10px] font-bold text-gray-500 uppercase">Logo URL</label>
-                                    <div class="flex gap-2 mt-1">
-                                        <input type="text" id="edit-logo" class="flex-1 bg-black/40 border border-white/5 p-3 rounded-lg text-sm text-white focus:border-fire-blue outline-none">
-                                        <div id="edit-logo-preview" class="w-11 h-11 bg-black rounded border border-white/5 flex items-center justify-center overflow-hidden">
-                                            <i class="fa-solid fa-image text-gray-800"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="text-[10px] font-bold text-gray-500 uppercase">EPG ID</label>
-                                    <input type="text" id="edit-epg" class="w-full bg-black/40 border border-white/5 p-3 rounded-lg text-sm text-white focus:border-fire-blue outline-none mt-1">
-                                </div>
-                                <div class="pt-4 border-t border-white/5">
-                                    <button onclick="Editor.saveProperties()" class="w-full fire-gradient py-3 rounded-xl font-bold text-sm shadow-lg transform active:scale-95 transition-all">SALVAR ALTERAÇÕES</button>
-                                </div>
+                <aside class="sidebar-right">
+                    <div id="prop-header" class="mb-8">
+                        <h3 class="text-sm font-bold text-white mb-2">Edit Channel</h3>
+                        <p class="text-xs text-gray-500">Configure os detalhes individuais abaixo.</p>
+                    </div>
+                    <div id="prop-form" class="space-y-6">
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-500 uppercase">Channel Name</label>
+                            <input type="text" id="edit-name" class="w-full bg-iptv-panel border border-white/10 p-3 rounded-lg text-sm focus:border-iptv-blue outline-none mt-1">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-500 uppercase">EPG Mapping</label>
+                            <div class="flex gap-2 mt-1">
+                                <select class="flex-1 bg-iptv-panel border border-white/10 p-3 rounded-lg text-sm outline-none">
+                                    <option>Search EPG...</option>
+                                </select>
+                                <button class="bg-iptv-blue px-3 rounded-lg text-xs">Set</button>
                             </div>
                         </div>
-                    </aside>
-                </div>
-
-                <div id="bulk-bar" class="flex items-center gap-6">
-                    <span id="bulk-count" class="font-black text-sm">0 selecionados</span>
-                    <div class="h-6 w-px bg-white/20"></div>
-                    <div class="flex gap-4">
-                        <button onclick="Editor.bulkMove()" class="hover:underline text-xs font-bold uppercase tracking-widest">Mover</button>
-                        <button onclick="Editor.bulkDelete()" class="hover:underline text-xs font-bold uppercase tracking-widest">Excluir</button>
-                        <button onclick="Editor.clearSelection()" class="text-white/50 hover:text-white text-xs"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-                </div>
-            </section>
-
-            <section id="view-theater" class="absolute inset-0 hidden fade-in flex bg-black">
-                <div class="w-80 bg-fire-panel border-r border-white/10 flex flex-col shrink-0">
-                    <div class="p-6 border-b border-white/10">
-                        <h2 class="text-xl font-black text-white">Theater</h2>
-                        <div class="flex gap-2 mt-4 bg-black/40 p-1 rounded-lg">
-                            <button onclick="Theater.setTab('live')" id="theater-tab-live" class="flex-1 py-2 rounded text-[10px] font-black bg-fire-blue text-white">LIVE</button>
-                            <button onclick="Theater.setTab('vod')" id="theater-tab-vod" class="flex-1 py-2 rounded text-[10px] font-black text-gray-500">VOD</button>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-500 uppercase">Logo Source</label>
+                            <div class="mt-2 w-full aspect-video bg-black rounded-lg flex items-center justify-center border border-white/5">
+                                <i class="fa-solid fa-image text-gray-800 text-4xl"></i>
+                            </div>
+                            <input type="text" placeholder="https://..." class="w-full bg-iptv-panel border border-white/10 p-3 rounded-lg text-sm mt-3 outline-none">
+                        </div>
+                        <div class="pt-6 grid grid-cols-2 gap-3">
+                            <button class="bg-green-600 py-3 rounded-xl font-bold text-xs text-white">SAVE</button>
+                            <button class="bg-red-900/50 text-red-500 py-3 rounded-xl font-bold text-xs border border-red-900/50">DELETE</button>
                         </div>
                     </div>
-                    <div id="theater-list" class="flex-1 overflow-y-auto p-4 space-y-2">
-                        </div>
-                </div>
-                <div class="flex-1 flex flex-col relative">
-                    <div class="bg-black flex-1 flex items-center justify-center relative">
-                        <video id="video-player" controls class="w-full h-full max-h-[90vh] shadow-2xl"></video>
-                        <div id="player-overlay" class="absolute inset-0 flex items-center justify-center bg-black/80 pointer-events-none transition-opacity duration-500">
-                             <div class="text-center">
-                                 <i class="fa-solid fa-play-circle text-6xl text-fire-blue animate-pulse mb-4"></i>
-                                 <p class="text-gray-500 font-bold uppercase tracking-widest">Aguardando Seleção</p>
-                             </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+                </aside>
+            </div>
+        </section>
 
-        </main>
-    </div>
+    </main>
 
     <script>
-        // --- 1. CONFIGURAÇÕES E ESTADO GLOBAL ---
-        const Config = {
-            theme: 'dark',
-            toggleTheme() {
-                this.theme = this.theme === 'dark' ? 'light' : 'dark';
-                document.body.className = this.theme;
-                localStorage.setItem('gtv_theme', this.theme);
-            },
-            init() {
-                this.theme = localStorage.getItem('gtv_theme') || 'dark';
-                document.body.className = this.theme;
-            }
-        };
-
-        const App = {
-            playlists: [],
-            currentPL: null,
-            selectedChannels: new Set(),
-            editingChannel: null,
-            viewMode: 'channels' // channels | vod
-        };
-
-        // --- 2. AUTH (ACESSO REAL) ---
-        const Auth = {
-            handleLogin(e) {
-                e.preventDefault();
-                const email = document.getElementById('login-email').value;
-                const pass = document.getElementById('login-pass').value;
-
-                if(pass.length < 4) return UI.toast("Senha muito curta!", "error");
-                
-                localStorage.setItem('gtv_auth', JSON.stringify({ email, time: Date.now() }));
-                this.check();
-            },
-            check() {
-                const session = localStorage.getItem('gtv_auth');
-                if(session) {
-                    const data = JSON.parse(session);
-                    document.getElementById('view-login').classList.add('hidden');
-                    document.getElementById('app').classList.remove('hidden');
-                    document.getElementById('display-user').innerText = data.email.toUpperCase();
-                    DB.init();
-                }
-            },
-            logout() {
-                localStorage.removeItem('gtv_auth');
-                location.reload();
-            }
-        };
-
-        // --- 3. BANCO DE DADOS (INDEXEDDB - ALTA PERFORMANCE) ---
-        const DB = {
-            db: null,
-            init() {
-                const req = indexedDB.open("GeminiTV_MasterDB", 1);
-                req.onupgradeneeded = e => {
-                    const db = e.target.result;
-                    if(!db.objectStoreNames.contains('playlists')) db.createObjectStore('playlists', { keyPath: 'id' });
-                };
-                req.onsuccess = e => {
-                    this.db = e.target.result;
-                    this.loadAll();
-                };
-            },
-            async save(pl) {
-                const tx = this.db.transaction('playlists', 'readwrite');
-                tx.objectStore('playlists').put(JSON.parse(JSON.stringify(pl)));
-                return new Promise(r => tx.oncomplete = r);
-            },
-            async delete(id) {
-                const tx = this.db.transaction('playlists', 'readwrite');
-                tx.objectStore('playlists').delete(id);
-                return new Promise(r => tx.oncomplete = r);
-            },
-            async loadAll() {
-                const tx = this.db.transaction('playlists', 'readonly');
-                const req = tx.objectStore('playlists').getAll();
-                req.onsuccess = () => {
-                    App.playlists = req.result || [];
-                    UI.renderPlaylists();
-                    Router.go('landing');
-                };
-            }
-        };
-
-        // --- 4. UI ENGINE ---
-        const UI = {
-            toast(msg, type='success') {
-                const id = 't-'+Date.now();
-                const div = document.createElement('div');
-                div.id = id;
-                div.className = `px-6 py-4 rounded-xl shadow-2xl text-white font-bold text-sm flex items-center gap-3 fade-in ${type === 'error' ? 'bg-red-600' : 'bg-fire-blue'}`;
-                div.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-triangle-exclamation' : 'fa-check-circle'}"></i> ${msg}`;
-                document.getElementById('toast-container').appendChild(div);
-                setTimeout(() => div.remove(), 4000);
-            },
-            
-            showModal(title, bodyHTML, onConfirm) {
-                document.getElementById('modal-title').innerText = title;
-                document.getElementById('modal-body').innerHTML = bodyHTML;
-                document.getElementById('modal-confirm').onclick = onConfirm;
-                document.getElementById('modal-overlay').classList.remove('hidden');
-            },
-            
-            closeModal() {
-                document.getElementById('modal-overlay').classList.add('hidden');
-            },
-
-            renderPlaylists() {
-                const list = document.getElementById('playlist-list');
-                list.innerHTML = App.playlists.map(p => `
-                    <tr>
-                        <td class="font-black text-white">${p.name}</td>
-                        <td class="text-xs text-gray-600 truncate max-w-[200px] font-mono">${p.source}</td>
-                        <td class="font-bold">${p.groups ? p.groups.length : 0}</td>
-                        <td class="font-bold">${p.channels ? p.channels.length : 0}</td>
-                        <td><span class="text-[10px] bg-green-900/30 text-green-500 px-2 py-0.5 rounded-full font-bold">ACTIVE</span></td>
-                        <td class="text-xs text-gray-500">2027-02-08</td>
-                        <td>
-                            <div class="flex gap-4">
-                                <button onclick="Router.openEditor('${p.id}')" class="text-fire-blue hover:text-white transition-colors"><i class="fa-solid fa-pen-to-square"></i></button>
-                                <button onclick="IO.deletePlaylist('${p.id}')" class="text-gray-700 hover:text-red-500 transition-colors"><i class="fa-solid fa-trash"></i></button>
-                            </div>
-                        </td>
-                    </tr>
-                `).join('');
-            }
-        };
-
-        // --- 5. EDITOR CORE (IPTVEDITOR LOGIC) ---
-        const Editor = {
-            currentGroup: null,
-
-            init(id) {
-                const sel = document.getElementById('editor-pl-select');
-                sel.innerHTML = App.playlists.map(p => `<option value="${p.id}" ${p.id === id ? 'selected' : ''}>${p.name}</option>`).join('');
-                this.switchPL(id || sel.value);
-            },
-
-            switchPL(id) {
-                App.currentPL = App.playlists.find(p => p.id === id);
-                if(!App.currentPL) return;
-                
-                // Auto-Groups se não existirem
-                if(!App.currentPL.groups) {
-                    const gNames = [...new Set(App.currentPL.channels.map(c => c.group))];
-                    App.currentPL.groups = gNames.map(name => ({ name, visible: true }));
-                }
-
-                this.currentGroup = App.currentPL.groups[0]?.name;
-                this.renderGroups();
-                this.renderChannels();
-            },
-
-            setView(mode) {
-                App.viewMode = mode;
-                document.getElementById('btn-view-channels').className = mode === 'channels' ? "px-4 py-1 rounded text-[10px] font-black bg-fire-blue text-white" : "px-4 py-1 rounded text-[10px] font-black text-gray-500 hover:text-white";
-                document.getElementById('btn-view-vod').className = mode === 'vod' ? "px-4 py-1 rounded text-[10px] font-black bg-fire-blue text-white" : "px-4 py-1 rounded text-[10px] font-black text-gray-500 hover:text-white";
-                this.renderChannels();
-            },
-
-            renderGroups() {
-                const list = document.getElementById('list-groups');
-                document.getElementById('group-count').innerText = App.currentPL.groups.length;
-
-                list.innerHTML = App.currentPL.groups.map(g => {
-                    const count = App.currentPL.channels.filter(c => c.group === g.name).length;
-                    const isActive = this.currentGroup === g.name;
-                    return `
-                        <div onclick="Editor.selectGroup('${g.name}')" class="group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all ${isActive ? 'bg-fire-blue text-white shadow-lg shadow-fire-blue/20' : 'hover:bg-white/5 text-gray-500'}">
-                            <span class="text-xs font-bold truncate pr-2">${g.name}</span>
-                            <span class="text-[9px] font-black ${isActive ? 'bg-white/20' : 'bg-white/5'} px-2 py-0.5 rounded-full">${count}</span>
-                        </div>
-                    `;
-                }).join('');
-            },
-
-            selectGroup(name) {
-                this.currentGroup = name;
-                this.renderGroups();
-                this.renderChannels();
-            },
-
-            renderChannels() {
-                const tbody = document.getElementById('list-channels');
-                const search = document.getElementById('editor-search').value.toLowerCase();
-                
-                const filtered = App.currentPL.channels.filter(c => 
-                    c.group === this.currentGroup && 
-                    c.name.toLowerCase().includes(search)
-                );
-
-                tbody.innerHTML = filtered.map((c, idx) => `
-                    <tr onclick="Editor.selectChannel('${c.id}')" class="${App.editingChannel?.id === c.id ? 'bg-fire-blue/10' : ''}">
-                        <td class="text-center" onclick="event.stopPropagation()">
-                            <input type="checkbox" onchange="Editor.toggleChannelSelect('${c.id}')" ${App.selectedChannels.has(c.id) ? 'checked' : ''}>
-                        </td>
-                        <td>
-                            <img src="${c.logo}" class="w-8 h-8 object-contain bg-black/40 rounded shadow-inner" onerror="this.src='https://via.placeholder.com/40?text=TV'">
-                        </td>
-                        <td class="font-bold text-gray-200">${c.name}</td>
-                        <td class="text-xs text-gray-500 font-mono">${c.epg || '---'}</td>
-                        <td class="text-gray-600 text-xs">#${idx + 1}</td>
-                        <td>
-                            <div class="flex gap-2">
-                                <button class="text-gray-700 hover:text-white"><i class="fa-solid fa-grip-vertical"></i></button>
-                                <button onclick="Editor.deleteChannel('${c.id}')" class="text-gray-700 hover:text-red-500"><i class="fa-solid fa-trash-can"></i></button>
-                            </div>
-                        </td>
-                    </tr>
-                `).join('');
-            },
-
-            selectChannel(id) {
-                const c = App.currentPL.channels.find(x => x.id === id);
-                App.editingChannel = c;
-                
-                document.getElementById('prop-no-selection').classList.add('hidden');
-                document.getElementById('prop-form').classList.remove('hidden');
-                
-                document.getElementById('edit-name').value = c.name;
-                document.getElementById('edit-logo').value = c.logo;
-                document.getElementById('edit-epg').value = c.epg;
-                document.getElementById('edit-logo-preview').innerHTML = `<img src="${c.logo}" class="w-full h-full object-contain">`;
-                
-                this.renderChannels(); // Refresh highlight
-            },
-
-            saveProperties() {
-                if(!App.editingChannel) return;
-                
-                App.editingChannel.name = document.getElementById('edit-name').value;
-                App.editingChannel.logo = document.getElementById('edit-logo').value;
-                App.editingChannel.epg = document.getElementById('edit-epg').value;
-                
-                DB.save(App.currentPL);
-                UI.toast("Canal atualizado!");
-                this.renderChannels();
-            },
-
-            // MULTI-SELECT ENGINE
-            toggleChannelSelect(id) {
-                if(App.selectedChannels.has(id)) App.selectedChannels.delete(id);
-                else App.selectedChannels.add(id);
-                this.updateBulkBar();
-            },
-
-            toggleSelectAll() {
-                const master = document.getElementById('master-check').checked;
-                const filtered = App.currentPL.channels.filter(c => c.group === this.currentGroup);
-                
-                if(master) filtered.forEach(c => App.selectedChannels.add(c.id));
-                else filtered.forEach(c => App.selectedChannels.delete(c.id));
-                
-                this.renderChannels();
-                this.updateBulkBar();
-            },
-
-            updateBulkBar() {
-                const bar = document.getElementById('bulk-bar');
-                const count = document.getElementById('bulk-count');
-                if(App.selectedChannels.size > 0) {
-                    bar.style.display = 'flex';
-                    count.innerText = `${App.selectedChannels.size} selecionados`;
-                } else {
-                    bar.style.display = 'none';
-                }
-            },
-
-            clearSelection() {
-                App.selectedChannels.clear();
-                document.getElementById('master-check').checked = false;
-                this.renderChannels();
-                this.updateBulkBar();
-            },
-
-            // BULK TOOLS (FIND/REPLACE)
-            openBulkTools() {
-                const html = `
-                    <div class="space-y-4">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="text-[10px] font-black text-gray-500 uppercase">Localizar</label>
-                                <input type="text" id="find-val" class="w-full bg-black/40 border border-white/5 p-3 rounded-lg text-white outline-none">
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-black text-gray-500 uppercase">Substituir por</label>
-                                <input type="text" id="replace-val" class="w-full bg-black/40 border border-white/5 p-3 rounded-lg text-white outline-none">
-                            </div>
-                        </div>
-                        <div class="p-4 bg-fire-blue/10 border border-fire-blue/20 rounded-xl text-xs text-fire-blue">
-                            Isso afetará todos os ${App.currentPL.channels.length} canais desta playlist.
-                        </div>
-                    </div>
-                `;
-                UI.showModal("Global Find & Replace", html, () => {
-                    const find = document.getElementById('find-val').value;
-                    const replace = document.getElementById('replace-val').value;
-                    if(!find) return;
-
-                    App.currentPL.channels.forEach(c => {
-                        c.name = c.name.replace(new RegExp(find, 'gi'), replace);
-                    });
-                    
-                    DB.save(App.currentPL);
-                    UI.toast("Substituição concluída!");
-                    Editor.renderChannels();
-                    UI.closeModal();
-                });
-            }
-        };
-
-        // --- 6. IO (IMPORT & EXPORT) ---
-        const IO = {
-            importPrompt() {
-                const html = `
-                    <div class="space-y-4">
-                        <div>
-                            <label class="text-[10px] font-black text-gray-500 uppercase">Nome da Playlist</label>
-                            <input type="text" id="import-name" class="w-full bg-black/40 border border-white/5 p-3 rounded-lg text-white outline-none mt-1" placeholder="Minha Lista">
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-black text-gray-500 uppercase">M3U URL</label>
-                            <input type="text" id="import-url" class="w-full bg-black/40 border border-white/5 p-3 rounded-lg text-white outline-none mt-1" placeholder="http://servidor.com/lista.m3u">
-                        </div>
-                    </div>
-                `;
-                UI.showModal("Importar Nova Fonte", html, () => this.handleImport());
-            },
-
-            async handleImport() {
-                const name = document.getElementById('import-name').value;
-                const url = document.getElementById('import-url').value;
-                
-                if(!name || !url) return UI.toast("Preencha tudo!", "error");
-                
-                UI.toast("Baixando dados...", "info");
-                UI.closeModal();
-
-                try {
-                    const proxy = `https://geminitv-proxy.jcdoni.workers.dev/?url=${encodeURIComponent(url)}`;
-                    const res = await fetch(proxy);
-                    const text = await res.text();
-                    
-                    if(!text.includes('#EXTM3U')) throw new Error("Não é um M3U válido");
-
-                    const channels = [];
-                    const lines = text.split('\n');
-                    
-                    for(let i=0; i<lines.length; i++) {
-                        if(lines[i].startsWith('#EXTINF:')) {
-                            const meta = lines[i];
-                            const stream = lines[i+1]?.trim() || "";
-                            
-                            const chName = meta.split(',')[1]?.trim() || "Sem Nome";
-                            const group = (meta.match(/group-title="([^"]+)"/) || ["","Geral"])[1];
-                            const logo = (meta.match(/tvg-logo="([^"]+)"/) || ["",""])[1];
-                            const epg = (meta.match(/tvg-id="([^"]+)"/) || ["",""])[1];
-
-                            channels.push({
-                                id: Math.random().toString(36).substr(2, 9),
-                                name: chName,
-                                group: group,
-                                logo: logo,
-                                epg: epg,
-                                url: stream
-                            });
-                        }
-                    }
-
-                    const newPL = { id: Date.now().toString(), name, source: url, channels };
-                    await DB.save(newPL);
-                    await DB.loadAll();
-                    UI.toast("Playlist importada com sucesso!");
-
-                } catch(e) {
-                    UI.toast("Erro ao importar: " + e.message, "error");
-                }
-            },
-
-            deletePlaylist(id) {
-                if(confirm("Deseja excluir permanentemente?")) {
-                    DB.delete(id).then(() => DB.loadAll());
-                }
-            }
-        };
-
-        // --- 7. ROUTER ---
+        // SISTEMA DE ROTAS SPA
         const Router = {
             go(view) {
-                document.querySelectorAll('main section').forEach(s => s.classList.add('hidden'));
-                document.getElementById('view-' + view).classList.remove('hidden');
+                document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+                const target = document.getElementById('view-' + view);
+                if(target) target.classList.remove('hidden');
                 
-                document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-tab', 'text-white'));
-                const navBtn = document.getElementById('nav-' + view);
-                if(navBtn) navBtn.classList.add('active-tab', 'text-white');
+                // Header style update
+                if(view === 'editor') {
+                    document.querySelector('header').classList.add('hidden');
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    document.querySelector('header').classList.remove('hidden');
+                    document.body.style.overflow = 'auto';
+                }
             },
-            openEditor(id) {
+            openEditor() {
                 this.go('editor');
-                Editor.init(id);
-            }
-        };
-
-        // --- 8. THEATER ---
-        const Theater = {
-            hls: null,
-            setTab(t) {
-                document.getElementById('theater-tab-live').className = t === 'live' ? "flex-1 py-2 rounded text-[10px] font-black bg-fire-blue text-white" : "flex-1 py-2 rounded text-[10px] font-black text-gray-500";
-                document.getElementById('theater-tab-vod').className = t === 'vod' ? "flex-1 py-2 rounded text-[10px] font-black bg-fire-blue text-white" : "flex-1 py-2 rounded text-[10px] font-black text-gray-500";
-                this.render();
+                this.loadDemo();
             },
-            init(id) {
-                if(id) App.currentPL = App.playlists.find(x => x.id === id);
-                if(!App.currentPL) return;
-                this.render();
-            },
-            render() {
-                const list = document.getElementById('theater-list');
-                list.innerHTML = App.currentPL.channels.slice(0, 50).map(c => `
-                    <div onclick="Theater.play('${c.url}')" class="p-3 bg-white/5 rounded-lg border border-white/5 cursor-pointer hover:border-fire-blue transition-all">
-                        <div class="text-[10px] font-bold text-white truncate">${c.name}</div>
-                        <div class="text-[8px] text-gray-600 truncate">${c.group}</div>
+            loadDemo() {
+                const groups = ['FAVORITOS', 'TV ABERTA', 'ESPORTES', 'FILMES', 'SÉRIES'];
+                const groupList = document.getElementById('list-groups');
+                groupList.innerHTML = groups.map(g => `
+                    <div class="p-3 rounded-lg hover:bg-white/5 cursor-pointer flex justify-between items-center group transition-all">
+                        <span class="text-xs font-bold text-gray-400 group-hover:text-white uppercase">${g}</span>
+                        <span class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-gray-600 font-mono">12</span>
                     </div>
                 `).join('');
-            },
-            play(url) {
-                const video = document.getElementById('video-player');
-                document.getElementById('player-overlay').style.opacity = '0';
-                
-                if (Hls.isSupported()) {
-                    if(this.hls) this.hls.destroy();
-                    this.hls = new Hls();
-                    this.hls.loadSource(url);
-                    this.hls.attachMedia(video);
-                    this.hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-                } else {
-                    video.src = url;
-                    video.play();
-                }
+
+                const body = document.getElementById('channel-body');
+                body.innerHTML = Array.from({length: 15}).map((_, i) => `
+                    <tr>
+                        <td class="text-center"><input type="checkbox"></td>
+                        <td class="font-bold">Canal Premium HD ${i+1}</td>
+                        <td class="text-xs font-mono text-gray-500">epg.id.${i+100}</td>
+                        <td><span class="text-[9px] bg-green-500/10 text-green-500 border border-green-500/20 px-2 py-0.5 rounded-full font-bold">ONLINE</span></td>
+                        <td><button class="text-iptv-blue hover:text-white transition-colors"><i class="fa-solid fa-edit"></i></button></td>
+                    </tr>
+                `).join('');
             }
         };
 
-        // INICIALIZAÇÃO
-        window.onload = () => {
-            Config.init();
-            Auth.check();
-        };
-
+        // Início
+        window.onload = () => Router.go('home');
     </script>
 </body>
 </html>
