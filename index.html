@@ -1,280 +1,207 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini TV v8.4 | Ultra-Fidelity Playlist Management</title>
+    <title>Playlist Editor - Management Tool</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        fire: {
+                        brand: {
                             blue: '#00a8e1',
-                            dark: '#00050d',
+                            bg: '#00050d',
                             panel: '#0a111f',
                             card: '#0f172a',
                             border: 'rgba(255,255,255,0.06)'
                         }
-                    },
-                    letterSpacing: { 'tighter': '-0.05em', 'widest': '.25em' }
+                    }
                 }
             }
         }
     </script>
 
     <style>
-        /* BASE DE ELITE */
-        * { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        /* ESTILO IDENTICO AO IPTVEDITOR */
+        * { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; letter-spacing: -0.01em; }
         body { background-color: #00050d; color: #f8fafc; overflow-x: hidden; }
 
-        /* SCROLLBAR PROFISSIONAL */
+        /* SCROLLBAR GOURMET */
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: #00050d; }
         ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #00a8e1; }
 
-        /* GLASS NAVBAR (ESTILO IPTVEDITOR) */
-        .glass-header { 
-            background: rgba(0, 5, 13, 0.8); 
-            backdrop-filter: blur(15px); 
-            -webkit-backdrop-filter: blur(15px);
+        /* NAVBAR FIXED GLASS */
+        .header-glass { 
+            background: rgba(0, 5, 13, 0.85); 
+            backdrop-filter: blur(12px); 
             border-bottom: 1px solid rgba(255,255,255,0.05);
-            transition: all 0.3s ease;
+            z-index: 100;
         }
 
-        /* ANIMAÇÕES DE REVELAÇÃO (SCROLL) */
-        .reveal { opacity: 0; transform: translateY(40px); transition: all 0.9s cubic-bezier(0.16, 1, 0.3, 1); }
+        /* REVEAL ENGINE (SCROLL ANIMATION) */
+        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
         .reveal.active { opacity: 1; transform: translateY(0); }
 
-        /* CARDS DE PREÇO (FIDELIDADE MÁXIMA) */
+        /* CARDS DE PREÇO IDENTICOS */
         .pricing-card {
             background: #0a111f;
             border-radius: 2.5rem;
             border: 1px solid rgba(255,255,255,0.05);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
+            transition: all 0.3s ease;
+        }
+        .pricing-card:hover { transform: translateY(-8px); border-color: #00a8e1; }
+
+        /* WORKSTATION GRID */
+        .editor-container { 
+            display: grid; 
+            grid-template-columns: 280px 1fr 340px; 
+            height: calc(100vh - 64px); 
             overflow: hidden;
         }
-        .pricing-card:hover { transform: translateY(-12px); border-color: #00a8e1; box-shadow: 0 30px 60px -12px rgba(0, 168, 225, 0.25); }
-        .pricing-card::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at top right, rgba(0, 168, 225, 0.08), transparent);
-            pointer-events: none;
+        .panel { overflow-y: auto; height: 100%; border-right: 1px solid rgba(255,255,255,0.05); }
+
+        /* TABELA PROFISSIONAL */
+        .editor-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .editor-table th { 
+            position: sticky; top: 0; z-index: 10; background: #050a14; 
+            color: #64748b; font-size: 11px; font-weight: 800; text-transform: uppercase; 
+            padding: 14px; border-bottom: 1px solid rgba(255,255,255,0.05);
         }
+        .editor-table td { padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.02); font-size: 13px; }
+        .editor-table tr:hover { background: rgba(0, 168, 225, 0.05); cursor: pointer; }
+        .editor-table tr.selected { background: rgba(0, 168, 225, 0.12) !important; border-left: 3px solid #00a8e1; }
 
-        /* EDITOR LAYOUT WORKSTATION */
-        .workstation { display: grid; grid-template-columns: 280px 1fr 340px; height: calc(100vh - 64px); }
-        .scroll-panel { overflow-y: auto; height: 100%; }
-        
-        /* TABELA DE DADOS (IPTVEDITOR CLONE) */
-        .data-table-pro { width: 100%; border-collapse: separate; border-spacing: 0; }
-        .data-table-pro th { 
-            position: sticky; top: 0; z-index: 20; background: #050a14; 
-            color: #64748b; font-size: 10px; font-weight: 800; text-transform: uppercase; 
-            letter-spacing: 0.1em; padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .data-table-pro td { padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.02); font-size: 13px; color: #cbd5e1; }
-        .data-table-pro tr:hover { background: rgba(0, 168, 225, 0.04); }
-        .data-table-pro tr.selected { background: rgba(0, 168, 225, 0.1) !important; border-left: 2px solid #00a8e1; }
-
-        /* BOTOES GOURMET */
-        .btn-fire { background: #00a8e1; color: white; font-weight: 800; border-radius: 12px; transition: all 0.3s; }
-        .btn-fire:hover { background: #0096c9; transform: scale(1.03); box-shadow: 0 10px 20px rgba(0, 168, 225, 0.3); }
-
-        /* FOOTER ESTILIZADO */
-        .footer-link { color: #64748b; font-size: 13px; transition: color 0.2s; cursor: pointer; }
-        .footer-link:hover { color: #00a8e1; }
+        /* BOTÕES DE AÇÃO */
+        .btn-action { background: #00a8e1; color: white; border-radius: 12px; font-weight: 700; transition: all 0.2s; }
+        .btn-action:hover { transform: scale(1.02); filter: brightness(1.1); }
     </style>
 </head>
 <body>
 
-    <div id="main-app">
+    <div id="app-root">
         
-        <header class="glass-header fixed w-full top-0 z-[100] h-16 flex items-center justify-between px-10">
+        <header class="header-glass fixed w-full h-16 flex items-center justify-between px-10">
             <div class="flex items-center gap-14">
-                <div class="text-2xl font-black tracking-tighter flex items-center gap-2 cursor-pointer" onclick="Router.go('landing')">
-                    <span class="text-white">GEMINI</span><span class="text-fire-blue">TV</span>
+                <div class="text-2xl font-black tracking-tighter cursor-pointer" onclick="Router.go('landing')">
+                    <span class="text-white">IPTV</span><span class="text-brand-blue">EDITOR</span>
                 </div>
-                <nav class="hidden lg:flex gap-10 text-[11px] font-black uppercase tracking-[0.2em] text-gray-500">
-                    <button onclick="Router.go('landing')" class="hover:text-white transition-all">Home</button>
-                    <button class="hover:text-white transition-all">FAQ & Guides</button>
-                    <button class="hover:text-white transition-all">Support</button>
-                    <button onclick="Router.go('playlists')" class="hover:text-white transition-all">My Account</button>
+                <nav class="hidden lg:flex gap-10 text-[11px] font-black uppercase tracking-widest text-gray-500">
+                    <button onclick="Router.go('landing')" class="hover:text-white">Home</button>
+                    <button class="hover:text-white">FAQ & Guides</button>
+                    <button class="hover:text-white">Support</button>
+                    <button onclick="Router.go('playlists')" class="hover:text-white">My Account</button>
                 </nav>
             </div>
             <div class="flex items-center gap-6">
-                <button onclick="Router.go('playlists')" class="bg-fire-blue/10 border border-fire-blue/20 text-fire-blue px-6 py-2.5 rounded-full text-[10px] font-black tracking-widest hover:bg-fire-blue hover:text-white transition-all">
-                    MY ACCOUNT
-                </button>
+                <button onclick="Router.go('playlists')" class="bg-brand-blue/10 border border-brand-blue/20 text-brand-blue px-6 py-2 rounded-full text-[10px] font-black hover:bg-brand-blue hover:text-white transition-all">MY ACCOUNT</button>
             </div>
         </header>
 
         <div id="view-landing" class="pt-16">
-            
-            <section class="min-h-[90vh] flex flex-col items-center justify-center text-center px-6 relative">
-                <div class="absolute inset-0 z-0 overflow-hidden">
-                    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-fire-blue/10 blur-[150px] rounded-full"></div>
-                </div>
-                
-                <div class="relative z-10 reveal active">
-                    <h1 class="text-6xl md:text-8xl font-black tracking-tighter mb-8 leading-[1.05]">
-                        Your playlists, <br><span class="text-fire-blue">made easier</span>
-                    </h1>
-                    <p class="text-xl text-gray-400 max-w-2xl mx-auto mb-12 font-medium leading-relaxed">
-                        Manage your playlists in one place with wide EPG coverage and updated images ready to use.
-                    </p>
-                    <div class="flex flex-col md:flex-row gap-6 justify-center">
-                        <button onclick="Router.go('playlists')" class="btn-fire px-12 py-5 text-sm uppercase tracking-widest shadow-2xl">GET STARTED NOW</button>
-                        <button class="bg-white/5 border border-white/10 px-12 py-5 rounded-xl font-black text-sm uppercase tracking-widest hover:bg-white/10 transition-all">VIEW FEATURES</button>
-                    </div>
+            <section class="min-h-[85vh] flex flex-col items-center justify-center text-center px-6 reveal active">
+                <h1 class="text-6xl md:text-8xl font-black tracking-tighter mb-8 leading-[1.1]">
+                    Your playlists, <br><span class="text-brand-blue">made easier</span>
+                </h1>
+                <p class="text-xl text-gray-500 max-w-2xl mx-auto mb-12 font-medium">
+                    Manage your playlists in one place with wide EPG coverage and updated images ready to use.
+                </p>
+                <div class="flex gap-4">
+                    <button onclick="Router.go('playlists')" class="btn-action px-12 py-4 text-sm uppercase tracking-widest">GET STARTED NOW</button>
                 </div>
             </section>
 
-            <section class="py-32 bg-black/40">
+            <section class="py-32 bg-black/30">
                 <div class="max-w-7xl mx-auto px-10">
-                    <div class="text-center mb-24 reveal">
-                        <h4 class="text-fire-blue font-black text-[10px] uppercase tracking-[0.4em] mb-4">Core features</h4>
-                        <h2 class="text-5xl font-black tracking-tighter">Designed for Users</h2>
+                    <div class="text-center mb-20 reveal">
+                        <span class="text-brand-blue font-black text-[10px] uppercase tracking-widest">Designed for Users</span>
+                        <h2 class="text-4xl font-black mt-4">Core features</h2>
                     </div>
-
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
-                        <div class="bg-fire-panel p-12 rounded-[2.5rem] border border-white/5 reveal">
-                            <i class="fa-solid fa-layer-group text-3xl text-fire-blue mb-8"></i>
-                            <h3 class="text-2xl font-black mb-4">Wide compatibility</h3>
-                            <p class="text-gray-500 leading-relaxed font-medium">
-                                Need to work with different playlist formats? No problem. IPTVEditor supports all major formats for both import and export.
-                            </p>
+                        <div class="pricing-card p-12 reveal">
+                            <i class="fa-solid fa-layer-group text-3xl text-brand-blue mb-8"></i>
+                            <h3 class="text-xl font-black mb-4">Wide compatibility</h3>
+                            <p class="text-gray-500 text-sm leading-relaxed">IPTVEditor supports all major formats for both import and export (M3U, Xtream, MAG).</p>
                         </div>
-                        <div class="bg-fire-panel p-12 rounded-[2.5rem] border border-white/5 reveal" style="transition-delay: 0.1s">
-                            <i class="fa-solid fa-cloud-arrow-up text-3xl text-fire-blue mb-8"></i>
-                            <h3 class="text-2xl font-black mb-4">Cloud computing</h3>
-                            <p class="text-gray-500 leading-relaxed font-medium">
-                                Keep your playlists always with you. You can save up to 40 playlists on our dedicated Cloud space.
-                            </p>
+                        <div class="pricing-card p-12 reveal" style="transition-delay: 0.1s">
+                            <i class="fa-solid fa-cloud text-3xl text-brand-blue mb-8"></i>
+                            <h3 class="text-xl font-black mb-4">Cloud computing</h3>
+                            <p class="text-gray-500 text-sm leading-relaxed">Keep your playlists always with you. Save up to 40 playlists on our Cloud space.</p>
                         </div>
-                        <div class="bg-fire-panel p-12 rounded-[2.5rem] border border-white/5 reveal" style="transition-delay: 0.2s">
-                            <i class="fa-solid fa-display text-3xl text-fire-blue mb-8"></i>
-                            <h3 class="text-2xl font-black mb-4">User friendly</h3>
-                            <p class="text-gray-500 leading-relaxed font-medium">
-                                No software to download, no compatibility issues. All you need is your screen and internet connection.
-                            </p>
+                        <div class="pricing-card p-12 reveal" style="transition-delay: 0.2s">
+                            <i class="fa-solid fa-bolt text-3xl text-brand-blue mb-8"></i>
+                            <h3 class="text-xl font-black mb-4">User friendly</h3>
+                            <p class="text-gray-500 text-sm leading-relaxed">No software to download. All you need is your screen and internet connection.</p>
                         </div>
                     </div>
                 </div>
             </section>
 
             <section class="py-32">
-                <div class="max-w-7xl mx-auto px-10">
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
-                        <div class="reveal">
-                            <h2 class="text-5xl font-black tracking-tighter leading-tight mb-8">All your playlists customized in <span class="text-fire-blue">one click</span></h2>
-                            <p class="text-gray-400 text-lg mb-12">Stop wasting time manually linking logos and EPG data to your playlist.</p>
-                            
-                            <div class="space-y-8">
-                                <div class="flex gap-6">
-                                    <div class="w-12 h-12 bg-fire-blue/10 rounded-full flex items-center justify-center shrink-0"><i class="fa-solid fa-check text-fire-blue"></i></div>
-                                    <div>
-                                        <h4 class="text-xl font-black mb-2">Automatic logo search</h4>
-                                        <p class="text-gray-500 text-sm">Automatically assign logos from our curated icon library, or use the advanced search function.</p>
-                                    </div>
-                                </div>
-                                <div class="flex gap-6">
-                                    <div class="w-12 h-12 bg-fire-blue/10 rounded-full flex items-center justify-center shrink-0"><i class="fa-solid fa-check text-fire-blue"></i></div>
-                                    <div>
-                                        <h4 class="text-xl font-black mb-2">Automatic EPG search</h4>
-                                        <p class="text-gray-500 text-sm">Select an EPG source and let IPTVEditor automatically connect the right data.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="reveal bg-fire-panel p-4 rounded-[3rem] border border-white/10 shadow-3xl">
-                             <img src="https://iptveditor.com/assets/img/screens/editor.jpg" class="rounded-[2.5rem] opacity-70" alt="Editor Preview">
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="py-32 bg-black/40">
                 <div class="max-w-5xl mx-auto px-10">
                     <div class="text-center mb-20 reveal">
-                        <h4 class="text-fire-blue font-black text-[10px] uppercase tracking-[0.4em] mb-4">Affordable Pricing</h4>
-                        <h2 class="text-5xl font-black tracking-tighter">Pricing Plans</h2>
+                        <h2 class="text-4xl font-black mt-4">Pricing Plans</h2>
                     </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
                         <div class="pricing-card p-12 reveal">
-                            <span class="text-fire-blue font-black text-[10px] uppercase mb-6 block tracking-widest">Recommended</span>
-                            <h3 class="text-3xl font-black mb-2">Advanced</h3>
-                            <div class="flex items-baseline gap-2 mb-10">
-                                <span class="text-5xl font-black">€14.90</span>
-                                <span class="text-gray-500 text-sm font-bold uppercase">/ year</span>
-                            </div>
-                            <ul class="space-y-5 mb-12">
-                                <li class="flex items-center gap-3 text-sm font-medium"><i class="fa-solid fa-check text-fire-blue"></i> Max playlists: up to 40</li>
-                                <li class="flex items-center gap-3 text-sm font-medium"><i class="fa-solid fa-check text-fire-blue"></i> Entries per playlist: 1 million</li>
-                                <li class="flex items-center gap-3 text-sm font-medium"><i class="fa-solid fa-check text-fire-blue"></i> EPG sources: up to ∞</li>
-                                <li class="flex items-center gap-3 text-sm font-medium"><i class="fa-solid fa-check text-fire-blue"></i> Auto updater daily syncs</li>
+                            <h3 class="text-2xl font-black mb-2">Advanced</h3>
+                            <div class="text-4xl font-black mb-10">€14.90 <span class="text-xs text-gray-500">/ year</span></div>
+                            <ul class="space-y-4 mb-12 text-sm text-gray-400">
+                                <li><i class="fa-solid fa-check text-brand-blue mr-3"></i> Max playlists: 40</li>
+                                <li><i class="fa-solid fa-check text-brand-blue mr-3"></i> Entries: 1 million</li>
+                                <li><i class="fa-solid fa-check text-brand-blue mr-3"></i> EPG sources: ∞</li>
                             </ul>
-                            <button class="btn-fire w-full py-5 text-xs uppercase tracking-widest">Purchase Now</button>
+                            <button class="btn-action w-full py-4 uppercase text-xs font-black">Purchase Now</button>
                         </div>
-
                         <div class="pricing-card p-12 reveal" style="transition-delay: 0.1s">
-                            <span class="text-gray-600 font-black text-[10px] uppercase mb-6 block tracking-widest">Lite Plan</span>
-                            <h3 class="text-3xl font-black mb-2">Basic</h3>
-                            <div class="flex items-baseline gap-2 mb-10">
-                                <span class="text-5xl font-black">€9.90</span>
-                                <span class="text-gray-500 text-sm font-bold uppercase">/ year</span>
-                            </div>
-                            <ul class="space-y-5 mb-12">
-                                <li class="flex items-center gap-3 text-sm font-medium"><i class="fa-solid fa-check text-fire-blue"></i> Max playlists: 3</li>
-                                <li class="flex items-center gap-3 text-sm font-medium"><i class="fa-solid fa-check text-fire-blue"></i> Entries: 100,000</li>
-                                <li class="flex items-center gap-3 text-sm font-medium opacity-40"><i class="fa-solid fa-xmark text-red-500"></i> No EPG sources</li>
-                                <li class="flex items-center gap-3 text-sm font-medium"><i class="fa-solid fa-check text-fire-blue"></i> Auto updater syncs</li>
+                            <h3 class="text-2xl font-black mb-2">Basic</h3>
+                            <div class="text-4xl font-black mb-10">€9.90 <span class="text-xs text-gray-500">/ year</span></div>
+                            <ul class="space-y-4 mb-12 text-sm text-gray-400">
+                                <li><i class="fa-solid fa-check text-brand-blue mr-3"></i> Max playlists: 3</li>
+                                <li><i class="fa-solid fa-check text-brand-blue mr-3"></i> Entries: 100,000</li>
+                                <li class="opacity-30"><i class="fa-solid fa-xmark text-red-500 mr-3"></i> No EPG sources</li>
                             </ul>
-                            <button class="bg-white/5 border border-white/10 w-full py-5 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white/10">Purchase Now</button>
+                            <button class="bg-white/5 border border-white/10 w-full py-4 rounded-xl uppercase text-xs font-black hover:bg-white/10">Purchase Now</button>
                         </div>
                     </div>
-                    <p class="text-center text-gray-600 text-[10px] mt-12 px-10 leading-relaxed">*€14.90 is the starting price. Includes 5 playlists, 10 epg and 10 managed users. IPTVEditor does not provide content.</p>
                 </div>
             </section>
 
-            <footer class="py-24 border-t border-white/5 bg-[#050a14]">
-                <div class="max-w-7xl mx-auto px-10 grid grid-cols-2 lg:grid-cols-4 gap-16">
-                    <div class="col-span-1">
-                        <div class="text-xl font-black mb-8">GEMINI TV</div>
-                        <p class="text-xs text-gray-600 leading-relaxed font-medium">© 2019 - 2026, IPTVEditor.com Clone Engine. The most powerful playlist editor in the world.</p>
+            <footer class="py-20 border-t border-white/5 bg-[#050a14]">
+                <div class="max-w-7xl mx-auto px-10 grid grid-cols-2 lg:grid-cols-4 gap-12">
+                    <div>
+                        <div class="text-xl font-black mb-6">IPTV EDITOR</div>
+                        <p class="text-xs text-gray-600">© 2019 - 2026, IPTVEditor.com Clone Engine.</p>
                     </div>
                     <div>
-                        <h5 class="text-[10px] font-black uppercase tracking-widest text-white mb-8">General Pages</h5>
-                        <div class="flex flex-col gap-4">
-                            <span class="footer-link">Home</span>
-                            <span class="footer-link">FAQ & Guides</span>
-                            <span class="footer-link">My Account</span>
-                            <span class="footer-link">My Orders</span>
-                        </div>
+                        <h5 class="text-[10px] font-black uppercase text-white mb-6 tracking-widest">General</h5>
+                        <ul class="text-xs text-gray-500 space-y-3">
+                            <li class="hover:text-brand-blue cursor-pointer">Home</li>
+                            <li class="hover:text-brand-blue cursor-pointer">FAQ & Guides</li>
+                            <li class="hover:text-brand-blue cursor-pointer">My Account</li>
+                        </ul>
                     </div>
                     <div>
-                        <h5 class="text-[10px] font-black uppercase tracking-widest text-white mb-8">Useful Pages</h5>
-                        <div class="flex flex-col gap-4">
-                            <span class="footer-link">Open a ticket</span>
-                            <span class="footer-link">Contact us</span>
-                            <span class="footer-link">Maintenance status</span>
-                        </div>
+                        <h5 class="text-[10px] font-black uppercase text-white mb-6 tracking-widest">Useful Pages</h5>
+                        <ul class="text-xs text-gray-500 space-y-3">
+                            <li class="hover:text-brand-blue cursor-pointer">Open a ticket</li>
+                            <li class="hover:text-brand-blue cursor-pointer">Contact us</li>
+                            <li class="hover:text-brand-blue cursor-pointer">Maintenance</li>
+                        </ul>
                     </div>
                     <div>
-                        <h5 class="text-[10px] font-black uppercase tracking-widest text-white mb-8">Legal</h5>
-                        <div class="flex flex-col gap-4">
-                            <span class="footer-link">Terms & conditions</span>
-                            <span class="footer-link">Privacy Policy</span>
-                        </div>
+                        <h5 class="text-[10px] font-black uppercase text-white mb-6 tracking-widest">Legal</h5>
+                        <ul class="text-xs text-gray-500 space-y-3">
+                            <li class="hover:text-brand-blue cursor-pointer">Terms & Conditions</li>
+                            <li class="hover:text-brand-blue cursor-pointer">Privacy Policy</li>
+                        </ul>
                     </div>
                 </div>
             </footer>
@@ -282,171 +209,118 @@
 
         <div id="view-playlists" class="pt-16 hidden min-h-screen">
             <div class="max-w-7xl mx-auto p-12">
-                <div class="flex justify-between items-end mb-16">
+                <div class="flex justify-between items-end mb-12">
                     <div>
-                        <h2 class="text-5xl font-black tracking-tighter">My Playlists</h2>
-                        <p class="text-gray-500 font-medium mt-3">Active Cloud Storage for M3U/Xtream Sources.</p>
+                        <h2 class="text-4xl font-black">My Playlists</h2>
+                        <p class="text-gray-500 mt-2">Manage your M3U and Xtream sources from the cloud.</p>
                     </div>
-                    <button onclick="IO.importPrompt()" class="btn-fire px-8 py-3.5 flex items-center gap-3 text-xs uppercase tracking-widest">
-                        <i class="fa-solid fa-cloud-arrow-up"></i> NEW SOURCE
+                    <button onclick="IO.importPrompt()" class="btn-action px-8 py-3.5 flex items-center gap-3 text-[10px] uppercase font-black">
+                        <i class="fa-solid fa-plus"></i> NEW PLAYLIST
                     </button>
                 </div>
-
-                <div class="bg-fire-panel border border-white/5 rounded-[2rem] overflow-hidden shadow-3xl">
-                    <table class="data-table-pro text-left">
+                <div class="bg-brand-panel border border-white/5 rounded-[2rem] overflow-hidden shadow-2xl">
+                    <table class="w-full text-left editor-table">
                         <thead>
                             <tr>
                                 <th>Name</th>
                                 <th>Channels</th>
-                                <th>Groups</th>
-                                <th>Sync Status</th>
+                                <th>Status</th>
                                 <th>Expiration</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody id="pl-body">
-                            </tbody>
+                        <tbody id="pl-body"></tbody>
                     </table>
                 </div>
             </div>
         </div>
 
         <div id="view-editor" class="pt-16 hidden">
-            <div class="h-16 bg-fire-panel border-b border-white/5 flex items-center justify-between px-8">
-                <div class="flex items-center gap-8">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 bg-fire-blue/20 rounded flex items-center justify-center text-fire-blue"><i class="fa-solid fa-list-check"></i></div>
-                        <span id="active-pl-label" class="text-xs font-black uppercase tracking-widest">Editor</span>
-                    </div>
-                    <div class="h-6 w-px bg-white/10"></div>
+            <div class="h-14 bg-brand-panel border-b border-white/5 flex items-center justify-between px-8">
+                <div class="flex items-center gap-6">
+                    <span id="pl-name-label" class="text-[10px] font-black uppercase text-brand-blue">Playlist Editor</span>
+                    <div class="h-5 w-px bg-white/10"></div>
                     <div class="flex gap-2">
-                        <button class="bg-fire-blue text-white px-5 py-1.5 rounded text-[10px] font-black">CHANNELS</button>
-                        <button class="bg-white/5 text-gray-500 px-5 py-1.5 rounded text-[10px] font-black hover:text-white">MOVIES/VOD</button>
+                        <button class="bg-brand-blue text-white px-4 py-1 rounded-[6px] text-[10px] font-black">CHANNELS</button>
+                        <button class="bg-white/5 text-gray-500 px-4 py-1 rounded-[6px] text-[10px] font-black">VOD</button>
                     </div>
                 </div>
-
-                <div class="flex items-center gap-6">
-                    <div class="relative">
-                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 text-[10px]"></i>
-                        <input type="text" id="ch-search" onkeyup="Editor.renderChannels()" placeholder="Filter current view..." class="bg-black/40 border border-white/5 rounded-full pl-10 pr-6 py-2 text-[10px] text-white focus:border-fire-blue outline-none w-72 transition-all">
-                    </div>
-                    <button onclick="Editor.openBulkTools()" class="bg-fire-blue/10 text-fire-blue border border-fire-blue/20 px-5 py-2 rounded text-[10px] font-black uppercase tracking-widest hover:bg-fire-blue hover:text-white transition-all">Bulk Actions</button>
+                <div class="flex items-center gap-4">
+                    <input type="text" id="ch-search" onkeyup="Editor.renderChannels()" placeholder="Filter channels..." class="bg-black/50 border border-white/10 rounded-full px-5 py-1.5 text-[10px] outline-none focus:border-brand-blue w-64">
+                    <button class="bg-brand-blue/10 text-brand-blue border border-brand-blue/20 px-4 py-1.5 rounded text-[10px] font-black uppercase">Tools</button>
                 </div>
             </div>
 
-            <div class="workstation">
-                <aside class="panel-left scroll-panel">
-                    <div class="p-6 border-b border-white/5 flex justify-between items-center">
-                        <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Group Categories</span>
-                        <span id="count-groups" class="text-fire-blue bg-fire-blue/10 px-2 py-0.5 rounded text-[9px] font-black">0</span>
+            <div class="editor-container">
+                <aside class="panel border-r border-white/5">
+                    <div class="p-5 border-b border-white/5 flex justify-between items-center">
+                        <span class="text-[10px] font-black text-gray-500 uppercase">Groups</span>
+                        <span id="group-count" class="bg-brand-blue/10 text-brand-blue px-2 py-0.5 rounded text-[9px] font-black">0</span>
                     </div>
-                    <div id="list-groups" class="p-3 space-y-1">
-                        </div>
+                    <div id="group-list" class="p-2 space-y-1"></div>
                 </aside>
 
-                <main class="panel-center scroll-panel border-r border-white/5">
-                    <table class="data-table-pro">
+                <main class="panel bg-black/20">
+                    <table class="editor-table">
                         <thead>
                             <tr>
-                                <th class="w-10"><input type="checkbox" id="master-check" onclick="Editor.selectAll()"></th>
+                                <th class="w-10"><input type="checkbox"></th>
                                 <th class="w-14">Icon</th>
-                                <th>Friendly Name</th>
-                                <th>EPG Source ID</th>
-                                <th class="w-12">#</th>
+                                <th>Name</th>
+                                <th>EPG Link</th>
+                                <th class="w-10">#</th>
                             </tr>
                         </thead>
-                        <tbody id="list-channels">
-                            </tbody>
+                        <tbody id="channel-list"></tbody>
                     </table>
                 </main>
 
-                <aside class="panel-right scroll-panel p-8">
-                    <h3 class="text-[10px] font-black text-fire-blue uppercase tracking-[0.2em] mb-10">Channel Properties</h3>
-                    
-                    <div id="empty-state-prop" class="text-center py-24 opacity-20">
-                        <i class="fa-solid fa-mouse-pointer text-5xl mb-6"></i>
-                        <p class="text-[10px] font-black tracking-widest">SELECT A CHANNEL TO EDIT</p>
+                <aside class="panel border-l border-white/5 p-8">
+                    <h3 class="text-[10px] font-black text-brand-blue uppercase mb-10 tracking-[0.2em]">Attributes</h3>
+                    <div id="prop-empty" class="text-center py-20 opacity-20">
+                        <i class="fa-solid fa-mouse-pointer text-4xl mb-4"></i>
+                        <p class="text-[10px] font-black">SELECT CHANNEL</p>
                     </div>
-
-                    <div id="prop-form" class="hidden space-y-8 reveal active">
-                        <div class="space-y-3">
-                            <label class="text-[9px] font-black text-gray-600 uppercase tracking-widest">Name in Playlist</label>
-                            <input type="text" id="attr-name" class="w-full bg-black border border-white/5 p-4 rounded-xl text-sm focus:border-fire-blue outline-none transition-all">
+                    <div id="prop-editor" class="hidden space-y-6">
+                        <div class="space-y-2">
+                            <label class="text-[9px] font-black text-gray-600 uppercase">Friendly Name</label>
+                            <input type="text" id="attr-name" class="w-full bg-black border border-white/10 p-4 rounded-xl text-sm focus:border-brand-blue outline-none">
                         </div>
-                        <div class="space-y-3">
-                            <label class="text-[9px] font-black text-gray-600 uppercase tracking-widest">Logo URL Path</label>
-                            <div class="flex gap-3">
-                                <input type="text" id="attr-logo" class="flex-1 bg-black border border-white/5 p-4 rounded-xl text-sm focus:border-fire-blue outline-none">
-                                <div id="logo-preview" class="w-14 h-14 bg-black rounded-xl border border-white/5 flex items-center justify-center overflow-hidden shrink-0">
-                                    <i class="fa-solid fa-image text-gray-800"></i>
-                                </div>
-                            </div>
+                        <div class="space-y-2">
+                            <label class="text-[9px] font-black text-gray-600 uppercase">Icon URL</label>
+                            <input type="text" id="attr-logo" class="w-full bg-black border border-white/10 p-4 rounded-xl text-sm focus:border-brand-blue outline-none">
                         </div>
-                        <div class="space-y-3">
-                            <label class="text-[9px] font-black text-gray-600 uppercase tracking-widest">EPG Link ID</label>
-                            <input type="text" id="attr-epg" class="w-full bg-black border border-white/5 p-4 rounded-xl text-sm focus:border-fire-blue outline-none">
+                        <div class="space-y-2">
+                            <label class="text-[9px] font-black text-gray-600 uppercase">EPG Source</label>
+                            <input type="text" id="attr-epg" class="w-full bg-black border border-white/10 p-4 rounded-xl text-sm focus:border-brand-blue outline-none">
                         </div>
-                        
-                        <div class="pt-8">
-                            <button onclick="Editor.saveChanges()" class="btn-fire w-full py-5 text-xs uppercase tracking-widest shadow-xl">Apply Changes</button>
-                        </div>
+                        <button onclick="Editor.saveChanges()" class="btn-action w-full py-4 text-xs uppercase font-black mt-6">Apply Changes</button>
                     </div>
                 </aside>
             </div>
         </div>
-
     </div>
 
-    <div id="modal-overlay" class="fixed inset-0 bg-black/95 backdrop-blur-xl z-[200] hidden flex items-center justify-center p-6">
-        <div class="bg-fire-panel border border-white/10 w-full max-w-xl rounded-[3rem] p-12 shadow-3xl reveal active">
-            <h2 id="modal-title" class="text-3xl font-black mb-8 tracking-tighter">Action</h2>
-            <div id="modal-body" class="mb-12"></div>
-            <div class="flex justify-end gap-8">
-                <button onclick="UI.closeModal()" class="text-gray-500 font-black text-xs uppercase tracking-widest hover:text-white">Close</button>
-                <button id="modal-confirm" class="btn-fire px-10 py-3.5 text-xs uppercase tracking-widest">Confirm</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="toast-container" class="fixed bottom-12 right-12 z-[300] flex flex-col gap-4"></div>
+    <div id="toast-container" class="fixed bottom-10 right-10 z-[300]"></div>
 
     <script>
-        const AppState = {
-            playlists: [],
-            currentPL: null,
-            currentGroup: null,
-            editingChannel: null,
-            selectedChannels: new Set()
-        };
+        const AppState = { playlists: [], currentPL: null, currentGroup: null, editingChannel: null };
 
         const DB = {
             instance: null,
             init() {
-                const req = indexedDB.open("GeminiTV_ULTRA_v84", 1);
-                req.onupgradeneeded = e => {
-                    const db = e.target.result;
-                    if(!db.objectStoreNames.contains('playlists')) db.createObjectStore('playlists', { keyPath: 'id' });
-                };
-                req.onsuccess = e => {
-                    this.instance = e.target.result;
-                    this.loadAll();
-                };
+                const req = indexedDB.open("MirrorDB_v8", 1);
+                req.onupgradeneeded = e => e.target.result.createObjectStore('playlists', { keyPath: 'id' });
+                req.onsuccess = e => { this.instance = e.target.result; this.load(); };
             },
-            async save(data) {
+            async save(p) {
                 const tx = this.instance.transaction('playlists', 'readwrite');
-                tx.objectStore('playlists').put(JSON.parse(JSON.stringify(data)));
-                return new Promise(r => tx.oncomplete = r);
+                tx.objectStore('playlists').put(JSON.parse(JSON.stringify(p)));
             },
-            async delete(id) {
-                const tx = this.instance.transaction('playlists', 'readwrite');
-                tx.objectStore('playlists').delete(id);
-                return new Promise(r => tx.oncomplete = r);
-            },
-            async loadAll() {
+            async load() {
                 const tx = this.instance.transaction('playlists', 'readonly');
-                const req = tx.objectStore('playlists').getAll();
-                req.onsuccess = () => {
-                    AppState.playlists = req.result || [];
+                tx.objectStore('playlists').getAll().onsuccess = e => {
+                    AppState.playlists = e.target.result || [];
                     UI.renderPlaylists();
                 };
             }
@@ -454,9 +328,8 @@
 
         const Router = {
             go(view) {
-                document.querySelectorAll('#main-app > div').forEach(div => div.classList.add('hidden'));
+                document.querySelectorAll('#app-root > div').forEach(d => d.classList.add('hidden'));
                 document.getElementById('view-' + view).classList.remove('hidden');
-                window.scrollTo(0,0);
             },
             openEditor(id) {
                 this.go('editor');
@@ -465,38 +338,23 @@
         };
 
         const UI = {
-            toast(msg, type = 'success') {
+            toast(msg) {
                 const div = document.createElement('div');
-                div.className = `px-10 py-5 rounded-[1.5rem] shadow-3xl text-white font-black text-xs uppercase tracking-widest flex items-center gap-5 transition-all duration-500 translate-y-20 ${type === 'error' ? 'bg-red-600' : 'bg-fire-blue'}`;
-                div.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-check'}"></i> ${msg}`;
+                div.className = "bg-brand-blue text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest mb-4 shadow-2xl transition-all";
+                div.innerText = msg;
                 document.getElementById('toast-container').appendChild(div);
-                setTimeout(() => div.classList.remove('translate-y-20'), 100);
-                setTimeout(() => {
-                    div.classList.add('opacity-0');
-                    setTimeout(() => div.remove(), 500);
-                }, 4000);
+                setTimeout(() => div.remove(), 3000);
             },
-            showModal(title, bodyHTML, onConfirm) {
-                document.getElementById('modal-title').innerText = title;
-                document.getElementById('modal-body').innerHTML = bodyHTML;
-                document.getElementById('modal-confirm').onclick = onConfirm;
-                document.getElementById('modal-overlay').classList.remove('hidden');
-            },
-            closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); },
             renderPlaylists() {
                 const tbody = document.getElementById('pl-body');
                 tbody.innerHTML = AppState.playlists.map(p => `
                     <tr>
-                        <td class="font-black text-white text-base">${p.name}</td>
-                        <td class="font-bold text-gray-500">${p.channels.length} items</td>
-                        <td class="font-bold text-gray-500">${p.groups ? p.groups.length : 0} groups</td>
-                        <td><span class="bg-green-500/10 text-green-500 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">Synced</span></td>
-                        <td class="text-xs font-mono text-gray-500">2027-02-08</td>
+                        <td class="font-black">${p.name}</td>
+                        <td class="text-gray-500 font-bold">${p.channels.length} items</td>
+                        <td><span class="bg-green-500/10 text-green-500 px-3 py-1 rounded text-[9px] font-black uppercase">Active</span></td>
+                        <td class="text-xs font-mono text-gray-600">2027-02-08</td>
                         <td>
-                            <div class="flex gap-5">
-                                <button onclick="Router.openEditor('${p.id}')" class="text-fire-blue hover:scale-125 transition-all"><i class="fa-solid fa-pen-nib"></i></button>
-                                <button onclick="IO.deletePlaylist('${p.id}')" class="text-gray-700 hover:text-red-500 transition-all"><i class="fa-solid fa-trash"></i></button>
-                            </div>
+                            <button onclick="Router.openEditor('${p.id}')" class="text-brand-blue hover:scale-125 transition-all"><i class="fa-solid fa-pen-to-square"></i></button>
                         </td>
                     </tr>
                 `).join('');
@@ -506,124 +364,84 @@
         const Editor = {
             load(id) {
                 AppState.currentPL = AppState.playlists.find(p => p.id === id);
-                if(!AppState.currentPL) return;
-                document.getElementById('active-pl-label').innerText = AppState.currentPL.name;
-                if(!AppState.currentPL.groups) {
-                    const uniqueGroups = [...new Set(AppState.currentPL.channels.map(c => c.group))];
-                    AppState.currentPL.groups = uniqueGroups.map(name => ({ name, id: Math.random().toString(36).substr(2,5) }));
-                }
-                AppState.currentGroup = AppState.currentPL.groups[0]?.name;
-                this.renderGroups();
+                document.getElementById('pl-name-label').innerText = AppState.currentPL.name;
+                const groups = [...new Set(AppState.currentPL.channels.map(c => c.group))];
+                AppState.currentGroup = groups[0];
+                this.renderGroups(groups);
                 this.renderChannels();
             },
-            renderGroups() {
-                const container = document.getElementById('list-groups');
-                document.getElementById('count-groups').innerText = AppState.currentPL.groups.length;
-                container.innerHTML = AppState.currentPL.groups.map(g => {
-                    const isActive = g.name === AppState.currentGroup;
-                    const count = AppState.currentPL.channels.filter(c => c.group === g.name).length;
-                    return `
-                        <div onclick="Editor.selectGroup('${g.name}')" class="p-4 rounded-2xl cursor-pointer flex justify-between items-center transition-all ${isActive ? 'bg-fire-blue text-white font-black shadow-lg shadow-fire-blue/20' : 'text-gray-500 hover:bg-white/5'}">
-                            <span class="text-xs truncate pr-4">${g.name}</span>
-                            <span class="text-[9px] font-black bg-black/40 px-2.5 py-1 rounded-lg">${count}</span>
-                        </div>
-                    `;
-                }).join('');
+            renderGroups(groups) {
+                document.getElementById('group-count').innerText = groups.length;
+                document.getElementById('group-list').innerHTML = groups.map(g => `
+                    <div onclick="Editor.selectGroup('${g}')" class="p-3 rounded-xl cursor-pointer text-xs flex justify-between items-center ${g === AppState.currentGroup ? 'bg-brand-blue text-white font-bold' : 'text-gray-500 hover:bg-white/5'}">
+                        <span>${g}</span>
+                    </div>
+                `).join('');
             },
-            selectGroup(name) { AppState.currentGroup = name; this.renderGroups(); this.renderChannels(); },
+            selectGroup(g) { AppState.currentGroup = g; this.renderGroups([...new Set(AppState.currentPL.channels.map(c => c.group))]); this.renderChannels(); },
             renderChannels() {
-                const tbody = document.getElementById('list-channels');
                 const search = document.getElementById('ch-search').value.toLowerCase();
                 const filtered = AppState.currentPL.channels.filter(c => c.group === AppState.currentGroup && c.name.toLowerCase().includes(search));
-                tbody.innerHTML = filtered.map((c, idx) => `
+                document.getElementById('channel-list').innerHTML = filtered.map((c, i) => `
                     <tr onclick="Editor.editChannel('${c.id}')" class="${AppState.editingChannel?.id === c.id ? 'selected' : ''}">
-                        <td><input type="checkbox" onclick="event.stopPropagation()"></td>
-                        <td><img src="${c.logo}" class="w-10 h-10 object-contain rounded-lg bg-black" onerror="this.src='https://via.placeholder.com/40?text=TV'"></td>
-                        <td class="font-bold text-white">${c.name}</td>
-                        <td class="text-xs text-gray-600 font-mono">${c.epg || 'NO_EPG_LINK'}</td>
-                        <td class="text-gray-800 text-[10px] font-black">#${idx+1}</td>
+                        <td><input type="checkbox"></td>
+                        <td><img src="${c.logo}" class="w-8 h-8 object-contain rounded bg-black"></td>
+                        <td class="font-bold">${c.name}</td>
+                        <td class="text-xs text-gray-600 font-mono">${c.epg || '---'}</td>
+                        <td class="text-[10px] font-black opacity-20">#${i+1}</td>
                     </tr>
                 `).join('');
             },
             editChannel(id) {
-                const channel = AppState.currentPL.channels.find(c => c.id === id);
-                AppState.editingChannel = channel;
-                document.getElementById('empty-state-prop').classList.add('hidden');
-                document.getElementById('prop-form').classList.remove('hidden');
-                document.getElementById('attr-name').value = channel.name;
-                document.getElementById('attr-logo').value = channel.logo;
-                document.getElementById('attr-epg').value = channel.epg;
-                document.getElementById('logo-preview').innerHTML = `<img src="${channel.logo}" class="w-full h-full object-contain">`;
+                const c = AppState.currentPL.channels.find(x => x.id === id);
+                AppState.editingChannel = c;
+                document.getElementById('prop-empty').classList.add('hidden');
+                document.getElementById('prop-editor').classList.remove('hidden');
+                document.getElementById('attr-name').value = c.name;
+                document.getElementById('attr-logo').value = c.logo;
+                document.getElementById('attr-epg').value = c.epg;
                 this.renderChannels();
             },
             saveChanges() {
-                if(!AppState.editingChannel) return;
                 AppState.editingChannel.name = document.getElementById('attr-name').value;
                 AppState.editingChannel.logo = document.getElementById('attr-logo').value;
                 AppState.editingChannel.epg = document.getElementById('attr-epg').value;
                 DB.save(AppState.currentPL);
-                UI.toast("DATABASE SYNC COMPLETE");
+                UI.toast("Updated Successfully");
                 this.renderChannels();
             }
         };
 
         const IO = {
             importPrompt() {
-                const html = `
-                    <div class="space-y-8">
-                        <div class="space-y-3">
-                            <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Friendly Label</label>
-                            <input type="text" id="m3u-name" class="w-full bg-black border border-white/5 p-5 rounded-2xl text-white outline-none focus:border-fire-blue" placeholder="e.g. Premium USA">
-                        </div>
-                        <div class="space-y-3">
-                            <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Source M3U Link</label>
-                            <input type="text" id="m3u-url" class="w-full bg-black border border-white/5 p-5 rounded-2xl text-white outline-none focus:border-fire-blue" placeholder="http://domain.com/get.php...">
-                        </div>
-                    </div>
-                `;
-                UI.showModal("Connect to Cloud Source", html, () => this.handleImport());
+                const url = prompt("Enter M3U URL:");
+                if(url) this.handle(url);
             },
-            async handleImport() {
-                const name = document.getElementById('m3u-name').value;
-                const url = document.getElementById('m3u-url').value;
-                if(!name || !url) return UI.toast("FIELDS CANNOT BE EMPTY", "error");
-                UI.toast("ESTABLISHING CONNECTION...", "info");
-                UI.closeModal();
+            async handle(url) {
+                UI.toast("Connecting...");
                 try {
-                    const proxy = `https://geminitv-proxy.jcdoni.workers.dev/?url=${encodeURIComponent(url)}`;
-                    const res = await fetch(proxy);
+                    const res = await fetch(`https://geminitv-proxy.jcdoni.workers.dev/?url=${encodeURIComponent(url)}`);
                     const text = await res.text();
                     const channels = [];
-                    const lines = text.split('\n');
-                    for(let i=0; i<lines.length; i++) {
-                        if(lines[i].startsWith('#EXTINF:')) {
-                            const meta = lines[i];
-                            const stream = lines[i+1]?.trim() || "";
-                            const chName = meta.split(',')[1]?.trim() || "Undefined";
-                            const group = (meta.match(/group-title="([^"]+)"/) || ["","General"])[1];
-                            const logo = (meta.match(/tvg-logo="([^"]+)"/) || ["",""])[1];
-                            const epg = (meta.match(/tvg-id="([^"]+)"/) || ["",""])[1];
-                            channels.push({ id: Math.random().toString(36).substr(2, 9), name: chName, group, logo, epg, url: stream });
+                    text.split('\n').forEach(line => {
+                        if(line.startsWith('#EXTINF:')) {
+                            const name = line.split(',')[1]?.trim();
+                            const group = (line.match(/group-title="([^"]+)"/) || ["","General"])[1];
+                            const logo = (line.match(/tvg-logo="([^"]+)"/) || ["",""])[1];
+                            const epg = (line.match(/tvg-id="([^"]+)"/) || ["",""])[1];
+                            channels.push({ id: Math.random().toString(36).substr(2,9), name, group, logo, epg });
                         }
-                    }
-                    const pl = { id: Date.now().toString(), name, source: url, channels };
+                    });
+                    const pl = { id: Date.now().toString(), name: "New Source", channels };
                     await DB.save(pl);
-                    await DB.loadAll();
-                    UI.toast(`SUCCESS: ${channels.length} CHANNELS IMPORTED`);
-                } catch(e) { UI.toast("CONNECTION TIMEOUT", "error"); }
-            },
-            deletePlaylist(id) { if(confirm("PERMANENTLY DELETE SOURCE?")) { DB.delete(id).then(() => DB.loadAll()); } }
+                    DB.load();
+                    UI.toast("Imported!");
+                } catch(e) { UI.toast("Error"); }
+            }
         };
 
-        // REVEAL ENGINE
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => { if(entry.isIntersecting) entry.target.classList.add('active'); });
-        }, { threshold: 0.1 });
-
-        window.onload = () => {
-            DB.init();
-            document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-        };
+        const observer = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting) e.target.classList.add('active'); }));
+        window.onload = () => { DB.init(); document.querySelectorAll('.reveal').forEach(el => observer.observe(el)); };
     </script>
 </body>
 </html>
