@@ -69,7 +69,7 @@
 
         .row-actions { display: flex; gap: 14px; opacity: 0; transition: 0.2s; margin-left: auto; }
         .item-row:hover .row-actions { opacity: 1; }
-        .row-actions i { cursor: pointer; font-size: 13px; }
+        .row-actions i { cursor: pointer; font-size: 13px; z-index: 10; } /* z-index para garantir clique */
         .row-actions i:hover { color: var(--fire-blue); }
 
         /* Tabela Playlists Detalhada (v6.5) */
@@ -418,11 +418,11 @@
             `).join('');
         }
 
-        // --- AÇÕES EDITOR (IN-PLACE) ---
+        // --- AÇÕES EDITOR (IN-PLACE & PROPAGATION FIX) ---
         function setGR(g) { curGR = g; renderGR(); renderCH(); }
 
         function editGR(e, oldG) {
-            e.stopPropagation();
+            e.stopPropagation(); // Impede selecionar a linha
             const el = document.getElementById(`g-txt-${oldG}`);
             el.innerHTML = `<input id="inp-g-${oldG}" value="${oldG}" class="edit-inline">`;
             const inp = document.getElementById(`inp-g-${oldG}`);
@@ -445,6 +445,7 @@
 
         function delGR(e, g) {
             e.stopPropagation();
+            if(!confirm("Apagar grupo e canais?")) return;
             curPL.channels = curPL.channels.filter(c => c.grupo !== g);
             curPL.groups = curPL.groups.filter(x => x !== g);
             curGR = curPL.groups[0] || null;
@@ -468,8 +469,18 @@
             inp.onclick = (ev) => ev.stopPropagation();
         }
 
-        function togCH(e, id) { e.stopPropagation(); const c = curPL.channels.find(x=>x.id==id); c.oculto = !c.oculto; save(); renderCH(); }
-        function delCH(e, id) { e.stopPropagation(); curPL.channels = curPL.channels.filter(x=>x.id!==id); save(); renderCH(); }
+        function togCH(e, id) { 
+            e.stopPropagation(); 
+            const c = curPL.channels.find(x=>x.id==id); 
+            c.oculto = !c.oculto; 
+            save(); renderCH(); 
+        }
+        
+        function delCH(e, id) { 
+            e.stopPropagation(); 
+            curPL.channels = curPL.channels.filter(x=>x.id!==id); 
+            save(); renderCH(); 
+        }
 
         // --- THEATER MODE ---
         function renderTheaterBase() {
@@ -512,7 +523,13 @@
         function openEditPL(id) { editingId = id; const p = db.find(x=>x.id==id); document.getElementById('edit-pl-name').value = p.name; toggleM('modal-edit-pl', true); }
         function savePLMetadata() { const p = db.find(x=>x.id==editingId); p.name = document.getElementById('edit-pl-name').value; save(); toggleM('modal-edit-pl', false); renderPL(); }
         function delPL(id) { if(confirm("Apagar playlist?")) { db = db.filter(x=>x.id!==id); curPL = null; save(); renderPL(); } }
-        function exportM3U() { if(!curPL) return alert("Selecione Playlist"); let c = "#EXTM3U\n" + curPL.channels.map(x=>`#EXTINF:-1 group-title="${x.grupo}" tvg-logo="${x.logo}",${x.nome}\n${x.url}`).join('\n'); let b = new Blob([c],{type:'text/plain'}); let l = document.createElement('a'); l.href = URL.createObjectURL(b); l.download = 'lista.m3u'; l.click(); }
+        function exportOne(id) {
+            const p = db.find(x=>x.id==id);
+            let c = "#EXTM3U\n" + p.channels.map(x=>`#EXTINF:-1 group-title="${x.grupo}" tvg-logo="${x.logo}",${x.nome}\n${x.url}`).join('\n');
+            let b = new Blob([c],{type:'text/plain'});
+            let l = document.createElement('a'); l.href = URL.createObjectURL(b); l.download = p.name + '.m3u'; l.click();
+        }
+        function exportM3U() { if(!curPL) return alert("Selecione Playlist"); exportOne(curPL.id); }
         function toggleM(id, show) { document.getElementById(id).style.display = show ? 'flex' : 'none'; }
         function toggleTheme() { document.body.classList.toggle('light-mode'); }
         
