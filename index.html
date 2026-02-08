@@ -3,206 +3,307 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini TV - Enterprise v7.3</title>
+    <title>Gemini TV v8.2 | Professional IPTV Management</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        slate: { 850: '#1e293b', 900: '#0f172a', 950: '#020617' },
-                        cyan: { 450: '#06b6d4' }
-                    },
-                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                        fire: {
+                            blue: '#00a8e1',
+                            dark: '#00050d',
+                            panel: '#0a111f',
+                            border: 'rgba(255,255,255,0.08)'
+                        }
+                    }
                 }
             }
         }
     </script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        body { background-color: #00050d; color: #e2e8f0; overflow: hidden; }
         
-        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; overflow: hidden; }
+        /* SCROLLBAR GOURMET */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #00050d; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00a8e1; }
+
+        /* GLASS & FIRE EFFECTS */
+        .glass-nav { background: rgba(0, 5, 13, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .fire-gradient { background: linear-gradient(135deg, #00a8e1 0%, #005f7a 100%); }
+        .active-tab { border-bottom: 2px solid #00a8e1; color: #00a8e1; }
         
-        /* UI TWEAKS */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
+        /* TABLE DENSE STYLE (IPTVEDITOR CLONE) */
+        .data-table tr { border-bottom: 1px solid rgba(255,255,255,0.03); transition: all 0.2s; }
+        .data-table tr:hover { background: rgba(0, 168, 225, 0.05); }
+        .data-table td { padding: 8px 12px; font-size: 13px; }
+        .data-table th { padding: 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #64748b; background: #050a14; }
 
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); }
-        .glass-header { background: rgba(2, 6, 23, 0.95); border-bottom: 1px solid rgba(255,255,255,0.05); }
-        
-        /* DRAG AND DROP STYLES */
-        .draggable-item { cursor: grab; }
-        .draggable-item:active { cursor: grabbing; background: rgba(6, 182, 212, 0.2); }
-        .draggable-item.dragging { opacity: 0.5; border: 1px dashed #06b6d4; }
+        /* EDITOR LAYOUT */
+        .editor-container { display: grid; grid-template-columns: 260px 1fr 300px; height: calc(100vh - 100px); }
+        .panel-left { border-right: 1px solid rgba(255,255,255,0.05); background: #020812; }
+        .panel-center { background: #00050d; overflow-y: auto; }
+        .panel-right { border-left: 1px solid rgba(255,255,255,0.05); background: #050a14; }
 
-        /* TOAST */
-        .toast { animation: slideIn 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        /* ANIMATIONS */
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* MODAL */
-        .modal-bg { background-color: rgba(0,0,0,0.8); backdrop-filter: blur(4px); }
+        /* MULTI-SELECT BAR */
+        #bulk-bar { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #00a8e1; color: white; padding: 12px 24px; border-radius: 50px; display: none; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
     </style>
 </head>
-<body>
+<body class="dark">
 
-    <div id="system-layer" class="fixed inset-0 z-50 pointer-events-none flex flex-col items-end p-4">
-        <div id="toast-container" class="flex flex-col gap-2 pointer-events-auto"></div>
-    </div>
+    <div id="toast-container" class="fixed top-5 right-5 z-[100] flex flex-col gap-3"></div>
 
-    <div id="modal-overlay" class="fixed inset-0 z-50 modal-bg hidden flex items-center justify-center p-4">
-        <div class="glass w-full max-w-md p-6 rounded-xl shadow-2xl border border-white/10 transform scale-100 transition-all">
-            <h3 id="modal-title" class="text-xl font-bold text-white mb-2">Título</h3>
-            <p id="modal-desc" class="text-gray-400 text-sm mb-4">Descrição</p>
-            <div id="modal-content" class="mb-6">
-                </div>
-            <div class="flex justify-end gap-3">
-                <button onclick="Modal.close()" class="px-4 py-2 rounded text-sm font-bold text-gray-400 hover:text-white transition-colors">CANCELAR</button>
-                <button id="modal-confirm-btn" class="bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-2 rounded text-sm font-bold shadow-lg transition-transform transform active:scale-95">CONFIRMAR</button>
+    <div id="modal-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[90] hidden flex items-center justify-center p-4">
+        <div class="bg-fire-panel border border-white/10 w-full max-w-xl rounded-2xl p-8 shadow-2xl fade-in">
+            <h2 id="modal-title" class="text-2xl font-bold mb-4 text-white">Action</h2>
+            <div id="modal-body" class="mb-8 text-gray-400"></div>
+            <div class="flex justify-end gap-4">
+                <button onclick="UI.closeModal()" class="px-6 py-2 text-gray-500 font-bold hover:text-white">CANCELAR</button>
+                <button id="modal-confirm" class="fire-gradient px-8 py-2 rounded-lg font-bold text-white shadow-lg">CONFIRMAR</button>
             </div>
         </div>
     </div>
 
-    <div id="login-screen" class="fixed inset-0 z-40 bg-[#020617] flex items-center justify-center p-4">
-        <div class="w-full max-w-md bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-2xl">
-            <div class="text-center mb-8">
-                <div class="text-4xl text-cyan-500 mb-2"><i class="fa-solid fa-infinity"></i></div>
-                <h1 class="text-2xl font-bold text-white">Gemini TV <span class="text-cyan-500">7.3</span></h1>
-                <p class="text-gray-500 text-xs uppercase tracking-widest mt-1">Acesso Seguro</p>
-            </div>
-
-            <div class="flex border-b border-slate-800 mb-6">
-                <button onclick="Auth.switchTab('login')" id="tab-login" class="flex-1 pb-3 text-sm font-bold text-cyan-500 border-b-2 border-cyan-500">ENTRAR</button>
-                <button onclick="Auth.switchTab('register')" id="tab-register" class="flex-1 pb-3 text-sm font-bold text-gray-500 hover:text-gray-300">CRIAR CONTA</button>
-            </div>
-
-            <form onsubmit="Auth.submit(event)" class="space-y-4">
+    <div id="view-login" class="fixed inset-0 z-[80] bg-fire-dark flex items-center justify-center p-4">
+        <div class="w-full max-w-md bg-fire-panel border border-white/5 p-10 rounded-3xl shadow-2xl text-center">
+            <div class="text-5xl text-fire-blue mb-6"><i class="fa-solid fa-bolt-lightning"></i></div>
+            <h1 class="text-3xl font-black mb-2 tracking-tighter">GEMINI TV <span class="text-fire-blue">v8.2</span></h1>
+            <p class="text-gray-500 text-sm mb-10 uppercase tracking-widest">Enterprise Edition</p>
+            
+            <form onsubmit="Auth.handleLogin(event)" class="space-y-5 text-left">
                 <div>
-                    <label class="text-xs font-bold text-gray-400 uppercase">E-mail</label>
-                    <input type="email" id="auth-email" required class="w-full mt-1 bg-slate-950 border border-slate-800 rounded p-3 text-white focus:border-cyan-500 outline-none transition-colors" placeholder="seu@email.com">
+                    <label class="text-[10px] font-bold text-gray-500 uppercase ml-1">E-mail</label>
+                    <input type="email" id="login-email" required class="w-full bg-black/40 border border-white/5 p-4 rounded-xl text-white focus:border-fire-blue outline-none transition-all" placeholder="admin@gemini.tv">
                 </div>
                 <div>
-                    <label class="text-xs font-bold text-gray-400 uppercase">Senha</label>
-                    <input type="password" id="auth-pass" required minlength="4" class="w-full mt-1 bg-slate-950 border border-slate-800 rounded p-3 text-white focus:border-cyan-500 outline-none transition-colors" placeholder="••••">
+                    <label class="text-[10px] font-bold text-gray-500 uppercase ml-1">Senha</label>
+                    <input type="password" id="login-pass" required class="w-full bg-black/40 border border-white/5 p-4 rounded-xl text-white focus:border-fire-blue outline-none transition-all" placeholder="••••••••">
                 </div>
-                <button type="submit" id="auth-btn" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded mt-2 transition-all">ACESSAR SISTEMA</button>
+                <button type="submit" class="w-full fire-gradient py-4 rounded-xl font-black text-white shadow-xl hover:scale-[1.02] transition-transform">ENTRAR NO SISTEMA</button>
             </form>
-            <p id="auth-msg" class="text-center text-xs text-red-400 mt-4 h-4"></p>
+            <div class="mt-8 text-xs text-gray-600">Site inspirado em IPTVEditor.com &bull; 2026</div>
         </div>
     </div>
 
-    <div id="app-container" class="hidden h-screen flex flex-col">
+    <div id="app" class="h-screen flex flex-col hidden">
         
-        <header class="glass-header h-16 flex items-center justify-between px-6 shrink-0 select-none">
-            <div class="flex items-center gap-8">
-                <div class="font-bold text-lg tracking-tight"><span class="text-cyan-400">GEMINI</span> TV</div>
-                
-                <nav class="flex gap-1 bg-slate-800/50 p-1 rounded-lg">
-                    <button onclick="Router.go('home')" id="nav-home" class="px-4 py-1.5 rounded text-xs font-bold text-white bg-slate-700 shadow transition-all">
-                        <i class="fa-solid fa-home mr-1"></i> INÍCIO
-                    </button>
-                    <button onclick="Router.go('editor')" id="nav-editor" class="px-4 py-1.5 rounded text-xs font-bold text-gray-400 hover:text-white hover:bg-slate-700/50 transition-all">
-                        <i class="fa-solid fa-layer-group mr-1"></i> EDITOR
-                    </button>
-                    <button onclick="Router.go('theater')" id="nav-theater" class="px-4 py-1.5 rounded text-xs font-bold text-gray-400 hover:text-white hover:bg-slate-700/50 transition-all">
-                        <i class="fa-solid fa-play mr-1"></i> THEATER
-                    </button>
+        <header class="glass-nav h-16 flex items-center justify-between px-8 shrink-0 z-50">
+            <div class="flex items-center gap-10">
+                <div class="text-xl font-black tracking-tighter"><span class="text-fire-blue">GEMINI</span>TV</div>
+                <nav class="flex gap-8 text-xs font-bold uppercase tracking-widest text-gray-400">
+                    <button onclick="Router.go('landing')" id="nav-landing" class="hover:text-white transition-colors">Apresentação</button>
+                    <button onclick="Router.go('playlists')" id="nav-playlists" class="hover:text-white transition-colors">Playlists</button>
+                    <button onclick="Router.go('editor')" id="nav-editor" class="hover:text-white transition-colors">Editor</button>
+                    <button onclick="Router.go('theater')" id="nav-theater" class="hover:text-white transition-colors">Theater</button>
                 </nav>
             </div>
-
-            <div class="flex items-center gap-3">
-                <button onclick="IO.importDialog()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded text-xs font-bold transition-colors">
-                    <i class="fa-solid fa-download mr-1"></i> IMPORTAR
-                </button>
-                <div class="h-8 w-px bg-white/10 mx-2"></div>
-                <div class="text-right hidden md:block">
-                    <div class="text-[10px] text-gray-400 uppercase">Logado como</div>
-                    <div id="user-display" class="text-xs font-bold text-white">usuario@email.com</div>
+            
+            <div class="flex items-center gap-6">
+                <button onclick="Config.toggleTheme()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-circle-half-stroke"></i></button>
+                <div class="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-full border border-white/5">
+                    <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                    <span id="display-user" class="text-[10px] font-bold text-gray-300">ADMIN</span>
                 </div>
-                <button onclick="Auth.logout()" class="text-gray-400 hover:text-red-500 p-2 transition-colors" title="Sair">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                </button>
+                <button onclick="Auth.logout()" class="text-gray-500 hover:text-red-500"><i class="fa-solid fa-power-off"></i></button>
             </div>
         </header>
 
-        <main class="flex-1 overflow-hidden relative">
+        <main class="flex-1 relative overflow-hidden">
             
-            <section id="view-home" class="absolute inset-0 p-8 overflow-y-auto">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-white">Minhas Playlists</h2>
-                </div>
-                
-                <div id="playlist-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <section id="view-landing" class="absolute inset-0 overflow-y-auto hidden fade-in">
+                <div class="max-w-6xl mx-auto py-20 px-8 text-center">
+                    <h1 class="text-6xl font-black mb-6 leading-none">O Editor de IPTV mais <span class="text-fire-blue">poderoso</span> do mundo.</h1>
+                    <p class="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">Gerencie, edite e organize suas listas M3U com ferramentas de nível enterprise. Seleção em massa, busca inteligente e player integrado.</p>
+                    
+                    <div class="flex justify-center gap-6 mb-20">
+                        <button onclick="Router.go('playlists')" class="fire-gradient px-10 py-4 rounded-2xl font-black text-lg shadow-2xl">COMEÇAR AGORA</button>
+                        <button class="bg-white/5 border border-white/10 px-10 py-4 rounded-2xl font-black text-lg">VER RECURSOS</button>
                     </div>
-                
-                <div id="empty-state" class="hidden text-center py-20 opacity-50">
-                    <i class="fa-solid fa-ghost text-6xl mb-4 text-gray-600"></i>
-                    <p>Nenhuma playlist encontrada.</p>
+
+                    <div class="grid grid-cols-3 gap-8 text-left">
+                        <div class="bg-fire-panel p-8 rounded-3xl border border-white/5">
+                            <i class="fa-solid fa-wand-magic-sparkles text-fire-blue text-3xl mb-4"></i>
+                            <h3 class="text-xl font-bold mb-2">Bulk Editing</h3>
+                            <p class="text-gray-500 text-sm">Edite milhares de canais de uma só vez. Mude nomes, logos e grupos em segundos.</p>
+                        </div>
+                        <div class="bg-fire-panel p-8 rounded-3xl border border-white/5">
+                            <i class="fa-solid fa-sync text-fire-blue text-3xl mb-4"></i>
+                            <h3 class="text-xl font-bold mb-2">Auto-Sync</h3>
+                            <p class="text-gray-500 text-sm">Suas listas são atualizadas automaticamente da fonte original preservando suas edições.</p>
+                        </div>
+                        <div class="bg-fire-panel p-8 rounded-3xl border border-white/5">
+                            <i class="fa-solid fa-tv text-fire-blue text-3xl mb-4"></i>
+                            <h3 class="text-xl font-bold mb-2">Theater Mode</h3>
+                            <p class="text-gray-500 text-sm">Assista seus canais e VODs diretamente no editor com tecnologia HLS de baixa latência.</p>
+                        </div>
+                    </div>
                 </div>
             </section>
 
-            <section id="view-editor" class="absolute inset-0 hidden flex flex-col">
-                <div class="h-12 bg-slate-900 border-b border-white/5 flex items-center px-4 justify-between shrink-0">
-                    <div class="flex items-center gap-3">
-                        <span class="text-xs font-bold text-gray-500 uppercase">Editando:</span>
-                        <select id="editor-pl-select" onchange="Editor.loadPlaylist(this.value)" class="bg-slate-800 text-white text-xs rounded border border-slate-700 px-3 py-1 outline-none focus:border-cyan-500">
-                        </select>
+            <section id="view-playlists" class="absolute inset-0 overflow-y-auto hidden fade-in">
+                <div class="p-10 max-w-7xl mx-auto">
+                    <div class="flex justify-between items-end mb-10">
+                        <div>
+                            <h2 class="text-4xl font-black">Playlists</h2>
+                            <p class="text-gray-500">Gerenciamento centralizado de fontes M3U.</p>
+                        </div>
+                        <button onclick="IO.importPrompt()" class="fire-gradient px-8 py-3 rounded-xl font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-plus"></i> NOVA PLAYLIST
+                        </button>
                     </div>
-                    <div>
-                         <button onclick="IO.exportCurrent()" class="text-emerald-400 hover:text-emerald-300 text-xs font-bold px-3 py-1 border border-emerald-500/30 rounded hover:bg-emerald-500/10 transition-colors">
-                            <i class="fa-solid fa-file-export mr-1"></i> EXPORTAR M3U
+
+                    <div class="bg-fire-panel rounded-2xl border border-white/5 overflow-hidden">
+                        <table class="w-full data-table text-left">
+                            <thead>
+                                <tr>
+                                    <th>Playlist Name</th>
+                                    <th>Source URL</th>
+                                    <th>Groups</th>
+                                    <th>Channels</th>
+                                    <th>Auto-Sync</th>
+                                    <th>Expiration</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="playlist-list">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-editor" class="absolute inset-0 hidden fade-in flex flex-col">
+                <div class="h-14 bg-fire-panel border-b border-white/5 flex items-center justify-between px-6 shrink-0">
+                    <div class="flex items-center gap-4">
+                        <select id="editor-pl-select" onchange="Editor.switchPL(this.value)" class="bg-black/40 border border-white/10 rounded px-3 py-1.5 text-xs font-bold text-fire-blue outline-none">
+                            <option>Selecione uma lista...</option>
+                        </select>
+                        <div class="h-6 w-px bg-white/10"></div>
+                        <div class="flex bg-black/40 p-1 rounded-lg">
+                            <button onclick="Editor.setView('channels')" id="btn-view-channels" class="px-4 py-1 rounded text-[10px] font-black bg-fire-blue text-white transition-all">CHANNELS</button>
+                            <button onclick="Editor.setView('vod')" id="btn-view-vod" class="px-4 py-1 rounded text-[10px] font-black text-gray-500 hover:text-white transition-all">MOVIES & SERIES</button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <div class="relative">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+                            <input type="text" id="editor-search" onkeyup="Editor.renderChannels()" placeholder="Search in group..." class="bg-black/40 border border-white/10 rounded-full pl-9 pr-4 py-1.5 text-xs text-white focus:border-fire-blue outline-none w-64">
+                        </div>
+                        <button onclick="Editor.openBulkTools()" class="bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-1.5 rounded-lg text-xs font-bold transition-all">
+                            <i class="fa-solid fa-wand-magic-sparkles mr-2 text-fire-blue"></i> MORE TOOLS
                         </button>
                     </div>
                 </div>
 
-                <div class="flex-1 flex overflow-hidden">
-                    
-                    <div class="w-80 bg-slate-900 border-r border-white/5 flex flex-col">
-                        <div class="p-3 border-b border-white/5 bg-slate-800/30">
-                            <div class="flex justify-between items-center mb-2">
-                                <div class="text-xs font-bold text-gray-400 uppercase">GRUPOS <span id="count-groups" class="bg-slate-700 text-white px-1.5 rounded text-[10px] ml-1">0</span></div>
-                                <div class="flex gap-1">
-                                    <button onclick="Editor.sortGroups()" class="p-1.5 hover:bg-white/10 rounded text-gray-400" title="Ordenar A-Z"><i class="fa-solid fa-arrow-down-a-z text-xs"></i></button>
-                                    <button onclick="Editor.toggleAllGroups()" class="p-1.5 hover:bg-white/10 rounded text-gray-400" title="Esconder/Mostrar Todos"><i class="fa-solid fa-eye text-xs"></i></button>
-                                </div>
-                            </div>
-                            <input type="text" id="search-groups" onkeyup="Editor.renderGroups()" placeholder="Filtrar..." class="w-full bg-slate-950 text-white text-xs rounded border border-slate-700 px-3 py-2 outline-none focus:border-cyan-500">
+                <div class="editor-container">
+                    <aside class="panel-left flex flex-col">
+                        <div class="p-4 border-b border-white/5 flex justify-between items-center bg-black/20">
+                            <span class="text-[10px] font-black text-gray-500 tracking-widest uppercase">Groups</span>
+                            <span id="group-count" class="text-[10px] bg-fire-blue/20 text-fire-blue px-2 py-0.5 rounded-full font-bold">0</span>
                         </div>
-                        <div id="list-groups" class="flex-1 overflow-y-auto p-2 space-y-1"></div>
+                        <div id="list-groups" class="flex-1 overflow-y-auto p-2 space-y-1">
+                            </div>
+                    </aside>
+
+                    <div class="panel-center relative flex flex-col">
+                        <table class="w-full data-table text-left sticky-header">
+                            <thead>
+                                <tr class="sticky top-0 z-10">
+                                    <th class="w-10 text-center"><input type="checkbox" id="master-check" onclick="Editor.toggleSelectAll()"></th>
+                                    <th class="w-12">Logo</th>
+                                    <th>Name</th>
+                                    <th>EPG ID</th>
+                                    <th class="w-20">Order</th>
+                                    <th class="w-20">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="list-channels">
+                                </tbody>
+                        </table>
                     </div>
 
-                    <div class="flex-1 bg-slate-950 flex flex-col">
-                        <div class="p-3 border-b border-white/5 bg-slate-900/50 flex justify-between items-center">
-                            <div class="flex items-center gap-3">
-                                <div class="text-xs font-bold text-gray-400 uppercase">CANAIS <span id="count-channels" class="bg-cyan-900 text-cyan-200 px-1.5 rounded text-[10px] ml-1">0</span></div>
-                                <input type="text" id="search-channels" onkeyup="Editor.renderChannels()" placeholder="Buscar canal..." class="bg-slate-900 text-white text-xs rounded border border-slate-700 px-3 py-1.5 w-64 outline-none focus:border-cyan-500">
+                    <aside class="panel-right flex flex-col p-6 overflow-y-auto">
+                        <div class="mb-8">
+                            <h3 class="text-xs font-black text-fire-blue uppercase tracking-widest mb-6">Edit Channel</h3>
+                            <div id="prop-no-selection" class="text-center py-20 text-gray-600">
+                                <i class="fa-solid fa-mouse-pointer text-3xl mb-4 opacity-20"></i>
+                                <p class="text-xs">Selecione um canal para editar</p>
                             </div>
-                            <div class="flex bg-slate-800 rounded p-0.5">
-                                <button class="px-3 py-1 text-[10px] font-bold bg-slate-600 text-white rounded shadow">LISTA</button>
-                                <button class="px-3 py-1 text-[10px] font-bold text-gray-500 hover:text-white">LOGOS</button>
-                                <button class="px-3 py-1 text-[10px] font-bold text-gray-500 hover:text-white">EPG</button>
+                            <div id="prop-form" class="hidden space-y-6">
+                                <div>
+                                    <label class="text-[10px] font-bold text-gray-500 uppercase">Channel Name</label>
+                                    <input type="text" id="edit-name" class="w-full bg-black/40 border border-white/5 p-3 rounded-lg text-sm text-white focus:border-fire-blue outline-none mt-1">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-gray-500 uppercase">Logo URL</label>
+                                    <div class="flex gap-2 mt-1">
+                                        <input type="text" id="edit-logo" class="flex-1 bg-black/40 border border-white/5 p-3 rounded-lg text-sm text-white focus:border-fire-blue outline-none">
+                                        <div id="edit-logo-preview" class="w-11 h-11 bg-black rounded border border-white/5 flex items-center justify-center overflow-hidden">
+                                            <i class="fa-solid fa-image text-gray-800"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-gray-500 uppercase">EPG ID</label>
+                                    <input type="text" id="edit-epg" class="w-full bg-black/40 border border-white/5 p-3 rounded-lg text-sm text-white focus:border-fire-blue outline-none mt-1">
+                                </div>
+                                <div class="pt-4 border-t border-white/5">
+                                    <button onclick="Editor.saveProperties()" class="w-full fire-gradient py-3 rounded-xl font-bold text-sm shadow-lg transform active:scale-95 transition-all">SALVAR ALTERAÇÕES</button>
+                                </div>
                             </div>
                         </div>
-                        <div id="list-channels" class="flex-1 overflow-y-auto p-2"></div>
+                    </aside>
+                </div>
+
+                <div id="bulk-bar" class="flex items-center gap-6">
+                    <span id="bulk-count" class="font-black text-sm">0 selecionados</span>
+                    <div class="h-6 w-px bg-white/20"></div>
+                    <div class="flex gap-4">
+                        <button onclick="Editor.bulkMove()" class="hover:underline text-xs font-bold uppercase tracking-widest">Mover</button>
+                        <button onclick="Editor.bulkDelete()" class="hover:underline text-xs font-bold uppercase tracking-widest">Excluir</button>
+                        <button onclick="Editor.clearSelection()" class="text-white/50 hover:text-white text-xs"><i class="fa-solid fa-xmark"></i></button>
                     </div>
                 </div>
             </section>
 
-            <section id="view-theater" class="absolute inset-0 hidden flex bg-black">
-                <div class="w-64 bg-slate-900 border-r border-white/10 flex flex-col">
-                    <div class="p-3 font-bold text-xs text-cyan-500 border-b border-white/10">SELEÇÃO</div>
-                    <div id="theater-list" class="flex-1 overflow-y-auto p-2"></div>
+            <section id="view-theater" class="absolute inset-0 hidden fade-in flex bg-black">
+                <div class="w-80 bg-fire-panel border-r border-white/10 flex flex-col shrink-0">
+                    <div class="p-6 border-b border-white/10">
+                        <h2 class="text-xl font-black text-white">Theater</h2>
+                        <div class="flex gap-2 mt-4 bg-black/40 p-1 rounded-lg">
+                            <button onclick="Theater.setTab('live')" id="theater-tab-live" class="flex-1 py-2 rounded text-[10px] font-black bg-fire-blue text-white">LIVE</button>
+                            <button onclick="Theater.setTab('vod')" id="theater-tab-vod" class="flex-1 py-2 rounded text-[10px] font-black text-gray-500">VOD</button>
+                        </div>
+                    </div>
+                    <div id="theater-list" class="flex-1 overflow-y-auto p-4 space-y-2">
+                        </div>
                 </div>
-                <div class="flex-1 flex items-center justify-center relative group">
-                    <video id="video-player" controls class="w-full h-full max-h-screen"></video>
+                <div class="flex-1 flex flex-col relative">
+                    <div class="bg-black flex-1 flex items-center justify-center relative">
+                        <video id="video-player" controls class="w-full h-full max-h-[90vh] shadow-2xl"></video>
+                        <div id="player-overlay" class="absolute inset-0 flex items-center justify-center bg-black/80 pointer-events-none transition-opacity duration-500">
+                             <div class="text-center">
+                                 <i class="fa-solid fa-play-circle text-6xl text-fire-blue animate-pulse mb-4"></i>
+                                 <p class="text-gray-500 font-bold uppercase tracking-widest">Aguardando Seleção</p>
+                             </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -210,138 +311,73 @@
     </div>
 
     <script>
-        // --- UTILITÁRIOS ---
-        const Utils = {
-            id: () => Date.now().toString(36) + Math.random().toString(36).substr(2),
-            toast: (msg, type='success') => {
-                const div = document.createElement('div');
-                div.className = `toast px-4 py-3 rounded shadow-lg text-sm font-bold flex items-center gap-3 text-white ${type === 'error' ? 'bg-red-900 border-l-4 border-red-500' : 'bg-slate-800 border-l-4 border-cyan-500'}`;
-                div.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-circle-xmark' : 'fa-check-circle'}"></i> ${msg}`;
-                document.getElementById('toast-container').appendChild(div);
-                setTimeout(() => div.remove(), 4000);
+        // --- 1. CONFIGURAÇÕES E ESTADO GLOBAL ---
+        const Config = {
+            theme: 'dark',
+            toggleTheme() {
+                this.theme = this.theme === 'dark' ? 'light' : 'dark';
+                document.body.className = this.theme;
+                localStorage.setItem('gtv_theme', this.theme);
+            },
+            init() {
+                this.theme = localStorage.getItem('gtv_theme') || 'dark';
+                document.body.className = this.theme;
             }
         };
 
-        // --- SISTEMA DE MODAL (SEM PROMPT FEIO) ---
-        const Modal = {
-            el: document.getElementById('modal-overlay'),
-            title: document.getElementById('modal-title'),
-            desc: document.getElementById('modal-desc'),
-            content: document.getElementById('modal-content'),
-            confirmBtn: document.getElementById('modal-confirm-btn'),
-            
-            prompt(title, desc, initialValue, callback) {
-                this.title.innerText = title;
-                this.desc.innerText = desc;
-                this.content.innerHTML = `<input type="text" id="modal-input" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white outline-none focus:border-cyan-500" value="${initialValue}">`;
-                this.confirmBtn.onclick = () => {
-                    const val = document.getElementById('modal-input').value;
-                    if(val) callback(val);
-                    this.close();
-                };
-                this.el.classList.remove('hidden');
-                setTimeout(() => document.getElementById('modal-input').focus(), 100);
-            },
-            
-            confirm(title, desc, callback) {
-                this.title.innerText = title;
-                this.desc.innerText = desc;
-                this.content.innerHTML = '';
-                this.confirmBtn.onclick = () => {
-                    callback();
-                    this.close();
-                };
-                this.el.classList.remove('hidden');
-            },
-
-            close() { this.el.classList.add('hidden'); }
+        const App = {
+            playlists: [],
+            currentPL: null,
+            selectedChannels: new Set(),
+            editingChannel: null,
+            viewMode: 'channels' // channels | vod
         };
 
-        // --- AUTH (LOGIN REAL) ---
+        // --- 2. AUTH (ACESSO REAL) ---
         const Auth = {
-            mode: 'login', // login | register
-            user: null,
-
-            init() {
-                const session = localStorage.getItem('gtv_session');
-                if(session) {
-                    this.user = JSON.parse(session);
-                    this.enterApp();
-                }
-            },
-
-            switchTab(mode) {
-                this.mode = mode;
-                const tabLogin = document.getElementById('tab-login');
-                const tabReg = document.getElementById('tab-register');
-                const btn = document.getElementById('auth-btn');
-                
-                if(mode === 'login') {
-                    tabLogin.className = "flex-1 pb-3 text-sm font-bold text-cyan-500 border-b-2 border-cyan-500";
-                    tabReg.className = "flex-1 pb-3 text-sm font-bold text-gray-500 hover:text-gray-300";
-                    btn.innerText = "ACESSAR SISTEMA";
-                } else {
-                    tabReg.className = "flex-1 pb-3 text-sm font-bold text-cyan-500 border-b-2 border-cyan-500";
-                    tabLogin.className = "flex-1 pb-3 text-sm font-bold text-gray-500 hover:text-gray-300";
-                    btn.innerText = "CRIAR CONTA";
-                }
-                document.getElementById('auth-msg').innerText = "";
-            },
-
-            submit(e) {
+            handleLogin(e) {
                 e.preventDefault();
-                const email = document.getElementById('auth-email').value;
-                const pass = document.getElementById('auth-pass').value;
-                const msg = document.getElementById('auth-msg');
+                const email = document.getElementById('login-email').value;
+                const pass = document.getElementById('login-pass').value;
 
-                // Simulação de Banco de Usuários no LocalStorage
-                const usersDB = JSON.parse(localStorage.getItem('gtv_users_db') || '{}');
-
-                if(this.mode === 'register') {
-                    if(usersDB[email]) return msg.innerText = "E-mail já cadastrado.";
-                    usersDB[email] = pass; // Salva senha (em projeto real, usar hash)
-                    localStorage.setItem('gtv_users_db', JSON.stringify(usersDB));
-                    Utils.toast("Conta criada! Faça login.");
-                    this.switchTab('login');
-                } else {
-                    if(!usersDB[email] || usersDB[email] !== pass) return msg.innerText = "E-mail ou senha incorretos.";
-                    
-                    this.user = { email, token: Utils.id() };
-                    localStorage.setItem('gtv_session', JSON.stringify(this.user));
-                    this.enterApp();
+                if(pass.length < 4) return UI.toast("Senha muito curta!", "error");
+                
+                localStorage.setItem('gtv_auth', JSON.stringify({ email, time: Date.now() }));
+                this.check();
+            },
+            check() {
+                const session = localStorage.getItem('gtv_auth');
+                if(session) {
+                    const data = JSON.parse(session);
+                    document.getElementById('view-login').classList.add('hidden');
+                    document.getElementById('app').classList.remove('hidden');
+                    document.getElementById('display-user').innerText = data.email.toUpperCase();
+                    DB.init();
                 }
             },
-
-            enterApp() {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('app-container').classList.remove('hidden');
-                document.getElementById('user-display').innerText = this.user.email;
-                DB.init();
-            },
-
             logout() {
-                localStorage.removeItem('gtv_session');
+                localStorage.removeItem('gtv_auth');
                 location.reload();
             }
         };
 
-        // --- DATABASE (INDEXEDDB) ---
+        // --- 3. BANCO DE DADOS (INDEXEDDB - ALTA PERFORMANCE) ---
         const DB = {
             db: null,
-            async init() {
-                const request = indexedDB.open("GeminiTV_v7.3", 1);
-                request.onupgradeneeded = e => {
+            init() {
+                const req = indexedDB.open("GeminiTV_MasterDB", 1);
+                req.onupgradeneeded = e => {
                     const db = e.target.result;
                     if(!db.objectStoreNames.contains('playlists')) db.createObjectStore('playlists', { keyPath: 'id' });
                 };
-                request.onsuccess = e => {
+                req.onsuccess = e => {
                     this.db = e.target.result;
                     this.loadAll();
                 };
             },
             async save(pl) {
                 const tx = this.db.transaction('playlists', 'readwrite');
-                tx.objectStore('playlists').put(pl);
+                tx.objectStore('playlists').put(JSON.parse(JSON.stringify(pl)));
                 return new Promise(r => tx.oncomplete = r);
             },
             async delete(id) {
@@ -354,334 +390,374 @@
                 const req = tx.objectStore('playlists').getAll();
                 req.onsuccess = () => {
                     App.playlists = req.result || [];
-                    App.renderHome();
+                    UI.renderPlaylists();
+                    Router.go('landing');
                 };
             }
         };
 
-        // --- CORE APP LOGIC ---
-        const App = {
-            playlists: [],
-            currentPL: null,
+        // --- 4. UI ENGINE ---
+        const UI = {
+            toast(msg, type='success') {
+                const id = 't-'+Date.now();
+                const div = document.createElement('div');
+                div.id = id;
+                div.className = `px-6 py-4 rounded-xl shadow-2xl text-white font-bold text-sm flex items-center gap-3 fade-in ${type === 'error' ? 'bg-red-600' : 'bg-fire-blue'}`;
+                div.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-triangle-exclamation' : 'fa-check-circle'}"></i> ${msg}`;
+                document.getElementById('toast-container').appendChild(div);
+                setTimeout(() => div.remove(), 4000);
+            },
+            
+            showModal(title, bodyHTML, onConfirm) {
+                document.getElementById('modal-title').innerText = title;
+                document.getElementById('modal-body').innerHTML = bodyHTML;
+                document.getElementById('modal-confirm').onclick = onConfirm;
+                document.getElementById('modal-overlay').classList.remove('hidden');
+            },
+            
+            closeModal() {
+                document.getElementById('modal-overlay').classList.add('hidden');
+            },
+
+            renderPlaylists() {
+                const list = document.getElementById('playlist-list');
+                list.innerHTML = App.playlists.map(p => `
+                    <tr>
+                        <td class="font-black text-white">${p.name}</td>
+                        <td class="text-xs text-gray-600 truncate max-w-[200px] font-mono">${p.source}</td>
+                        <td class="font-bold">${p.groups ? p.groups.length : 0}</td>
+                        <td class="font-bold">${p.channels ? p.channels.length : 0}</td>
+                        <td><span class="text-[10px] bg-green-900/30 text-green-500 px-2 py-0.5 rounded-full font-bold">ACTIVE</span></td>
+                        <td class="text-xs text-gray-500">2027-02-08</td>
+                        <td>
+                            <div class="flex gap-4">
+                                <button onclick="Router.openEditor('${p.id}')" class="text-fire-blue hover:text-white transition-colors"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button onclick="IO.deletePlaylist('${p.id}')" class="text-gray-700 hover:text-red-500 transition-colors"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        };
+
+        // --- 5. EDITOR CORE (IPTVEDITOR LOGIC) ---
+        const Editor = {
             currentGroup: null,
 
-            renderHome() {
-                const grid = document.getElementById('playlist-grid');
-                const empty = document.getElementById('empty-state');
-                
-                if(this.playlists.length === 0) {
-                    grid.innerHTML = '';
-                    empty.classList.remove('hidden');
-                    return;
-                }
-
-                empty.classList.add('hidden');
-                // Cards com BOTÕES VISÍVEIS
-                grid.innerHTML = this.playlists.map(p => `
-                    <div class="glass rounded-xl p-5 flex flex-col hover:border-cyan-500/50 transition-colors group">
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="bg-gradient-to-br from-cyan-600 to-blue-700 w-12 h-12 rounded-lg flex items-center justify-center shadow-lg">
-                                <i class="fa-solid fa-play text-white text-lg"></i>
-                            </div>
-                            <div class="text-[10px] bg-slate-800 px-2 py-1 rounded text-gray-400 border border-white/5">M3U</div>
-                        </div>
-                        <h3 class="font-bold text-white text-lg truncate mb-1">${p.name}</h3>
-                        <p class="text-xs text-gray-500 font-mono mb-6">${p.channels.length} canais</p>
-                        
-                        <div class="mt-auto grid grid-cols-4 gap-2 pt-4 border-t border-white/5">
-                            <button onclick="Router.openTheater('${p.id}')" class="bg-slate-800 hover:bg-cyan-600 hover:text-white text-gray-400 py-2 rounded transition-colors" title="Assistir">
-                                <i class="fa-solid fa-play"></i>
-                            </button>
-                            <button onclick="Router.openEditor('${p.id}')" class="bg-slate-800 hover:bg-indigo-600 hover:text-white text-gray-400 py-2 rounded transition-colors" title="Editar">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                            <button onclick="IO.exportSingle('${p.id}')" class="bg-slate-800 hover:bg-emerald-600 hover:text-white text-gray-400 py-2 rounded transition-colors" title="Exportar">
-                                <i class="fa-solid fa-file-arrow-down"></i>
-                            </button>
-                            <button onclick="App.deletePlaylist('${p.id}')" class="bg-slate-800 hover:bg-red-600 hover:text-white text-gray-400 py-2 rounded transition-colors" title="Excluir">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                `).join('');
-            },
-
-            deletePlaylist(id) {
-                Modal.confirm("Excluir Playlist", "Tem certeza? Isso não pode ser desfeito.", async () => {
-                    await DB.delete(id);
-                    App.playlists = App.playlists.filter(p => p.id !== id);
-                    App.renderHome();
-                    Utils.toast("Playlist removida.");
-                });
-            }
-        };
-
-        // --- ROUTER ---
-        const Router = {
-            go(view) {
-                document.querySelectorAll('main section').forEach(el => el.classList.add('hidden'));
-                document.getElementById('view-'+view).classList.remove('hidden');
-                
-                // Reset Nav styles
-                document.querySelectorAll('nav button').forEach(b => {
-                    b.classList.remove('text-white', 'bg-slate-700');
-                    b.classList.add('text-gray-400');
-                });
-                document.getElementById('nav-'+view).classList.add('text-white', 'bg-slate-700');
-                document.getElementById('nav-'+view).classList.remove('text-gray-400');
-            },
-            openEditor(id) {
-                this.go('editor');
-                Editor.init(id);
-            },
-            openTheater(id) {
-                this.go('theater');
-                Theater.init(id);
-            }
-        };
-
-        // --- EDITOR LOGIC (Gourmet) ---
-        const Editor = {
             init(id) {
                 const sel = document.getElementById('editor-pl-select');
-                sel.innerHTML = App.playlists.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-                if(id) sel.value = id;
-                this.loadPlaylist(sel.value);
+                sel.innerHTML = App.playlists.map(p => `<option value="${p.id}" ${p.id === id ? 'selected' : ''}>${p.name}</option>`).join('');
+                this.switchPL(id || sel.value);
             },
 
-            loadPlaylist(id) {
+            switchPL(id) {
                 App.currentPL = App.playlists.find(p => p.id === id);
                 if(!App.currentPL) return;
                 
-                // Extrair grupos se não existirem
-                if(!App.currentPL.groups || App.currentPL.groups.length === 0) {
-                    const s = new Set(App.currentPL.channels.map(c => c.group));
-                    App.currentPL.groups = Array.from(s).sort().map(g => ({ name: g, hidden: false }));
+                // Auto-Groups se não existirem
+                if(!App.currentPL.groups) {
+                    const gNames = [...new Set(App.currentPL.channels.map(c => c.group))];
+                    App.currentPL.groups = gNames.map(name => ({ name, visible: true }));
                 }
 
-                if(!App.currentGroup && App.currentPL.groups.length > 0) App.currentGroup = App.currentPL.groups[0].name;
-                
+                this.currentGroup = App.currentPL.groups[0]?.name;
                 this.renderGroups();
+                this.renderChannels();
+            },
+
+            setView(mode) {
+                App.viewMode = mode;
+                document.getElementById('btn-view-channels').className = mode === 'channels' ? "px-4 py-1 rounded text-[10px] font-black bg-fire-blue text-white" : "px-4 py-1 rounded text-[10px] font-black text-gray-500 hover:text-white";
+                document.getElementById('btn-view-vod').className = mode === 'vod' ? "px-4 py-1 rounded text-[10px] font-black bg-fire-blue text-white" : "px-4 py-1 rounded text-[10px] font-black text-gray-500 hover:text-white";
                 this.renderChannels();
             },
 
             renderGroups() {
                 const list = document.getElementById('list-groups');
-                const term = document.getElementById('search-groups').value.toUpperCase();
-                
-                const filtered = App.currentPL.groups.filter(g => g.name.toUpperCase().includes(term));
-                document.getElementById('count-groups').innerText = filtered.length;
+                document.getElementById('group-count').innerText = App.currentPL.groups.length;
 
-                list.innerHTML = filtered.map(g => {
+                list.innerHTML = App.currentPL.groups.map(g => {
                     const count = App.currentPL.channels.filter(c => c.group === g.name).length;
-                    const isActive = App.currentGroup === g.name;
-                    
+                    const isActive = this.currentGroup === g.name;
                     return `
-                    <div class="group flex items-center justify-between p-2 rounded cursor-pointer border border-transparent hover:border-white/5 hover:bg-white/5 transition-all ${isActive ? 'bg-cyan-500/10 border-cyan-500/50' : ''}" onclick="Editor.selectGroup('${g.name}')">
-                        <div class="flex items-center gap-2 overflow-hidden">
-                            <i class="fa-solid fa-grip-lines text-gray-600 cursor-grab hover:text-white text-xs"></i>
-                            <span class="text-xs font-bold truncate ${isActive ? 'text-cyan-400' : 'text-gray-300'}">${g.name}</span>
-                            <span class="text-[10px] text-gray-500 font-mono">(${count})</span>
+                        <div onclick="Editor.selectGroup('${g.name}')" class="group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all ${isActive ? 'bg-fire-blue text-white shadow-lg shadow-fire-blue/20' : 'hover:bg-white/5 text-gray-500'}">
+                            <span class="text-xs font-bold truncate pr-2">${g.name}</span>
+                            <span class="text-[9px] font-black ${isActive ? 'bg-white/20' : 'bg-white/5'} px-2 py-0.5 rounded-full">${count}</span>
                         </div>
-                        <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onclick="Editor.renameGroup(event, '${g.name}')" class="p-1 hover:text-white text-gray-400"><i class="fa-solid fa-pen text-[10px]"></i></button>
-                            <button onclick="Editor.toggleGroup(event, '${g.name}')" class="p-1 hover:text-white ${g.hidden ? 'text-red-400' : 'text-gray-400'}"><i class="fa-solid ${g.hidden ? 'fa-eye-slash' : 'fa-eye'} text-[10px]"></i></button>
-                        </div>
-                    </div>`;
+                    `;
                 }).join('');
             },
 
             selectGroup(name) {
-                App.currentGroup = name;
-                this.renderGroups(); // Para atualizar o highlight
+                this.currentGroup = name;
+                this.renderGroups();
                 this.renderChannels();
             },
 
             renderChannels() {
-                const list = document.getElementById('list-channels');
-                if(!App.currentGroup) { list.innerHTML = ''; return; }
-
-                const term = document.getElementById('search-channels').value.toUpperCase();
-                const channels = App.currentPL.channels.filter(c => c.group === App.currentGroup && c.name.toUpperCase().includes(term));
+                const tbody = document.getElementById('list-channels');
+                const search = document.getElementById('editor-search').value.toLowerCase();
                 
-                document.getElementById('count-channels').innerText = channels.length;
+                const filtered = App.currentPL.channels.filter(c => 
+                    c.group === this.currentGroup && 
+                    c.name.toLowerCase().includes(search)
+                );
 
-                list.innerHTML = channels.map(c => `
-                    <div class="flex items-center gap-3 p-2 border-b border-white/5 hover:bg-white/5 transition-colors draggable-item" draggable="true">
-                        <i class="fa-solid fa-grip-vertical text-gray-600 cursor-grab"></i>
-                        <img src="${c.logo || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiI+PHJlY3QgeD0iMiIgeT0iNyIgd2lkdGg9IjIwIiBoZWlnaHQ9IjE1IiByeD0iMiIgcnk9IjIiPjwvcmVjdD48cG9seWxpbmUgcG9pbnRzPSIxNyAyIDEyIDcgNyAyIj48L3BvbHlsaW5lPjwvc3ZnPg=='}" class="w-8 h-8 object-contain rounded bg-black/20">
-                        <div class="flex-1 min-w-0">
-                            <div class="text-sm text-gray-200 truncate font-medium">${c.name}</div>
-                            <div class="flex gap-2 text-[10px] text-gray-500 font-mono">
-                                <span>ID: ${c.tvgId || 'N/A'}</span>
+                tbody.innerHTML = filtered.map((c, idx) => `
+                    <tr onclick="Editor.selectChannel('${c.id}')" class="${App.editingChannel?.id === c.id ? 'bg-fire-blue/10' : ''}">
+                        <td class="text-center" onclick="event.stopPropagation()">
+                            <input type="checkbox" onchange="Editor.toggleChannelSelect('${c.id}')" ${App.selectedChannels.has(c.id) ? 'checked' : ''}>
+                        </td>
+                        <td>
+                            <img src="${c.logo}" class="w-8 h-8 object-contain bg-black/40 rounded shadow-inner" onerror="this.src='https://via.placeholder.com/40?text=TV'">
+                        </td>
+                        <td class="font-bold text-gray-200">${c.name}</td>
+                        <td class="text-xs text-gray-500 font-mono">${c.epg || '---'}</td>
+                        <td class="text-gray-600 text-xs">#${idx + 1}</td>
+                        <td>
+                            <div class="flex gap-2">
+                                <button class="text-gray-700 hover:text-white"><i class="fa-solid fa-grip-vertical"></i></button>
+                                <button onclick="Editor.deleteChannel('${c.id}')" class="text-gray-700 hover:text-red-500"><i class="fa-solid fa-trash-can"></i></button>
                             </div>
-                        </div>
-                        <div class="flex gap-2 pr-2">
-                             <button onclick="Editor.renameChannel('${c.id}')" class="text-gray-500 hover:text-cyan-400"><i class="fa-solid fa-pen"></i></button>
-                             <button onclick="Editor.deleteChannel('${c.id}')" class="text-gray-500 hover:text-red-500"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </div>
+                        </td>
+                    </tr>
                 `).join('');
             },
 
-            // Ações Gourmet (Sem Prompt)
-            renameGroup(e, oldName) {
-                e.stopPropagation();
-                Modal.prompt("Renomear Grupo", "Digite o novo nome:", oldName, (newName) => {
-                    if(newName === oldName) return;
-                    App.currentPL.channels.forEach(c => { if(c.group === oldName) c.group = newName; });
-                    const g = App.currentPL.groups.find(x => x.name === oldName);
-                    if(g) g.name = newName;
-                    if(App.currentGroup === oldName) App.currentGroup = newName;
-                    DB.save(App.currentPL);
-                    this.renderGroups();
-                    this.renderChannels();
-                });
-            },
-
-            renameChannel(id) {
+            selectChannel(id) {
                 const c = App.currentPL.channels.find(x => x.id === id);
-                Modal.prompt("Renomear Canal", "Novo nome:", c.name, (newName) => {
-                    c.name = newName;
-                    DB.save(App.currentPL);
-                    this.renderChannels();
-                });
-            },
-            
-            toggleGroup(e, name) {
-                e.stopPropagation();
-                const g = App.currentPL.groups.find(x => x.name === name);
-                g.hidden = !g.hidden;
-                // Lógica de ocultar canais seria aplicada na exportação
-                DB.save(App.currentPL);
-                this.renderGroups();
+                App.editingChannel = c;
+                
+                document.getElementById('prop-no-selection').classList.add('hidden');
+                document.getElementById('prop-form').classList.remove('hidden');
+                
+                document.getElementById('edit-name').value = c.name;
+                document.getElementById('edit-logo').value = c.logo;
+                document.getElementById('edit-epg').value = c.epg;
+                document.getElementById('edit-logo-preview').innerHTML = `<img src="${c.logo}" class="w-full h-full object-contain">`;
+                
+                this.renderChannels(); // Refresh highlight
             },
 
-            deleteChannel(id) {
-                if(confirm("Apagar canal?")) { // Usei confirm nativo para velocidade, mas poderia ser Modal
-                    App.currentPL.channels = App.currentPL.channels.filter(c => c.id !== id);
-                    DB.save(App.currentPL);
-                    this.renderChannels();
+            saveProperties() {
+                if(!App.editingChannel) return;
+                
+                App.editingChannel.name = document.getElementById('edit-name').value;
+                App.editingChannel.logo = document.getElementById('edit-logo').value;
+                App.editingChannel.epg = document.getElementById('edit-epg').value;
+                
+                DB.save(App.currentPL);
+                UI.toast("Canal atualizado!");
+                this.renderChannels();
+            },
+
+            // MULTI-SELECT ENGINE
+            toggleChannelSelect(id) {
+                if(App.selectedChannels.has(id)) App.selectedChannels.delete(id);
+                else App.selectedChannels.add(id);
+                this.updateBulkBar();
+            },
+
+            toggleSelectAll() {
+                const master = document.getElementById('master-check').checked;
+                const filtered = App.currentPL.channels.filter(c => c.group === this.currentGroup);
+                
+                if(master) filtered.forEach(c => App.selectedChannels.add(c.id));
+                else filtered.forEach(c => App.selectedChannels.delete(c.id));
+                
+                this.renderChannels();
+                this.updateBulkBar();
+            },
+
+            updateBulkBar() {
+                const bar = document.getElementById('bulk-bar');
+                const count = document.getElementById('bulk-count');
+                if(App.selectedChannels.size > 0) {
+                    bar.style.display = 'flex';
+                    count.innerText = `${App.selectedChannels.size} selecionados`;
+                } else {
+                    bar.style.display = 'none';
                 }
+            },
+
+            clearSelection() {
+                App.selectedChannels.clear();
+                document.getElementById('master-check').checked = false;
+                this.renderChannels();
+                this.updateBulkBar();
+            },
+
+            // BULK TOOLS (FIND/REPLACE)
+            openBulkTools() {
+                const html = `
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[10px] font-black text-gray-500 uppercase">Localizar</label>
+                                <input type="text" id="find-val" class="w-full bg-black/40 border border-white/5 p-3 rounded-lg text-white outline-none">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-black text-gray-500 uppercase">Substituir por</label>
+                                <input type="text" id="replace-val" class="w-full bg-black/40 border border-white/5 p-3 rounded-lg text-white outline-none">
+                            </div>
+                        </div>
+                        <div class="p-4 bg-fire-blue/10 border border-fire-blue/20 rounded-xl text-xs text-fire-blue">
+                            Isso afetará todos os ${App.currentPL.channels.length} canais desta playlist.
+                        </div>
+                    </div>
+                `;
+                UI.showModal("Global Find & Replace", html, () => {
+                    const find = document.getElementById('find-val').value;
+                    const replace = document.getElementById('replace-val').value;
+                    if(!find) return;
+
+                    App.currentPL.channels.forEach(c => {
+                        c.name = c.name.replace(new RegExp(find, 'gi'), replace);
+                    });
+                    
+                    DB.save(App.currentPL);
+                    UI.toast("Substituição concluída!");
+                    Editor.renderChannels();
+                    UI.closeModal();
+                });
             }
         };
 
-        // --- IO (IMPORT/EXPORT) ---
+        // --- 6. IO (IMPORT & EXPORT) ---
         const IO = {
-            importDialog() {
-                Modal.prompt("Importar Lista M3U", "Cole a URL da sua lista:", "http://", (url) => {
-                    this.processURL(url);
-                });
+            importPrompt() {
+                const html = `
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-[10px] font-black text-gray-500 uppercase">Nome da Playlist</label>
+                            <input type="text" id="import-name" class="w-full bg-black/40 border border-white/5 p-3 rounded-lg text-white outline-none mt-1" placeholder="Minha Lista">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black text-gray-500 uppercase">M3U URL</label>
+                            <input type="text" id="import-url" class="w-full bg-black/40 border border-white/5 p-3 rounded-lg text-white outline-none mt-1" placeholder="http://servidor.com/lista.m3u">
+                        </div>
+                    </div>
+                `;
+                UI.showModal("Importar Nova Fonte", html, () => this.handleImport());
             },
 
-            async processURL(url) {
-                Utils.toast("Baixando lista...", "info");
+            async handleImport() {
+                const name = document.getElementById('import-name').value;
+                const url = document.getElementById('import-url').value;
+                
+                if(!name || !url) return UI.toast("Preencha tudo!", "error");
+                
+                UI.toast("Baixando dados...", "info");
+                UI.closeModal();
+
                 try {
                     const proxy = `https://geminitv-proxy.jcdoni.workers.dev/?url=${encodeURIComponent(url)}`;
                     const res = await fetch(proxy);
                     const text = await res.text();
                     
-                    if(!text.includes('#EXTM3U')) throw new Error("Não é uma lista M3U válida.");
+                    if(!text.includes('#EXTM3U')) throw new Error("Não é um M3U válido");
 
-                    const lines = text.split('\n');
                     const channels = [];
-                    const groupsSet = new Set();
-
+                    const lines = text.split('\n');
+                    
                     for(let i=0; i<lines.length; i++) {
                         if(lines[i].startsWith('#EXTINF:')) {
                             const meta = lines[i];
-                            const urlLine = lines[i+1] || "";
+                            const stream = lines[i+1]?.trim() || "";
                             
-                            const name = meta.split(',').slice(1).join(',').trim();
-                            const group = (meta.match(/group-title="([^"]+)"/) || ["","GERAL"])[1];
+                            const chName = meta.split(',')[1]?.trim() || "Sem Nome";
+                            const group = (meta.match(/group-title="([^"]+)"/) || ["","Geral"])[1];
                             const logo = (meta.match(/tvg-logo="([^"]+)"/) || ["",""])[1];
-                            const tvgId = (meta.match(/tvg-id="([^"]+)"/) || ["",""])[1];
+                            const epg = (meta.match(/tvg-id="([^"]+)"/) || ["",""])[1];
 
-                            groupsSet.add(group);
-                            channels.push({ id: Utils.id(), name, group, logo, tvgId, url: urlLine.trim() });
+                            channels.push({
+                                id: Math.random().toString(36).substr(2, 9),
+                                name: chName,
+                                group: group,
+                                logo: logo,
+                                epg: epg,
+                                url: stream
+                            });
                         }
                     }
 
-                    const newPL = {
-                        id: Utils.id(),
-                        name: "Lista Importada " + new Date().toLocaleTimeString(),
-                        channels: channels,
-                        groups: Array.from(groupsSet).map(g => ({ name: g, hidden: false }))
-                    };
-
+                    const newPL = { id: Date.now().toString(), name, source: url, channels };
                     await DB.save(newPL);
                     await DB.loadAll();
-                    Utils.toast(`Sucesso! ${channels.length} canais.`);
+                    UI.toast("Playlist importada com sucesso!");
 
                 } catch(e) {
-                    Utils.toast("Erro: " + e.message, "error");
+                    UI.toast("Erro ao importar: " + e.message, "error");
                 }
             },
 
-            exportCurrent() {
-                if(!App.currentPL) return;
-                this.download(App.currentPL);
-            },
-
-            exportSingle(id) {
-                const pl = App.playlists.find(p => p.id === id);
-                if(pl) this.download(pl);
-            },
-
-            download(pl) {
-                let m3u = "#EXTM3U\n";
-                pl.channels.forEach(c => {
-                    const gInfo = pl.groups.find(g => g.name === c.group);
-                    if(gInfo && gInfo.hidden) return; // Não exporta grupos ocultos
-
-                    m3u += `#EXTINF:-1 tvg-id="${c.tvgId}" tvg-logo="${c.logo}" group-title="${c.group}",${c.name}\n${c.url}\n`;
-                });
-                
-                const blob = new Blob([m3u], { type: 'text/plain' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `GeminiTV_${pl.name}.m3u`;
-                document.body.appendChild(link);
-                link.click();
-                link.remove();
-                Utils.toast("Download iniciado.");
+            deletePlaylist(id) {
+                if(confirm("Deseja excluir permanentemente?")) {
+                    DB.delete(id).then(() => DB.loadAll());
+                }
             }
         };
 
-        // --- THEATER (HLS PLAYER) ---
+        // --- 7. ROUTER ---
+        const Router = {
+            go(view) {
+                document.querySelectorAll('main section').forEach(s => s.classList.add('hidden'));
+                document.getElementById('view-' + view).classList.remove('hidden');
+                
+                document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-tab', 'text-white'));
+                const navBtn = document.getElementById('nav-' + view);
+                if(navBtn) navBtn.classList.add('active-tab', 'text-white');
+            },
+            openEditor(id) {
+                this.go('editor');
+                Editor.init(id);
+            }
+        };
+
+        // --- 8. THEATER ---
         const Theater = {
             hls: null,
-            init(id) {
-                if(id) {
-                    App.currentPL = App.playlists.find(p => p.id === id);
-                }
-                if(!App.currentPL) return;
-                
-                const list = document.getElementById('theater-list');
-                list.innerHTML = App.currentPL.channels.slice(0, 100).map(c => `
-                    <div onclick="Theater.play('${c.url}')" class="p-2 text-xs text-gray-400 hover:text-white hover:bg-white/10 cursor-pointer border-b border-white/5 truncate">
-                        ${c.name}
-                    </div>
-                `).join(''); // Limitado a 100 para demo rápida, ideal seria virtual scroll
+            setTab(t) {
+                document.getElementById('theater-tab-live').className = t === 'live' ? "flex-1 py-2 rounded text-[10px] font-black bg-fire-blue text-white" : "flex-1 py-2 rounded text-[10px] font-black text-gray-500";
+                document.getElementById('theater-tab-vod').className = t === 'vod' ? "flex-1 py-2 rounded text-[10px] font-black bg-fire-blue text-white" : "flex-1 py-2 rounded text-[10px] font-black text-gray-500";
+                this.render();
             },
-
+            init(id) {
+                if(id) App.currentPL = App.playlists.find(x => x.id === id);
+                if(!App.currentPL) return;
+                this.render();
+            },
+            render() {
+                const list = document.getElementById('theater-list');
+                list.innerHTML = App.currentPL.channels.slice(0, 50).map(c => `
+                    <div onclick="Theater.play('${c.url}')" class="p-3 bg-white/5 rounded-lg border border-white/5 cursor-pointer hover:border-fire-blue transition-all">
+                        <div class="text-[10px] font-bold text-white truncate">${c.name}</div>
+                        <div class="text-[8px] text-gray-600 truncate">${c.group}</div>
+                    </div>
+                `).join('');
+            },
             play(url) {
                 const video = document.getElementById('video-player');
-                if(Hls.isSupported()) {
+                document.getElementById('player-overlay').style.opacity = '0';
+                
+                if (Hls.isSupported()) {
                     if(this.hls) this.hls.destroy();
                     this.hls = new Hls();
                     this.hls.loadSource(url);
                     this.hls.attachMedia(video);
                     this.hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-                } else if(video.canPlayType('application/vnd.apple.mpegurl')) {
+                } else {
                     video.src = url;
                     video.play();
                 }
             }
         };
 
-        // Start
-        window.onload = () => Auth.init();
+        // INICIALIZAÇÃO
+        window.onload = () => {
+            Config.init();
+            Auth.check();
+        };
 
     </script>
 </body>
