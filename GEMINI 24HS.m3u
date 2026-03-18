@@ -1,4 +1,3 @@
-#EXTM3U x-tvg-url="https://tinyurl.com/epgmundo,https://tinyurl.com/epgeuropa,https://raw.githubusercontent.com/jcdoni/GEMINI-24-HS/refs/heads/main/epg-gemini.xml,https://epgshare01.online/epgshare01/epg_ripper_BR1.xml.gz,https://epgshare01.online/epgshare01/epg_ripper_BR2.xml.gz"
 #EXTINF:-1 tvg-id="TVTEM.BRASIL" tvg-logo="https://img.nnl.pw/draco/globo.png" group-title="FAVORITOS", TV TEM
 https://fantauva.top:443/live/843202043/153602649/1571220.ts
 #EXTINF:-1 tvg-id="GLOBOSP.BRASIL" tvg-logo="https://img.nnl.pw/draco/globo.png" group-title="FAVORITOS", GLOBO SP
