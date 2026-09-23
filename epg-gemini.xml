@@ -7,17 +7,14 @@
 		<display-name>Adult Swim HD</display-name>
 		<icon src="https://www.clarotvmais.com.br/img/channels/adult_swim.png" />
 	</channel>
-	<channel id="APARECIDAESPELHO.BRASIL">
-		<display-name>Belo Horizonte/MG   TV Aparecida (espelho)</display-name>
-	</channel>
 	<channel id="HBOMUNDI.BRASIL">
 		<display-name>Belo Horizonte/MG  Hbo Mundi</display-name>
 	</channel>
 	<channel id="POLISHOP.BRASIL">
 		<display-name>Belo Horizonte/MG  Polishop</display-name>
 	</channel>
-	<channel id="PREMIERE6.BRASIL">
-		<display-name>Belo Horizonte/MG  Premiere 6</display-name>
+	<channel id="PREMIERE7.BRASIL">
+		<display-name>Belo Horizonte/MG  Premiere 7</display-name>
 	</channel>
 	<channel id="SHOPTIME.BRASIL">
 		<display-name>Belo Horizonte/MG  Shoptime</display-name>
@@ -27,9 +24,6 @@
 	</channel>
 	<channel id="BLOOMBERG.BRASIL">
 		<display-name>Bloomberg</display-name>
-	</channel>
-	<channel id="CANALDOB.BRASIL">
-		<display-name>Campinas/SP  Canal do Boi</display-name>
 	</channel>
 	<channel id="FILMARTS.BRASIL">
 		<display-name>Campinas/SP  Film&amp;Arts</display-name>
@@ -81,12 +75,12 @@
 		<display-name>FRANCE 24 HD</display-name>
 		<icon src="https://www.clarotvmais.com.br/img/channels/france_24_epg.png" />
 	</channel>
+	<channel id="HBO.BRASIL">
+		<display-name>HBO</display-name>
+		<icon src="https://www.clarotvmais.com.br/img/channels/hbo_go.png" />
+	</channel>
 	<channel id="HBOPLUS.BRASIL">
 		<display-name>HBO Plus</display-name>
-	</channel>
-	<channel id="HBO.BRASIL">
-		<display-name>HBO+</display-name>
-		<icon src="https://www.clarotvmais.com.br/img/channels/hbo_mais.png" />
 	</channel>
 	<channel id="HISTORYCHANNEL.BRASIL">
 		<display-name>History Channel</display-name>
@@ -107,6 +101,9 @@
 	<channel id="SABORARTE.BRASIL">
 		<display-name>Sabor &amp; Arte</display-name>
 		<icon src="https://www.clarotvmais.com.br/img/channels/sabor-e-arte.png" />
+	</channel>
+	<channel id="APARECIDAESPELHO.BRASIL">
+		<display-name>São Paulo/SP   TV Aparecida (espelho)</display-name>
 	</channel>
 	<channel id="BRASIL2.BRASIL">
 		<display-name>São Paulo/SP   TV Brasil 2</display-name>
@@ -200,6 +197,9 @@
 	</channel>
 	<channel id="CANALDEVENDAS.BRASIL">
 		<display-name>São Paulo/SP  Canal de Vendas NET</display-name>
+	</channel>
+	<channel id="CANALDOB.BRASIL">
+		<display-name>São Paulo/SP  Canal do Boi</display-name>
 	</channel>
 	<channel id="CANALLEGISLATIVO.BRASIL">
 		<display-name>São Paulo/SP  Canal Legislativo</display-name>
@@ -563,8 +563,8 @@
 	<channel id="PREMIERE5.BRASIL">
 		<display-name>São Paulo/SP  Premiere 5</display-name>
 	</channel>
-	<channel id="PREMIERE7.BRASIL">
-		<display-name>São Paulo/SP  Premiere 7</display-name>
+	<channel id="PREMIERE6.BRASIL">
+		<display-name>São Paulo/SP  Premiere 6</display-name>
 	</channel>
 	<channel id="PREMIERECLUBES.BRASIL">
 		<display-name>São Paulo/SP  Premiere Clubes</display-name>
